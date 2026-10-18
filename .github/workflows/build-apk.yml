@@ -1,0 +1,44 @@
+﻿name: Rakenna Android APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Hae koodi
+        uses: actions/checkout@v4
+
+      - name: Aseta Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Aseta Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Asenna riippuvuudet ja synkronoi Capacitor
+        run: |
+          npm install
+          npx cap sync android
+
+      - name: Anna suoritusoikeudet Gradlelle
+        run: chmod +x android/gradlew
+
+      - name: Kaanna APK
+        run: |
+          cd android
+          ./gradlew assembleDebug
+
+      - name: Tallenna valmis APK ladattavaksi
+        uses: actions/upload-artifact@v4
+        with:
+          name: YardFlow-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
