@@ -19,153 +19,171 @@
                 const theme = saved || (prefersDark ? 'dark' : 'light');
                 document.documentElement.setAttribute('data-theme', theme);
                 const meta = document.getElementById('metaThemeColor');
-                if (meta) meta.setAttribute('content', theme === 'dark' ? '#090a0f' : '#f5f5f7');
+                if (meta) meta.setAttribute('content', theme === 'dark' ? '#0f172a' : '#f8fafc');
             } catch (e) {}
         })();
     </script>
     <style>
         /* ============================================================
-           YARDFLOW – APPLE HIG DESIGN SYSTEM (LIGHT & DARK THEMES)
+           YARDFLOW – SLATE & APPLE HIG DESIGN SYSTEM
            ============================================================ */
 
         :root {
-            --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
-            --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            --radius: 14px;
             --radius-sm: 8px;
             --radius-md: 12px;
-            --radius-lg: 16px;
-            --radius-xl: 20px;
-            --radius-pill: 9999px;
+            --radius-lg: 14px;
+            --radius-xl: 16px;
+            --radius-pill: 20px;
             --ease: cubic-bezier(0.16, 1, 0.3, 1);
-            --transition: 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+            --transition: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif;
+            --font-display: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif;
         }
 
-        /* DARK THEME (Apple Pro Dark / True Glass) */
+        /* DARK THEME (Syvä liuskekiven harmaa / Slate 900) */
         html[data-theme="dark"],
         html:not([data-theme="light"]) {
             color-scheme: dark;
-            --bg: #090a0f;
-            --bg-gradient: radial-gradient(ellipse 120% 50% at 50% -8%, rgba(10, 132, 255, 0.16), transparent 75%), #090a0f;
-            --header-bg: rgba(14, 16, 24, 0.78);
+            --bg-main: #0f172a;       /* Syvä liuskekiven harmaa */
+            --bg-card: #1e293b;       /* Korttien tausta */
+            --bg-card-hover: #334155;
+            --text-main: #f8fafc;     /* Puhdas kirkas teksti */
+            --text-muted: #94a3b8;    /* Vaaleanharmaa toissijainen tieto */
+            --accent-blue: #0ea5e9;   /* Pääkorostusväri */
+            --accent-green: #10b981;  /* Valmis-tila */
+            --accent-amber: #f59e0b;  /* Työn alla / Huomio */
+
+            /* Komponenttien muuttujat */
+            --bg: var(--bg-main);
+            --bg-gradient: radial-gradient(ellipse 120% 50% at 50% -8%, rgba(14, 165, 233, 0.15), transparent 75%), var(--bg-main);
+            --header-bg: rgba(15, 23, 42, 0.85);
             --header-border: rgba(255, 255, 255, 0.08);
-            --fg: #f5f5f7;
-            --fg-secondary: #98989d;
-            --muted: #86868b;
-            --card: #151821;
-            --card-hover: #191d28;
-            --card-border: rgba(255, 255, 255, 0.08);
-            --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-            --secondary: #1a1e2a;
+            --fg: var(--text-main);
+            --fg-secondary: #cbd5e1;
+            --muted: var(--text-muted);
+            --card: var(--bg-card);
+            --card-hover: var(--bg-card-hover);
+            --card-border: rgba(255, 255, 255, 0.06);
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            --secondary: #172033;
             --border: rgba(255, 255, 255, 0.1);
             --border-light: rgba(255, 255, 255, 0.06);
-            --input-bg: #0f121a;
+            --input-bg: #0b1120;
             --input-border: rgba(255, 255, 255, 0.14);
-            --input-focus: #0a84ff;
-            --focus-ring: rgba(10, 132, 255, 0.3);
+            --input-focus: var(--accent-blue);
+            --focus-ring: rgba(14, 165, 233, 0.35);
 
-            /* Apple System Colors */
-            --accent: #0a84ff;
-            --accent-hover: #3395ff;
-            --accent-soft: rgba(10, 132, 255, 0.15);
-            --accent-soft-hover: rgba(10, 132, 255, 0.25);
+            --accent: var(--accent-blue);
+            --accent-hover: #38bdf8;
+            --accent-soft: rgba(14, 165, 233, 0.15);
+            --accent-soft-hover: rgba(14, 165, 233, 0.25);
             --accent-contrast: #ffffff;
             --cta-text: #ffffff;
 
-            --success: #30d158;
-            --success-soft: rgba(48, 209, 88, 0.15);
-            --success-border: rgba(48, 209, 88, 0.4);
-            --success-text: #6be38d;
+            --success: var(--accent-green);
+            --success-soft: rgba(16, 185, 129, 0.15);
+            --success-border: rgba(16, 185, 129, 0.4);
+            --success-text: #34d399;
 
-            --warning: #ffd60a;
-            --warning-soft: rgba(255, 214, 10, 0.14);
-            --warning-border: rgba(255, 214, 10, 0.35);
-            --warning-text: #ffe04d;
+            --warning: var(--accent-amber);
+            --warning-soft: rgba(245, 158, 11, 0.15);
+            --warning-border: rgba(245, 158, 11, 0.35);
+            --warning-text: #fbbf24;
 
-            --danger: #ff453a;
-            --danger-soft: rgba(255, 69, 58, 0.15);
-            --danger-border: rgba(255, 69, 58, 0.4);
-            --danger-text: #ff7d75;
+            --danger: #ef4444;
+            --danger-soft: rgba(239, 68, 68, 0.15);
+            --danger-border: rgba(239, 68, 68, 0.4);
+            --danger-text: #f87171;
 
             /* Segmented Tabs */
-            --segmented-bg: rgba(118, 118, 128, 0.24);
-            --segmented-active: #252936;
+            --segmented-bg: rgba(30, 41, 59, 0.8);
+            --segmented-active: #334155;
             --segmented-active-text: #ffffff;
-            --segmented-active-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            --segmented-active-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 
             /* Modal & Glass */
-            --modal-bg: #161922;
-            --modal-backdrop: rgba(0, 0, 0, 0.72);
-            --menu-bg: #141720;
+            --modal-bg: #1e293b;
+            --modal-backdrop: rgba(15, 23, 42, 0.75);
+            --menu-bg: #1e293b;
         }
 
-        /* LIGHT THEME (Apple Minimalist / Precision White & Slate) */
+        /* LIGHT THEME (Slate Light) */
         html[data-theme="light"] {
             color-scheme: light;
-            --bg: #f5f5f7;
-            --bg-gradient: radial-gradient(ellipse 120% 50% at 50% -8%, rgba(0, 113, 227, 0.08), transparent 75%), #f5f5f7;
-            --header-bg: rgba(255, 255, 255, 0.82);
-            --header-border: rgba(0, 0, 0, 0.08);
-            --fg: #1d1d1f;
-            --fg-secondary: #515154;
-            --muted: #6e6e73;
-            --card: #ffffff;
-            --card-hover: #ffffff;
-            --card-border: rgba(0, 0, 0, 0.08);
-            --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
-            --secondary: #f2f2f7;
-            --border: rgba(60, 60, 67, 0.14);
-            --border-light: rgba(60, 60, 67, 0.08);
-            --input-bg: #ffffff;
-            --input-border: rgba(60, 60, 67, 0.22);
-            --input-focus: #0071e3;
-            --focus-ring: rgba(0, 113, 227, 0.22);
+            --bg-main: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-card-hover: #f1f5f9;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --accent-blue: #0284c7;
+            --accent-green: #059669;
+            --accent-amber: #d97706;
 
-            /* Apple System Colors */
-            --accent: #0071e3;
-            --accent-hover: #0077ed;
-            --accent-soft: rgba(0, 113, 227, 0.1);
-            --accent-soft-hover: rgba(0, 113, 227, 0.16);
+            --bg: var(--bg-main);
+            --bg-gradient: radial-gradient(ellipse 120% 50% at 50% -8%, rgba(14, 165, 233, 0.08), transparent 75%), var(--bg-main);
+            --header-bg: rgba(255, 255, 255, 0.85);
+            --header-border: rgba(15, 23, 42, 0.08);
+            --fg: var(--text-main);
+            --fg-secondary: #475569;
+            --muted: var(--text-muted);
+            --card: var(--bg-card);
+            --card-hover: var(--bg-card-hover);
+            --card-border: rgba(15, 23, 42, 0.08);
+            --card-shadow: 0 2px 10px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+            --secondary: #f1f5f9;
+            --border: rgba(15, 23, 42, 0.12);
+            --border-light: rgba(15, 23, 42, 0.06);
+            --input-bg: #ffffff;
+            --input-border: rgba(15, 23, 42, 0.18);
+            --input-focus: var(--accent-blue);
+            --focus-ring: rgba(2, 132, 199, 0.22);
+
+            --accent: var(--accent-blue);
+            --accent-hover: #0369a1;
+            --accent-soft: rgba(2, 132, 199, 0.1);
+            --accent-soft-hover: rgba(2, 132, 199, 0.18);
             --accent-contrast: #ffffff;
             --cta-text: #ffffff;
 
-            --success: #34c759;
-            --success-soft: rgba(52, 199, 89, 0.12);
-            --success-border: rgba(52, 199, 89, 0.35);
-            --success-text: #1d8839;
+            --success: var(--accent-green);
+            --success-soft: rgba(5, 150, 105, 0.12);
+            --success-border: rgba(5, 150, 105, 0.35);
+            --success-text: #047857;
 
-            --warning: #ff9500;
-            --warning-soft: rgba(255, 149, 0, 0.12);
-            --warning-border: rgba(255, 149, 0, 0.35);
-            --warning-text: #b25000;
+            --warning: var(--accent-amber);
+            --warning-soft: rgba(217, 119, 6, 0.12);
+            --warning-border: rgba(217, 119, 6, 0.35);
+            --warning-text: #b45309;
 
-            --danger: #ff3b30;
-            --danger-soft: rgba(255, 59, 48, 0.1);
-            --danger-border: rgba(255, 59, 48, 0.3);
-            --danger-text: #d70015;
+            --danger: #dc2626;
+            --danger-soft: rgba(220, 38, 38, 0.1);
+            --danger-border: rgba(220, 38, 38, 0.3);
+            --danger-text: #b91c1c;
 
             /* Segmented Tabs */
-            --segmented-bg: #e3e3e8;
+            --segmented-bg: #e2e8f0;
             --segmented-active: #ffffff;
-            --segmented-active-text: #1d1d1f;
-            --segmented-active-shadow: 0 2px 8px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.06);
+            --segmented-active-text: #0f172a;
+            --segmented-active-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 
             /* Modal & Glass */
             --modal-bg: #ffffff;
-            --modal-backdrop: rgba(0, 0, 0, 0.38);
+            --modal-backdrop: rgba(15, 23, 42, 0.45);
             --menu-bg: #ffffff;
         }
 
         * { box-sizing: border-box; }
 
         body {
-            font-family: var(--font-stack);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
             margin: 0;
             padding: 4.8rem 16px 36px;
-            background: var(--bg-gradient);
+            background-color: var(--bg-main);
+            background-image: var(--bg-gradient);
             background-attachment: fixed;
-            color: var(--fg);
+            color: var(--text-main);
             line-height: 1.48;
             transition: background-color var(--transition), color var(--transition);
         }
@@ -401,12 +419,12 @@
         select option { background: var(--card); color: var(--fg); }
         input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); }
 
-        /* ---- Apple Buttons ---- */
+        /* ---- Painikkeet ---- */
         button {
             border: none;
             padding: 11px 16px;
-            border-radius: var(--radius-md);
-            font-family: var(--font-stack);
+            border-radius: var(--radius);
+            font-family: inherit;
             font-size: 0.85rem;
             font-weight: 600;
             letter-spacing: -0.01em;
@@ -423,15 +441,46 @@
         button:active { transform: scale(0.98); }
         button:disabled { opacity: 0.42; cursor: not-allowed; }
 
-        .btn-primary, .btn-purple {
-            background: var(--accent);
-            color: var(--accent-contrast);
+        /* Isot mobiilipainikkeet */
+        .btn-action {
             width: 100%;
-            box-shadow: 0 2px 8px rgba(0, 113, 227, 0.25);
+            min-height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background-color: var(--accent-blue);
+            color: #ffffff;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(14, 165, 233, 0.3);
+            transition: background-color 0.15s ease, transform 0.1s ease;
+        }
+        .btn-action:active {
+            background-color: #0284c7;
+            transform: scale(0.98);
+        }
+
+        .btn-primary, .btn-purple {
+            background-color: var(--accent-blue);
+            color: #ffffff;
+            width: 100%;
+            min-height: 50px;
+            border-radius: var(--radius);
+            font-size: 0.96rem;
+            font-weight: 600;
+            box-shadow: 0 4px 14px rgba(14, 165, 233, 0.28);
         }
         .btn-primary:hover, .btn-purple:hover {
-            background: var(--accent-hover);
-            box-shadow: 0 4px 14px rgba(0, 113, 227, 0.35);
+            filter: brightness(1.1);
+            box-shadow: 0 6px 18px rgba(14, 165, 233, 0.38);
+        }
+        .btn-primary:active, .btn-purple:active {
+            background-color: #0284c7;
+            transform: scale(0.98);
         }
 
         .btn-secondary {
@@ -439,6 +488,7 @@
             color: var(--accent);
             width: 100%;
             border: 1px solid var(--accent-soft);
+            border-radius: var(--radius);
         }
         .btn-secondary:hover {
             background: var(--accent-soft-hover);
@@ -448,6 +498,7 @@
             background: transparent;
             color: var(--fg);
             border: 1px solid var(--border);
+            border-radius: var(--radius);
         }
         .btn-outline:hover {
             border-color: var(--accent);
@@ -459,6 +510,7 @@
             background: transparent;
             color: var(--warning-text);
             border: 1px solid var(--warning-border);
+            border-radius: var(--radius);
             width: 100%;
             margin-top: 10px;
         }
@@ -505,36 +557,83 @@
             font-weight: 600;
         }
 
+        /* ---- Kohteen / Pihan kortti ---- */
+        .yard-card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 18px;
+            margin-bottom: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            transition: transform 0.1s ease, border-color 0.2s ease, background-color 0.2s ease;
+        }
+        html[data-theme="light"] .yard-card {
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+        }
+        .yard-card:active {
+            transform: scale(0.98);
+        }
+
+        .yard-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-main);
+        }
+
+        .yard-address {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: 500;
+        }
+        .yard-address:hover {
+            color: var(--accent-blue);
+            text-decoration: underline;
+        }
+
         /* ---- Reittikohteet (Task Items) ---- */
         .task-item {
-            background: var(--card);
-            padding: 15px;
-            margin-bottom: 12px;
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--card-border);
-            border-left: 4px solid var(--accent);
-            box-shadow: var(--card-shadow);
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 18px;
+            margin-bottom: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-left: 4px solid var(--accent-blue);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
             display: flex;
             flex-direction: column;
             gap: 8px;
-            transition: all var(--transition);
+            transition: transform 0.1s ease, border-color 0.2s ease, background-color 0.2s ease;
+        }
+        html[data-theme="light"] .task-item {
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-left: 4px solid var(--accent-blue);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+        }
+        .task-item:active {
+            transform: scale(0.98);
         }
         .task-item:hover {
-            border-color: rgba(10, 132, 255, 0.35);
+            border-color: rgba(14, 165, 233, 0.35);
         }
         .task-item.done {
-            border-left-color: var(--success);
-            background: var(--success-soft);
-            border-color: var(--success-border);
-            opacity: 0.88;
+            border-left-color: var(--accent-green);
+            background: rgba(16, 185, 129, 0.12);
+            opacity: 0.92;
         }
         .task-item.done .task-title {
             text-decoration: line-through;
-            color: var(--muted);
+            color: var(--text-muted);
         }
 
         .task-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
-        .task-title { font-weight: 600; font-size: 1.02rem; color: var(--fg); letter-spacing: -0.015em; }
+        .task-title { font-weight: 600; font-size: 1.12rem; color: var(--fg); letter-spacing: -0.015em; }
 
         .task-notes {
             background: var(--warning-soft);
@@ -546,14 +645,14 @@
         }
 
         .task-meta {
-            font-size: 0.84rem;
+            font-size: 0.85rem;
             color: var(--muted);
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
             align-items: center;
         }
-        .task-meta a { color: var(--accent); text-decoration: none; font-weight: 600; }
+        .task-meta a { color: var(--accent-blue); text-decoration: none; font-weight: 600; }
         .task-meta a:hover { text-decoration: underline; }
         .task-hint { font-size: 0.74rem; color: var(--muted); word-break: break-word; }
         .task-warn { font-size: 0.78rem; color: var(--warning-text); }
@@ -563,7 +662,7 @@
             justify-content: space-between;
             align-items: center;
             border-top: 1px dashed var(--border);
-            padding-top: 10px;
+            padding-top: 12px;
             margin-top: 4px;
         }
 
@@ -580,33 +679,41 @@
 
         .action-controls { display: flex; gap: 8px; }
         .btn-done {
-            background: var(--success);
+            background: var(--accent-green);
             color: #ffffff;
-            padding: 9px 15px;
-            font-size: 0.78rem;
-            border-radius: var(--radius-md);
+            padding: 10px 18px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            border-radius: var(--radius);
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
         }
-        .btn-done:hover { filter: brightness(1.15); }
+        .btn-done:hover { filter: brightness(1.12); }
+        .btn-done:active { transform: scale(0.98); }
 
         .btn-delete {
             background: var(--danger-soft);
             color: var(--danger-text);
-            padding: 9px 12px;
+            padding: 10px 14px;
             border: 1px solid var(--danger-border);
-            border-radius: var(--radius-md);
+            border-radius: var(--radius);
         }
         .btn-delete:hover { background: var(--danger); color: #fff; }
 
+        /* Tilalätkät (Badges) */
         .badge {
             display: inline-block;
-            padding: 3px 10px;
-            border-radius: var(--radius-pill);
-            font-size: 0.7rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
             font-weight: 600;
+            text-transform: uppercase;
             background: var(--accent-soft);
             color: var(--accent);
             border: 1px solid var(--accent-soft);
         }
+        .badge-pending { background: rgba(148, 163, 184, 0.15); color: var(--text-muted); border-color: transparent; }
+        .badge-active { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); border-color: transparent; }
+        .badge-done { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); border-color: transparent; }
 
         .coord-badge {
             font-size: 0.7rem;
@@ -3601,16 +3708,16 @@
             const priceTag = customPrices.length ? `<span class="tag-pill tag-price">🏷️ ${customPrices.join(' · ')} (sis. ALV)</span>` : '';
 
             return `
-                <div class="customer-card">
+                <div class="customer-card yard-card">
                     <div class="customer-header">
                         <div>
-                            <span class="customer-name">${esc(c.name)}</span>
-                            <span class="badge" style="margin-left: 6px;">${esc(c.defaultType || 'Auraus')}</span>
+                            <span class="customer-name yard-title">${esc(c.name)}</span>
+                            <span class="badge badge-active" style="margin-left: 6px;">${esc(c.defaultType || 'Auraus')}</span>
                         </div>
                     </div>
 
                     <div class="customer-meta">
-                        <a href="${mapsUrl}" target="_blank" rel="noopener">📍 ${esc(c.address)}</a>
+                        <a href="${mapsUrl}" target="_blank" rel="noopener" class="yard-address">📍 ${esc(c.address)}</a>
                     </div>
 
                     ${(phoneHtml || emailHtml) ? `<div class="customer-contacts">${phoneHtml} ${emailHtml}</div>` : ''}
@@ -4594,7 +4701,7 @@
             shown++;
 
             const item = document.createElement('div');
-            item.className = `task-item ${task.done ? 'done' : ''}`;
+            item.className = `task-item yard-card ${task.done ? 'done' : ''}`;
 
             const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(taskRef(task))}`;
 
@@ -4604,6 +4711,10 @@
             } else {
                 coordBadge = `<span class="coord-missing">Ei sijaintia</span>`;
             }
+            const statusBadge = task.done
+                ? `<span class="badge badge-done" style="margin-left: 6px;">✓ Valmis</span>`
+                : `<span class="badge badge-pending" style="margin-left: 6px;">Odottaa</span>`;
+
             const gpsBtn = `<button class="tiny-btn" onclick="setTaskGPS(${task.id})" title="Tallenna nykyinen sijaintisi tämän kohteen sijainniksi">${task.gps ? 'Aseta GPS uudelleen' : '📍 Aseta GPS tässä'}</button>`;
             const retryBtn = (task.lat && task.lon)
                 ? `<button class="tiny-btn" onclick="clearTaskCoords(${task.id})" title="Hae sijainti osoitteesta uudelleen">↻ Hae osoitteesta</button>` : '';
@@ -4611,14 +4722,15 @@
             item.innerHTML = `
                 <div class="task-header">
                     <div>
-                        <span class="task-title">${shown}. ${esc(task.name)}</span>
-                        <span class="badge" style="margin-left: 6px;">${esc(task.type)}</span>
+                        <span class="task-title yard-title">${shown}. ${esc(task.name)}</span>
+                        <span class="badge badge-active" style="margin-left: 6px;">${esc(task.type)}</span>
+                        ${statusBadge}
                     </div>
                     <div>${coordBadge}</div>
                 </div>
 
                 <div class="task-meta">
-                    <a href="${mapsUrl}" target="_blank" rel="noopener">📍 ${esc(task.address)}</a>
+                    <a href="${mapsUrl}" target="_blank" rel="noopener" class="yard-address">📍 ${esc(task.address)}</a>
                     <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px;">
                         <button class="photo-btn" type="button" onclick="openCustomerPhotos(${task.customerId ? task.customerId : `'${esc(task.name)}'`})" title="Näytä kohteen valokuvat">📷 Kuvat (<span data-photo-count-for="${task.customerId || esc(task.name)}">${photoCounts[String(task.customerId || task.name)] || 0}</span>)</button>
                         <button class="tiny-btn" type="button" onclick="quickSnapPhoto(${task.id})" title="Ota valokuva kohteesta">📷 Ota kuva</button>
