@@ -1,4 +1,4 @@
-﻿name: Rakenna Android APK
+name: Rakenna Android APK
 
 on:
   push:
@@ -22,7 +22,7 @@ jobs:
       - name: Aseta Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Asenna riippuvuudet ja synkronoi Capacitor
         run: |
