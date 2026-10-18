@@ -1236,6 +1236,133 @@
             padding-top: 8px;
             margin-top: 4px;
         }
+
+        /* ---- Selkeä uusi ohjauspalkki & avattavat paneelit (Drawers) ---- */
+        .primary-actions-row {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        @media (max-width: 420px) {
+            .primary-actions-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        .toolbar-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .drawer-toggle-btn {
+            flex: 1;
+            min-width: 110px;
+            padding: 9px 12px;
+            border-radius: var(--radius-md);
+            background: var(--secondary);
+            border: 1px solid var(--border);
+            color: var(--fg);
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.18s ease;
+        }
+        .drawer-toggle-btn:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+        .drawer-toggle-btn.active {
+            background: var(--accent-soft);
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+        .drawer-panel {
+            background: var(--bg-main);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 16px;
+            animation: drawerSlideDown 0.18s ease-out;
+        }
+        @keyframes drawerSlideDown {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .drawer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .drawer-header h4 {
+            margin: 0;
+            font-size: 0.96rem;
+            font-weight: 700;
+            color: var(--fg);
+        }
+        .drawer-section {
+            padding-top: 12px;
+            margin-top: 12px;
+            border-top: 1px dashed var(--border);
+        }
+
+        /* Siistityt ajolistan kortit */
+        .task-address-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .task-address-row .yard-address {
+            margin-bottom: 0;
+            font-size: 0.9rem;
+        }
+        .task-tools-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            padding-top: 8px;
+            margin-top: 2px;
+            border-top: 1px solid var(--border-light);
+        }
+        .task-tools-group {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .btn-complete-main {
+            width: 100%;
+            min-height: 46px;
+            border-radius: var(--radius-md);
+            background: var(--accent-blue);
+            color: #ffffff;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border: none;
+            box-shadow: 0 3px 10px rgba(14, 165, 233, 0.25);
+            margin-top: 4px;
+        }
+        .btn-complete-main:active {
+            background: #0284c7;
+            transform: scale(0.98);
+        }
+        .btn-complete-main.is-done {
+            background: rgba(16, 185, 129, 0.16);
+            color: var(--accent-green);
+            border: 1px solid rgba(16, 185, 129, 0.35);
+            box-shadow: none;
+            min-height: 40px;
+            font-size: 0.86rem;
+        }
     </style>
 </head>
 <body>
@@ -1250,7 +1377,6 @@
         <div class="logo-title">Yard<span>Flow</span></div>
     </div>
     <div class="header-actions">
-        <span class="header-pill">Pro</span>
         <button id="themeToggleBtn" class="theme-toggle-btn" type="button" onclick="toggleTheme()" title="Vaihda teemaa (Kirkas / Tumma)" aria-label="Vaihda teemaa">
             <span class="theme-toggle-icon">☀️</span>
             <span class="theme-toggle-text">Vaalea</span>
@@ -1259,142 +1385,152 @@
 </header>
 
 <div class="container">
-    <div class="hero-section">
-        <h1 class="hero-title">Yard<span class="hero-accent">Flow</span></h1>
-        <p class="hero-subtitle">Älykäs reititys, työlokit ja laskutus piha- ja kiinteistötöihin</p>
-    </div>
-
     <!-- Päänäytön välilehdet -->
     <div class="nav-tabs">
-        <button class="nav-tab active" id="tabBtnRoutes" onclick="switchTab('routes')">🚜 Ajo &amp; Reitit</button>
+        <button class="nav-tab active" id="tabBtnRoutes" onclick="switchTab('routes')">🚜 Ajolista</button>
         <button class="nav-tab" id="tabBtnCustomers" onclick="switchTab('customers')">👥 Asiakkaat (<span id="customerCountBadge">0</span>)</button>
         <button class="nav-tab" id="tabBtnLogs" onclick="switchTab('logs')">📋 Työloki (<span id="logCountBadge">0</span>)</button>
         <button class="nav-tab" id="tabBtnBilling" onclick="switchTab('billing')">💰 Laskutus</button>
     </div>
 
-    <!-- NÄKYMÄ 1: AJO & REITIT -->
+    <!-- NÄKYMÄ 1: AJO & REITIT (Ajolista heti ensimmäisenä!) -->
     <div id="viewRoutes">
-        <!-- Varikko -->
         <div class="card">
-            <h3>📍 Varikko / Aloitusosoite</h3>
-            <label for="depotAddress">Oma kotiosoite / varikko (reitin lähtö- ja paluupiste):</label>
-            <div class="depot-row">
-                <input type="text" id="depotAddress" placeholder="esim. Varikkotie 1, Tampere" onchange="saveDepot()" style="margin-bottom: 0;">
-                <button class="btn-outline" style="white-space: nowrap; padding: 0 10px;" onclick="locateDepotGPS()" title="Käytä nykyistä sijaintia varikkona">📍 GPS</button>
-            </div>
-            <div id="depotCoordInfo" class="depot-info"></div>
-        </div>
-
-        <!-- Reititys & Automaattinen optimointi -->
-        <div class="card">
-            <h3>🗺️ Reititys &amp; Optimointi</h3>
-            
-            <div id="optimizerStatus" class="status-box"></div>
-            <div id="routeLinks"></div>
-
-            <label class="check-row">
-                <input type="checkbox" id="returnDepot" style="width:auto; margin:0;">
-                Palaa lopuksi varikolle (muuten reitti päättyy viimeiseen kohteeseen)
-            </label>
-
-            <button class="btn-purple" onclick="autoOptimizeRoute()" id="btnOptimize">
-                ⚡ Optimoi ajojärjestys automaattisesti
-            </button>
-
-            <div class="route-actions-grid">
-                <button class="btn-secondary" onclick="openRouteInGoogleMaps()">
-                    🗺️ Avaa Mapsiin
-                </button>
-                <button class="btn-outline" onclick="reverseRoute()" title="Aja aurauslenkki toisinpäin">
-                    🔄 Käännä suunta
-                </button>
-            </div>
-
-            <div style="margin-top: 6px;">
-                <button class="btn-outline" style="width: 100%; font-size: 0.85rem;" onclick="sortByNearestToMe()">
-                    📍 Järjestä lähimmästä alkaen (oman sijainnin mukaan)
-                </button>
-            </div>
-
-            <button class="btn-outline-warning" onclick="resetAllDone()">
-                🔄 Uusi aurauskierros (Nollaa kaikki tekemättömiksi)
-            </button>
-
-            <div style="margin-top: 10px;">
-                <button class="btn-primary" onclick="saveRoute()" style="width: 100%;">
-                    💾 Tallenna reitti
-                </button>
-            </div>
-        </div>
-
-        <!-- Tallennetut reitit -->
-        <div class="card">
-            <h3>
-                <span>📁 Tallennetut reitit (<span id="routeCount">0</span>)</span>
-                <button class="tiny-btn" onclick="newEmptyRoute()" title="Tyhjennä lista uutta reittiä varten">➕ Uusi reitti</button>
-            </h3>
-            <div id="routeList"></div>
-
-            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; border-top: 1px dashed var(--border); padding-top: 10px;">
-                <button class="tiny-btn" onclick="exportBackup()" title="Lataa varmuuskopio tiedostona">💾 Varmuuskopio</button>
-                <button class="tiny-btn" onclick="document.getElementById('importFile').click()" title="Palauta aiempi varmuuskopio">📂 Palauta</button>
-            </div>
-            <input type="file" id="importFile" accept=".json,application/json" style="display:none; margin:0;" onchange="importBackup(this)">
-        </div>
-
-        <!-- Uuden kohteen lisäys -->
-        <div class="card">
-            <h3>
-                <span>➕ Lisää kohde reitille</span>
-                <button class="tiny-btn" type="button" onclick="toggleQuickCustomerPicker()" title="Poimi asiakas suoraan rekisteristä">👥 Valitse asiakas</button>
-            </h3>
-
-            <div id="quickCustomerPickerBox" style="display:none; margin-bottom: 12px; background: var(--card); border: 1px solid var(--accent); padding: 10px; border-radius: 12px;">
-                <label for="quickCustomerSelect" style="color: var(--accent);">Valitse tallennettu asiakas:</label>
-                <select id="quickCustomerSelect" onchange="pickCustomerToForm(this.value)">
-                    <option value="">-- Valitse asiakas listasta --</option>
-                </select>
-            </div>
-
-            <label for="name">Asiakkaan / kohteen nimi:</label>
-            <input type="text" id="name" placeholder="esim. Matti Meikäläinen">
-
-            <label for="address">Katuosoite ja kaupunki:</label>
-            <input type="text" id="address" placeholder="esim. Männistönkuja 4, Tampere">
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div>
-                    <label for="taskPhone">Puhelinnumero:</label>
-                    <input type="tel" id="taskPhone" placeholder="esim. 040 123 4567">
-                </div>
-                <div>
-                    <label for="taskEmail">Sähköposti:</label>
-                    <input type="email" id="taskEmail" placeholder="esim. matti@yritys.fi">
-                </div>
-            </div>
-
-            <label for="type">Työn tyyppi:</label>
-            <select id="type">
-                <option value="Auraus & Hiekoitus">Auraus & Hiekoitus</option>
-                <option value="Nurmikonleikkuu">Nurmikonleikkuu</option>
-                <option value="Haravointi & Pihatyö">Haravointi & Pihatyö</option>
-                <option value="Muu työ">Muu työ</option>
-            </select>
-
-            <label for="notes">Kuljettajan lisätiedot / huomiot:</label>
-            <textarea id="notes" rows="2" placeholder="esim. Varo kaivonkantta nurkassa, portin koodi 1234"></textarea>
-
-            <button class="btn-primary" onclick="addTask()">💾 Tallenna kohde listaan</button>
-        </div>
-
-        <!-- Kohteet listassa -->
-        <div class="card">
-            <h3>
-                <span>📋 Kohteet (<span id="taskCount">0</span>)</span>
+            <h3 style="margin-bottom: 10px;">
+                <span>🚜 Päivän ajolista (<span id="taskCount">0</span>)</span>
                 <span class="summary-km" id="summaryDistance"></span>
             </h3>
             <div id="activeRoute" class="active-route-badge"></div>
-            
+
+            <div id="optimizerStatus" class="status-box"></div>
+            <div id="routeLinks"></div>
+
+            <!-- 2 selkeää päätoimintoa kuljettajalle -->
+            <div class="primary-actions-row">
+                <button class="btn-action" onclick="autoOptimizeRoute()" id="btnOptimize">
+                    ⚡ Optimoi reitti
+                </button>
+                <button class="btn-secondary" style="min-height: 52px; font-size: 0.95rem;" onclick="openRouteInGoogleMaps()">
+                    🗺️ Avaa Mapsissa
+                </button>
+            </div>
+
+            <!-- Kompaktit lisätyökalut (avaavat lomakkeen tai asetukset vain tarvittaessa) -->
+            <div class="toolbar-row">
+                <button type="button" class="drawer-toggle-btn" id="btnToggleAddTask" onclick="toggleDrawer('addTaskDrawer', this)">
+                    ➕ Lisää kohde
+                </button>
+                <button type="button" class="drawer-toggle-btn" id="btnToggleRouteConfig" onclick="toggleDrawer('routeConfigDrawer', this)">
+                    ⚙️ Reitit &amp; Varikko (<span id="routeCount">0</span>)
+                </button>
+                <button type="button" class="drawer-toggle-btn" onclick="resetAllDone()" title="Nollaa kaikki kohteet tekemättömiksi uutta kierrosta varten">
+                    🔄 Uusi kierros
+                </button>
+            </div>
+
+            <!-- AVATTAVA PANEELI 1: Uuden kohteen lisäys -->
+            <div id="addTaskDrawer" class="drawer-panel" style="display: none;">
+                <div class="drawer-header">
+                    <h4>➕ Lisää kohde reitille</h4>
+                    <div style="display: flex; gap: 6px;">
+                        <button class="tiny-btn" type="button" onclick="toggleQuickCustomerPicker()" title="Poimi asiakas suoraan rekisteristä">👥 Valitse asiakas</button>
+                        <button class="tiny-btn" type="button" onclick="toggleDrawer('addTaskDrawer')">✕ Sulje</button>
+                    </div>
+                </div>
+
+                <div id="quickCustomerPickerBox" style="display:none; margin-bottom: 12px; background: var(--card); border: 1px solid var(--accent); padding: 10px; border-radius: 12px;">
+                    <label for="quickCustomerSelect" style="color: var(--accent);">Valitse tallennettu asiakas:</label>
+                    <select id="quickCustomerSelect" onchange="pickCustomerToForm(this.value)" style="margin-bottom: 0;">
+                        <option value="">-- Valitse asiakas listasta --</option>
+                    </select>
+                </div>
+
+                <label for="name">Asiakkaan / kohteen nimi:</label>
+                <input type="text" id="name" placeholder="esim. Matti Meikäläinen">
+
+                <label for="address">Katuosoite ja kaupunki:</label>
+                <input type="text" id="address" placeholder="esim. Männistönkuja 4, Tampere">
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div>
+                        <label for="taskPhone">Puhelinnumero:</label>
+                        <input type="tel" id="taskPhone" placeholder="040 123 4567">
+                    </div>
+                    <div>
+                        <label for="taskEmail">Sähköposti:</label>
+                        <input type="email" id="taskEmail" placeholder="matti@yritys.fi">
+                    </div>
+                </div>
+
+                <label for="type">Työn tyyppi:</label>
+                <select id="type">
+                    <option value="Auraus & Hiekoitus">Auraus & Hiekoitus</option>
+                    <option value="Nurmikonleikkuu">Nurmikonleikkuu</option>
+                    <option value="Haravointi & Pihatyö">Haravointi & Pihatyö</option>
+                    <option value="Muu työ">Muu työ</option>
+                </select>
+
+                <label for="notes">Kuljettajan lisätiedot / huomiot:</label>
+                <textarea id="notes" rows="2" placeholder="esim. Varo kaivonkantta nurkassa, portin koodi 1234"></textarea>
+
+                <button class="btn-primary" onclick="addTask()">💾 Tallenna kohde listaan</button>
+            </div>
+
+            <!-- AVATTAVA PANEELI 2: Varikko, Reittityökalut & Tallennetut reitit -->
+            <div id="routeConfigDrawer" class="drawer-panel" style="display: none;">
+                <div class="drawer-header">
+                    <h4>⚙️ Varikko &amp; Tallennetut reitit</h4>
+                    <button class="tiny-btn" type="button" onclick="toggleDrawer('routeConfigDrawer')">✕ Sulje</button>
+                </div>
+
+                <!-- Varikko -->
+                <label for="depotAddress">📍 Varikko / Aloitusosoite (reitin lähtö- ja paluupiste):</label>
+                <div class="depot-row">
+                    <input type="text" id="depotAddress" placeholder="esim. Varikkotie 1, Tampere" onchange="saveDepot()" style="margin-bottom: 0;">
+                    <button class="btn-outline" style="white-space: nowrap; padding: 0 12px;" onclick="locateDepotGPS()" title="Käytä nykyistä sijaintia varikkona">📍 GPS</button>
+                </div>
+                <div id="depotCoordInfo" class="depot-info"></div>
+
+                <label class="check-row" style="margin-top: 10px; margin-bottom: 0;">
+                    <input type="checkbox" id="returnDepot" style="width:auto; margin:0;">
+                    Palaa lopuksi varikolle
+                </label>
+
+                <!-- Reitin lisätoiminnot -->
+                <div class="drawer-section">
+                    <label>🧭 Reitin järjestys &amp; tallennus:</label>
+                    <div class="route-actions-grid" style="margin-top: 6px;">
+                        <button class="btn-outline" onclick="reverseRoute()" title="Aja lenkki toisinpäin">
+                            🔄 Käännä suunta
+                        </button>
+                        <button class="btn-outline" onclick="sortByNearestToMe()" title="Järjestä lähimmästä kohteesta alkaen">
+                            📍 Lähimmästä alkaen
+                        </button>
+                    </div>
+                    <div class="route-actions-grid" style="margin-top: 8px;">
+                        <button class="btn-primary" style="min-height: 42px; font-size: 0.86rem;" onclick="saveRoute()">
+                            💾 Tallenna reitti
+                        </button>
+                        <button class="btn-outline" onclick="newEmptyRoute()" title="Tyhjennä lista uutta reittiä varten">
+                            ➕ Tyhjennä lista
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tallennetut reitit -->
+                <div class="drawer-section">
+                    <label>📁 Tallennetut reitit:</label>
+                    <div id="routeList"></div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; border-top: 1px dashed var(--border); padding-top: 10px;">
+                        <button class="tiny-btn" onclick="exportBackup()" title="Lataa varmuuskopio tiedostona">💾 Varmuuskopio</button>
+                        <button class="tiny-btn" onclick="document.getElementById('importFile').click()" title="Palauta aiempi varmuuskopio">📂 Palauta</button>
+                    </div>
+                    <input type="file" id="importFile" accept=".json,application/json" style="display:none; margin:0;" onchange="importBackup(this)">
+                </div>
+            </div>
+
+            <!-- Suodattimet ja itse kohdelista -->
             <div class="filter-bar">
                 <button class="filter-btn active" onclick="setFilter('all', this)">Kaikki</button>
                 <button class="filter-btn" onclick="setFilter('pending', this)">Tekemättä</button>
@@ -1405,98 +1541,104 @@
         </div>
     </div>
 
-    <!-- NÄKYMÄ 2: ASIAKASLISTA / ASIAKASREKISTERI -->
+    <!-- NÄKYMÄ 2: ASIAKASLISTA / ASIAKASREKISTERI (Lista ja haku heti ylhäällä!) -->
     <div id="viewCustomers" style="display: none;">
-        <!-- Uusi asiakas rekisteriin -->
-        <div class="card">
-            <h3>➕ Lisää uusi asiakas rekisteriin</h3>
-            
-            <label for="custName">Asiakkaan nimi:</label>
-            <input type="text" id="custName" placeholder="esim. Matti Meikäläinen">
-
-            <label for="custAddress">Katuosoite ja kaupunki:</label>
-            <input type="text" id="custAddress" placeholder="esim. Kissanmaankatu 3, Tampere">
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div>
-                    <label for="custPhone">Puhelinnumero:</label>
-                    <input type="tel" id="custPhone" placeholder="esim. 040 123 4567">
-                </div>
-                <div>
-                    <label for="custEmail">Sähköposti:</label>
-                    <input type="email" id="custEmail" placeholder="esim. matti@yritys.fi">
-                </div>
-            </div>
-
-            <label>Maksutapa:</label>
-            <div class="choice-group">
-                <label class="choice-label">
-                    <input type="radio" name="custPayment" value="Laskutus" checked>
-                    💳 Laskutus
-                </label>
-                <label class="choice-label">
-                    <input type="radio" name="custPayment" value="Käteinen">
-                    💵 Käteinen
-                </label>
-            </div>
-
-            <label>Sopimusmalli:</label>
-            <div class="choice-group">
-                <label class="choice-label">
-                    <input type="radio" name="custContract" value="Kuukausi + käynnit" checked>
-                    Kuukausi + käynnit
-                </label>
-                <label class="choice-label">
-                    <input type="radio" name="custContract" value="Käynnit">
-                    Käynnit
-                </label>
-                <label class="choice-label">
-                    <input type="radio" name="custContract" value="Kuukausisopimus">
-                    Kiinteä kuukausi
-                </label>
-            </div>
-
-            <label for="custType">Oletustyö:</label>
-            <select id="custType">
-                <option value="Auraus & Hiekoitus">Auraus & Hiekoitus</option>
-                <option value="Nurmikonleikkuu">Nurmikonleikkuu</option>
-                <option value="Haravointi & Pihatyö">Haravointi & Pihatyö</option>
-                <option value="Muu työ">Muu työ</option>
-            </select>
-
-            <label>Sopimushinnat (€ sis. ALV, valinnainen):</label>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div>
-                    <label for="custMonthlyPrice">Kk-maksu (€ sis. ALV):</label>
-                    <input type="number" id="custMonthlyPrice" step="0.5" min="0" placeholder="Oletus (0 €)">
-                </div>
-                <div>
-                    <label for="custPlowPrice">Auraus / kerta (€ sis. ALV):</label>
-                    <input type="number" id="custPlowPrice" step="0.5" min="0" placeholder="Oletus (0 €)">
-                </div>
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div>
-                    <label for="custSandPrice">Hiekoitus / kerta (€ sis. ALV):</label>
-                    <input type="number" id="custSandPrice" step="0.5" min="0" placeholder="Oletus (0 €)">
-                </div>
-                <div>
-                    <label for="custGravelPrice">Sepeli / kg (€ sis. ALV):</label>
-                    <input type="number" id="custGravelPrice" step="0.01" min="0" placeholder="Oletus (0 €)">
-                </div>
-            </div>
-
-            <label for="custNotes">Kuljettajan lisätiedot / huomiot:</label>
-            <textarea id="custNotes" rows="2" placeholder="esim. Varo kaivonkantta nurkassa, portin koodi 1234"></textarea>
-
-            <button class="btn-primary" onclick="addCustomerFromForm()">💾 Tallenna asiakas rekisteriin</button>
-        </div>
-
-        <!-- Asiakasrekisteri -->
         <div class="card">
             <h3>
                 <span>👥 Asiakkaat (<span id="customerCountTitle">0</span>)</span>
+                <button type="button" class="btn-primary" id="btnToggleAddCustomer" style="width: auto; min-height: 38px; padding: 7px 14px; font-size: 0.82rem;" onclick="toggleDrawer('addCustomerDrawer', this)">
+                    ➕ Uusi asiakas
+                </button>
             </h3>
+
+            <!-- AVATTAVA LOMAKE: Uusi asiakas rekisteriin -->
+            <div id="addCustomerDrawer" class="drawer-panel" style="display: none;">
+                <div class="drawer-header">
+                    <h4>➕ Lisää uusi asiakas rekisteriin</h4>
+                    <button class="tiny-btn" type="button" onclick="toggleDrawer('addCustomerDrawer')">✕ Sulje</button>
+                </div>
+
+                <label for="custName">Asiakkaan nimi:</label>
+                <input type="text" id="custName" placeholder="esim. Matti Meikäläinen">
+
+                <label for="custAddress">Katuosoite ja kaupunki:</label>
+                <input type="text" id="custAddress" placeholder="esim. Kissanmaankatu 3, Tampere">
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div>
+                        <label for="custPhone">Puhelinnumero:</label>
+                        <input type="tel" id="custPhone" placeholder="esim. 040 123 4567">
+                    </div>
+                    <div>
+                        <label for="custEmail">Sähköposti:</label>
+                        <input type="email" id="custEmail" placeholder="esim. matti@yritys.fi">
+                    </div>
+                </div>
+
+                <label>Maksutapa:</label>
+                <div class="choice-group">
+                    <label class="choice-label">
+                        <input type="radio" name="custPayment" value="Laskutus" checked>
+                        💳 Laskutus
+                    </label>
+                    <label class="choice-label">
+                        <input type="radio" name="custPayment" value="Käteinen">
+                        💵 Käteinen
+                    </label>
+                </div>
+
+                <label>Sopimusmalli:</label>
+                <div class="choice-group">
+                    <label class="choice-label">
+                        <input type="radio" name="custContract" value="Kuukausi + käynnit" checked>
+                        Kuukausi + käynnit
+                    </label>
+                    <label class="choice-label">
+                        <input type="radio" name="custContract" value="Käynnit">
+                        Käynnit
+                    </label>
+                    <label class="choice-label">
+                        <input type="radio" name="custContract" value="Kuukausisopimus">
+                        Kiinteä kuukausi
+                    </label>
+                </div>
+
+                <label for="custType">Oletustyö:</label>
+                <select id="custType">
+                    <option value="Auraus & Hiekoitus">Auraus & Hiekoitus</option>
+                    <option value="Nurmikonleikkuu">Nurmikonleikkuu</option>
+                    <option value="Haravointi & Pihatyö">Haravointi & Pihatyö</option>
+                    <option value="Muu työ">Muu työ</option>
+                </select>
+
+                <label>Sopimushinnat (€ sis. ALV, valinnainen):</label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div>
+                        <label for="custMonthlyPrice">Kk-maksu (€ sis. ALV):</label>
+                        <input type="number" id="custMonthlyPrice" step="0.5" min="0" placeholder="Oletus (0 €)">
+                    </div>
+                    <div>
+                        <label for="custPlowPrice">Auraus / kerta (€ sis. ALV):</label>
+                        <input type="number" id="custPlowPrice" step="0.5" min="0" placeholder="Oletus (0 €)">
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div>
+                        <label for="custSandPrice">Hiekoitus / kerta (€ sis. ALV):</label>
+                        <input type="number" id="custSandPrice" step="0.5" min="0" placeholder="Oletus (0 €)">
+                    </div>
+                    <div>
+                        <label for="custGravelPrice">Sepeli / kg (€ sis. ALV):</label>
+                        <input type="number" id="custGravelPrice" step="0.01" min="0" placeholder="Oletus (0 €)">
+                    </div>
+                </div>
+
+                <label for="custNotes">Kuljettajan lisätiedot / huomiot:</label>
+                <textarea id="custNotes" rows="2" placeholder="esim. Varo kaivonkantta nurkassa, portin koodi 1234"></textarea>
+
+                <button class="btn-primary" onclick="addCustomerFromForm()">💾 Tallenna asiakas rekisteriin</button>
+            </div>
+
             <input type="text" id="custSearchInput" class="search-input" placeholder="🔍 Etsi asiakasta nimellä, osoitteella tai puhelimella..." oninput="renderCustomers()">
             <div id="customerList"></div>
         </div>
@@ -1506,8 +1648,8 @@
     <div id="viewLogs" style="display: none;">
         <div class="card">
             <h3>
-                <span>📋 Työ- ja toimenpideloki (<span id="logCountHeader">0</span>)</span>
-                <button class="btn-primary" type="button" style="width: auto; padding: 6px 14px; font-size: 0.8rem;" onclick="openNewLogModal()">➕ Uusi merkintä</button>
+                <span>📋 Työloki (<span id="logCountHeader">0</span>)</span>
+                <button class="btn-primary" type="button" style="width: auto; min-height: 38px; padding: 7px 14px; font-size: 0.82rem;" onclick="openNewLogModal()">➕ Uusi merkintä</button>
             </h3>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
@@ -3452,6 +3594,29 @@
         sel.value = currentVal;
     }
 
+    function toggleDrawer(drawerId, btn) {
+        const panel = document.getElementById(drawerId);
+        if (!panel) return;
+        const isHidden = panel.style.display === 'none' || !panel.style.display;
+
+        // Suljetaan muut saman näkymän paneelit, jotta näkymä pysyy siistinä
+        if (drawerId === 'addTaskDrawer') {
+            const other = document.getElementById('routeConfigDrawer');
+            if (other) other.style.display = 'none';
+            document.getElementById('btnToggleRouteConfig')?.classList.remove('active');
+        } else if (drawerId === 'routeConfigDrawer') {
+            const other = document.getElementById('addTaskDrawer');
+            if (other) other.style.display = 'none';
+            document.getElementById('btnToggleAddTask')?.classList.remove('active');
+        }
+
+        panel.style.display = isHidden ? 'block' : 'none';
+        const toggleBtn = btn || document.querySelector(`[onclick*="'${drawerId}'"]`);
+        if (toggleBtn && toggleBtn.classList.contains('drawer-toggle-btn')) {
+            toggleBtn.classList.toggle('active', isHidden);
+        }
+    }
+
     function toggleQuickCustomerPicker() {
         const box = document.getElementById('quickCustomerPickerBox');
         if (!box) return;
@@ -3536,6 +3701,9 @@
         if (sandPriceInput) sandPriceInput.value = '';
         if (gravelPriceInput) gravelPriceInput.value = '';
         notesInput.value = '';
+
+        const custDrawer = document.getElementById('addCustomerDrawer');
+        if (custDrawer) custDrawer.style.display = 'none';
 
         showStatus(`Asiakas "${esc(name)}" lisätty asiakaslistaan!`, 'success');
     }
@@ -3684,7 +3852,7 @@
         });
 
         if (customers.length === 0) {
-            listEl.innerHTML = '<p class="empty-state">Ei vielä tallennettuja asiakkaita. Lisää ensimmäinen asiakas yllä olevasta lomakkeesta!</p>';
+            listEl.innerHTML = '<p class="empty-state">Ei vielä tallennettuja asiakkaita. Paina yltä "➕ Uusi asiakas" lisätäksesi ensimmäisen!</p>';
             return;
         }
 
@@ -3705,37 +3873,34 @@
             if (c.plowPrice != null && Number(c.plowPrice) > 0) customPrices.push(`Auraus ${c.plowPrice}€`);
             if (c.sandPrice != null && Number(c.sandPrice) > 0) customPrices.push(`Hiekoitus ${c.sandPrice}€`);
             if (c.gravelPrice != null && Number(c.gravelPrice) > 0) customPrices.push(`Sepeli ${c.gravelPrice}€/kg`);
-            const priceTag = customPrices.length ? `<span class="tag-pill tag-price">🏷️ ${customPrices.join(' · ')} (sis. ALV)</span>` : '';
+            const priceTag = customPrices.length ? `<span class="tag-pill tag-price">🏷️ ${customPrices.join(' · ')}</span>` : '';
 
             return `
                 <div class="customer-card yard-card">
                     <div class="customer-header">
-                        <div>
-                            <span class="customer-name yard-title">${esc(c.name)}</span>
-                            <span class="badge badge-active" style="margin-left: 6px;">${esc(c.defaultType || 'Auraus')}</span>
-                        </div>
+                        <span class="customer-name yard-title" style="margin-bottom: 0;">${esc(c.name)}</span>
+                        <span class="badge badge-active">${esc(c.defaultType || 'Auraus')}</span>
                     </div>
 
-                    <div class="customer-meta">
+                    <div class="task-address-row">
                         <a href="${mapsUrl}" target="_blank" rel="noopener" class="yard-address">📍 ${esc(c.address)}</a>
+                        ${(phoneHtml || emailHtml) ? `<div class="customer-contacts">${phoneHtml} ${emailHtml}</div>` : ''}
                     </div>
 
-                    ${(phoneHtml || emailHtml) ? `<div class="customer-contacts">${phoneHtml} ${emailHtml}</div>` : ''}
-
-                    <div class="customer-tags">
+                    <div class="customer-tags" style="display: flex; gap: 6px; flex-wrap: wrap;">
                         ${payTag}
                         ${conTag}
                         ${priceTag}
                     </div>
 
-                    ${c.notes ? `<div class="customer-notes">⚠️ <strong>Huomio:</strong> ${esc(c.notes)}</div>` : ''}
+                    ${c.notes ? `<div class="customer-notes">⚠️ ${esc(c.notes)}</div>` : ''}
 
                     <div class="customer-actions">
-                        <button class="btn-primary" style="padding: 7px 14px; font-size: 0.82rem; width: auto;" onclick="addCustomerToTodayRoute(${c.id})">
+                        <button class="btn-primary" style="padding: 8px 14px; min-height: 38px; font-size: 0.82rem; width: auto;" onclick="addCustomerToTodayRoute(${c.id})">
                             🚜 Lisää ajolistalle
                         </button>
                         <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                            <button class="photo-btn" type="button" onclick="openCustomerPhotos(${c.id})" title="Kohteen valokuvat">📷 Kuvat (<span data-photo-count-for="${c.id}">${photoCounts[String(c.id)] || 0}</span>)</button>
+                            <button class="photo-btn" type="button" onclick="openCustomerPhotos(${c.id})" title="Kohteen valokuvat">📷 <span data-photo-count-for="${c.id}">${photoCounts[String(c.id)] || 0}</span></button>
                             <button class="tiny-btn" onclick="editCustomer(${c.id})" title="Muokkaa asiakkaan tietoja">✎ Muokkaa</button>
                             <button class="tiny-btn danger" onclick="deleteCustomer(${c.id})" title="Poista asiakas">✕</button>
                         </div>
@@ -3895,7 +4060,13 @@
         if (emailInput) emailInput.value = '';
         ['lat', 'lon', 'geo', 'addr'].forEach(k => delete addressInput.dataset[k]);
         notesInput.value = '';
+
+        const taskDrawer = document.getElementById('addTaskDrawer');
+        if (taskDrawer) taskDrawer.style.display = 'none';
+        document.getElementById('btnToggleAddTask')?.classList.remove('active');
+
         saveAndRender();
+        showStatus(`✓ "${esc(name)}" lisätty ajolistalle!`, 'success');
         if (!picked) geocodeTask(newTask.id);
     }
 
@@ -4049,7 +4220,10 @@
         persistRoutes();
         saveAndRender();
         renderRoutes();
-        showStatus(`Reitti "${esc(r.name)}" ladattu. Voit muokata sitä ja painaa "Tallenna reitti" päivittääksesi sen.`, 'success');
+        const cfgDrawer = document.getElementById('routeConfigDrawer');
+        if (cfgDrawer) cfgDrawer.style.display = 'none';
+        document.getElementById('btnToggleRouteConfig')?.classList.remove('active');
+        showStatus(`Reitti "${esc(r.name)}" ladattu.`, 'success');
         document.getElementById('taskList').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
@@ -4690,7 +4864,7 @@
         renderActiveRoute();
 
         if (tasks.length === 0) {
-            listEl.innerHTML = '<p class="empty-state">Ei vielä kohteita. Lisää ensimmäinen kohde yllä olevasta lomakkeesta!</p>';
+            listEl.innerHTML = '<p class="empty-state">Ei vielä kohteita ajolistalla. Paina yltä "➕ Lisää kohde" tai poimi asiakas Asiakkaat-välilehdeltä!</p>';
             return;
         }
 
@@ -4705,63 +4879,49 @@
 
             const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(taskRef(task))}`;
 
-            let coordBadge;
-            if (task.lat && task.lon) {
-                coordBadge = `<span class="coord-badge" title="${esc(task.geoName || '')}">${task.gps ? '📍 GPS' : '✓ Löytyi'}</span>`;
-            } else {
-                coordBadge = `<span class="coord-missing">Ei sijaintia</span>`;
-            }
-            const statusBadge = task.done
-                ? `<span class="badge badge-done" style="margin-left: 6px;">✓ Valmis</span>`
-                : `<span class="badge badge-pending" style="margin-left: 6px;">Odottaa</span>`;
+            const headerBadge = task.done
+                ? `<span class="badge badge-done">✓ Valmis</span>`
+                : `<span class="badge badge-active">${esc(task.type)}</span>`;
 
-            const gpsBtn = `<button class="tiny-btn" onclick="setTaskGPS(${task.id})" title="Tallenna nykyinen sijaintisi tämän kohteen sijainniksi">${task.gps ? 'Aseta GPS uudelleen' : '📍 Aseta GPS tässä'}</button>`;
-            const retryBtn = (task.lat && task.lon)
-                ? `<button class="tiny-btn" onclick="clearTaskCoords(${task.id})" title="Hae sijainti osoitteesta uudelleen">↻ Hae osoitteesta</button>` : '';
+            let locPill = '';
+            if (!task.lat || !task.lon) {
+                locPill = `<span class="coord-missing" onclick="clearTaskCoords(${task.id})" style="cursor:pointer;" title="Klikkaa hakeaksesi osoitteen sijainnin uudelleen">⚠️ Ei sijaintia ↻</span>`;
+            } else if (task.gps) {
+                locPill = `<span class="coord-badge" title="Tallennettu GPS-piste">📍 GPS</span>`;
+            }
 
             item.innerHTML = `
                 <div class="task-header">
-                    <div>
-                        <span class="task-title yard-title">${shown}. ${esc(task.name)}</span>
-                        <span class="badge badge-active" style="margin-left: 6px;">${esc(task.type)}</span>
-                        ${statusBadge}
-                    </div>
-                    <div>${coordBadge}</div>
+                    <span class="task-title yard-title" style="margin-bottom: 0;">${shown}. ${esc(task.name)}</span>
+                    ${headerBadge}
                 </div>
 
-                <div class="task-meta">
+                <div class="task-address-row">
                     <a href="${mapsUrl}" target="_blank" rel="noopener" class="yard-address">📍 ${esc(task.address)}</a>
-                    <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px;">
-                        <button class="photo-btn" type="button" onclick="openCustomerPhotos(${task.customerId ? task.customerId : `'${esc(task.name)}'`})" title="Näytä kohteen valokuvat">📷 Kuvat (<span data-photo-count-for="${task.customerId || esc(task.name)}">${photoCounts[String(task.customerId || task.name)] || 0}</span>)</button>
-                        <button class="tiny-btn" type="button" onclick="quickSnapPhoto(${task.id})" title="Ota valokuva kohteesta">📷 Ota kuva</button>
-                        <button class="tiny-btn" onclick="editTask(${task.id})" title="Muokkaa kohteen tietoja">✎ Muokkaa</button> ${gpsBtn} ${retryBtn}
+                    <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                        ${locPill}
+                        ${task.phone ? `<a href="tel:${esc(task.phone)}" class="contact-link" title="Soita asiakkaalle">📞 ${esc(task.phone)}</a>` : ''}
                     </div>
                 </div>
-                ${(task.phone || task.email) ? `
-                    <div class="customer-contacts" style="margin-top: 4px;">
-                        ${task.phone ? `<a href="tel:${esc(task.phone)}" class="contact-link" title="Soita asiakkaalle">📞 ${esc(task.phone)}</a>` : ''}
-                        ${task.email ? `<a href="mailto:${esc(task.email)}" class="contact-link" title="Lähetä sähköpostia">✉️ ${esc(task.email)}</a>` : ''}
-                    </div>` : ''}
-                ${(task.paymentMethod || task.contractType) ? `
-                    <div class="customer-tags" style="margin-top: 5px;">
-                        ${task.paymentMethod ? `<span class="tag-pill tag-payment">${task.paymentMethod === 'Laskutus' ? '💳' : '💵'} ${esc(task.paymentMethod)}</span>` : ''}
-                        ${task.contractType ? `<span class="tag-pill tag-contract">📋 ${esc(task.contractType)}</span>` : ''}
-                    </div>` : ''}
-                ${task.geoName && !task.gps ? `<div class="task-hint">🔎 Haettu: ${esc(task.geoName)}</div>` : ''}
-                ${approxLocation(task) ? `<div class="task-warn">⚠️ Talonumeroa ei löytynyt kartalta, sijainti on likimääräinen. Tarkista tai aseta GPS paikan päällä.</div>` : ''}
 
-                ${task.notes ? `<div class="task-notes">⚠️ <strong>Huomio:</strong> ${esc(task.notes)}</div>` : ''}
+                ${approxLocation(task) ? `<div class="task-warn">ℹ️ Sijainti kadun tarkkuudella (voit halutessasi tallentaa tarkan 📍 GPS-pisteen kohteessa).</div>` : ''}
+                ${task.notes ? `<div class="task-notes">⚠️ ${esc(task.notes)}</div>` : ''}
 
-                <div class="task-footer">
-                    <div class="order-controls">
+                <button type="button" class="btn-complete-main ${task.done ? 'is-done' : ''}" onclick="toggleTask(${task.id})">
+                    ${task.done ? '✓ Valmis – Palauta tekemättömäksi' : '✓ Kuittaa valmiiksi'}
+                </button>
+
+                <div class="task-tools-row">
+                    <div class="task-tools-group">
                         <button class="order-btn" title="Siirrä ylöspäin" onclick="moveTask(${index}, -1)" ${index === 0 ? 'disabled' : ''}>▲</button>
                         <button class="order-btn" title="Siirrä alaspäin" onclick="moveTask(${index}, 1)" ${index === tasks.length - 1 ? 'disabled' : ''}>▼</button>
                     </div>
-                    <div class="action-controls">
-                        <button class="btn-done" onclick="toggleTask(${task.id})">
-                            ${task.done ? '✓ Valmis' : 'Kuittaa valmiiksi'}
-                        </button>
-                        <button class="btn-delete" title="Poista" onclick="deleteTask(${task.id})">✕</button>
+                    <div class="task-tools-group">
+                        <button class="tiny-btn" type="button" onclick="quickSnapPhoto(${task.id})" title="Ota valokuva kohteesta">📷 Ota kuva</button>
+                        <button class="photo-btn" type="button" onclick="openCustomerPhotos(${task.customerId ? task.customerId : `'${esc(task.name)}'`})" title="Näytä kohteen valokuvat">🖼️ <span data-photo-count-for="${task.customerId || esc(task.name)}">${photoCounts[String(task.customerId || task.name)] || 0}</span></button>
+                        <button class="tiny-btn" type="button" onclick="setTaskGPS(${task.id})" title="Tallenna nykyinen GPS-sijaintisi tämän kohteen sijainniksi">📍 GPS</button>
+                        <button class="tiny-btn" type="button" onclick="editTask(${task.id})" title="Muokkaa kohteen tietoja">✎</button>
+                        <button class="tiny-btn danger" type="button" onclick="deleteTask(${task.id})" title="Poista kohde ajolistalta">✕</button>
                     </div>
                 </div>
             `;
