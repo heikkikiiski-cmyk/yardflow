@@ -1,6 +1,6 @@
-// Palvelutyöläinen: sovellus toimii offline-tilassa (esim. huonon kentän peitossa).
+// Palvelutyöläinen: YardFlow toimii offline-tilassa (esim. huonon kentän peitossa).
 // Kasvata versiota aina kun muutat tiedostoja, niin päivitys tulee käyttöön.
-const CACHE = 'auraus-v5-4';
+const CACHE = 'yardflow-v1-1';
 const ASSETS = [
     './',
     './index.html',
