@@ -38,7 +38,7 @@
            ============================================================ */
 
         :root {
-            --header-height: 64px;
+            --header-height: 68px;
             --radius: 14px;
             --radius-sm: 8px;
             --radius-md: 12px;
@@ -214,7 +214,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 16px;
+            padding: max(12px, env(safe-area-inset-top, 0px)) 16px 10px 16px;
             background: var(--header-bg);
             -webkit-backdrop-filter: blur(20px) saturate(180%);
             backdrop-filter: blur(20px) saturate(180%);
@@ -1809,6 +1809,15 @@
                 border-radius: var(--radius-lg);
             }
 
+            
+            html[data-app-mode="field"] #yardMapCard {
+                padding: 24px 20px 20px 20px !important;
+            }
+            html[data-app-mode="field"] .driver-hud-top {
+                margin-top: 20px !important;
+                margin-bottom: 16px !important;
+            }
+
             #customers-view, #viewCustomers, #work-history-view, #billing-view, #viewSettings {
                 height: 100%;
                 width: 100%;
@@ -1911,14 +1920,28 @@
         html[data-app-mode="field"] #routeSidebarPanel {
             display: none !important;
         }
+
+        html[data-app-mode="field"] .container,
+        html[data-app-mode="field"] .main-container,
+        html[data-app-mode="field"] #app-container,
+        html[data-app-mode="field"] .field-mode-container {
+            padding-top: calc(var(--header-height, 68px) + env(safe-area-inset-top, 0px) + 24px) !important;
+        }
+
+        html[data-app-mode="field"] #viewRoutes {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
         html[data-app-mode="field"] #yardMapCard {
             width: 100% !important;
             max-width: 100% !important;
             flex: 1 1 100% !important;
-            padding: 10px !important;
+            padding: 16px 12px 14px 12px !important;
             border: none !important;
             border-radius: 0 !important;
             box-shadow: none !important;
+            box-sizing: border-box !important;
         }
         html[data-app-mode="field"] #yardMapCard h3 {
             display: none !important;
@@ -1929,13 +1952,27 @@
         html[data-app-mode="field"] .leaflet-pm-toolbar {
             display: none !important;
         }
-        html[data-app-mode="field"] .driver-hud-top, #current-property-card, .current-property-card {
-            position: relative;
-            margin-top: 8px;
+        html[data-app-mode="field"] .driver-hud-top,
+        html[data-app-mode="field"] #driver-hud-top,
+        html[data-app-mode="field"] #current-property-card,
+        html[data-app-mode="field"] .current-property-card {
+            position: relative !important;
             display: block !important;
+            margin-top: 18px !important;
+            margin-bottom: 16px !important;
+            max-width: 760px;
+            margin-left: auto !important;
+            margin-right: auto !important;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
         }
         html[data-app-mode="field"] .driver-hud-bottom {
             display: flex !important;
+            max-width: 760px;
+            margin-left: auto !important;
+            margin-right: auto !important;
+            width: 100%;
+            box-sizing: border-box;
+            margin-top: 12px !important;
         }
 
         /* Oletuksena (hallintatilassa) kuljettajan HUD on piilossa */
@@ -3914,6 +3951,9 @@
 
             switchTab('routes');
             updateDriverHud();
+            window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+            const c = document.getElementById('app-container') || document.querySelector('.container');
+            if (c) c.scrollTop = 0;
         }
 
         if (typeof renderTasks === 'function') renderTasks();
