@@ -1686,11 +1686,15 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                 </div>
             </h3>
 
-            <div class="admin-only">
+            <div class="admin-only" style="margin-bottom: 10px;">
                 <label for="yardMapTargetSelect">Valitse tarkasteltava / piirrettävä kohde:</label>
-                <select id="yardMapTargetSelect" onchange="selectYardMapTarget(this.value)" style="margin-bottom: 10px;">
-                    <option value="">-- Valitse kohde listalta --</option>
-                </select>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <select id="yardMapTargetSelect" onchange="selectYardMapTarget(this.value)" style="margin-bottom: 0; flex: 1;">
+                        <option value="">-- Valitse kohde listalta --</option>
+                    </select>
+                    <button type="button" class="tiny-btn" onclick="openCurrentMapTargetEditModal()" title="Muokkaa valitun kohteen tietoja" style="padding: 7px 12px; white-space: nowrap;">✏️ Muokkaa</button>
+                    <button type="button" class="tiny-btn danger" onclick="deleteCurrentMapTargetFromList()" title="Poista valittu kohde ajolistalta" style="padding: 7px 12px; white-space: nowrap;">🗑️ Poista</button>
+                </div>
             </div>
 
             <!-- 3 piirtokategoriaa -->
@@ -2576,9 +2580,11 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             <label for="editNotes">Kuskin lisäohjeet / huomiot:</label>
             <textarea id="editNotes" rows="2" placeholder="esim. Varo kaivonkantta, auraus vain sisäpihalle"></textarea>
 
-            <div class="dialog-actions modal-action-buttons" style="display: flex; gap: 10px; margin-top: 14px;">
-                <button type="button" class="btn-outline btn-form-cancel" style="flex: 1;" onclick="closePropertyEditForm()">✕ Peruuta</button>
-                <button type="submit" id="btn-save-property-edits" value="ok" class="btn-primary btn-form-save" style="flex: 1.5; padding: 10px 20px; font-weight: 700;">💾 Tallenna muutokset</button>
+            <div class="dialog-actions modal-action-buttons" style="display: flex; gap: 8px; margin-top: 14px; align-items: center; flex-wrap: wrap;">
+                <button type="button" class="btn-outline danger" style="padding: 10px 14px; color: #f43f5e; border-color: rgba(244, 63, 94, 0.4);" onclick="deleteEditingTaskFromModal()" title="Poista tämä kohde ajolistalta">🗑️ Poista kohde</button>
+                <div style="flex: 1;"></div>
+                <button type="button" class="btn-outline btn-form-cancel" style="min-width: 100px;" onclick="closePropertyEditForm()">✕ Peruuta</button>
+                <button type="submit" id="btn-save-property-edits" value="ok" class="btn-primary btn-form-save" style="min-width: 140px; padding: 10px 20px; font-weight: 700;">💾 Tallenna muutokset</button>
             </div>
         </form>
     </dialog>
@@ -3536,6 +3542,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                 '<div class="driver-queue-actions">' +
                     '<button type="button" class="driver-queue-move-btn" onclick="moveDriverQueueItem(' + index + ', -1)" ' + (isFirst ? 'disabled' : '') + ' title="Siirrä ylemmäs">▲ Ylös</button>' +
                     '<button type="button" class="driver-queue-move-btn" onclick="moveDriverQueueItem(' + index + ', 1)" ' + (isLast ? 'disabled' : '') + ' title="Siirrä alemmas">▼ Alas</button>' +
+                    (currentAppMode === 'admin' ? '<button type="button" class="tiny-btn danger btn-delete-task" style="padding: 2px 7px; font-size: 0.72rem; margin-left: 2px;" onclick="event.stopPropagation(); deleteTask(' + task.id + ', event);" title="Poista kohde ajolistalta">🗑️</button>' : '') +
                 '</div>' +
             '</div>';
         }).join('');
@@ -8100,12 +8107,67 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     }
     window.confirmTaskObstacle = confirmTaskObstacle;
 
-    function deleteTask(id) {
-        if (confirm('Haluatko varmasti poistaa tämän kohteen?')) {
-            tasks = tasks.filter(t => t.id !== id);
-            saveAndRender();
+    function deleteTask(id, event = null) {
+        if (event && typeof event.stopPropagation === 'function') {
+            event.stopPropagation();
+            if (typeof event.preventDefault === 'function') event.preventDefault();
         }
+
+        if (window.tasks && Array.isArray(window.tasks) && window.tasks !== tasks) {
+            tasks = window.tasks;
+        }
+
+        const t = tasks.find(x => String(x.id) === String(id));
+        const targetName = t ? t.name : 'tämä kohde';
+
+        if (!confirm(`Haluatko varmasti poistaa kohteen "${targetName}" ajolistalta?`)) return;
+
+        // 1. Suodatetaan kohde pois ajolistalta (huomioidaan String / Number -vertailu)
+        tasks = tasks.filter(x => String(x.id) !== String(id));
+        window.tasks = tasks;
+
+        // 2. Jos poistettu kohde oli valittuna kartalla tai siirrossa, nollataan tilat
+        if (typeof activeSelectedTaskId !== 'undefined' && String(activeSelectedTaskId) === String(id)) {
+            activeSelectedTaskId = null;
+        }
+        if (typeof activePinMovingTaskId !== 'undefined' && String(activePinMovingTaskId) === String(id)) {
+            activePinMovingTaskId = null;
+        }
+
+        // 3. Jos aktiivisessa tallennetussa reitissä on tallennettuna tämä kohde, päivitetään se
+        if (typeof currentRouteId !== 'undefined' && currentRouteId && typeof routes !== 'undefined' && Array.isArray(routes)) {
+            const curR = routes.find(r => String(r.id) === String(currentRouteId));
+            if (curR && Array.isArray(curR.tasks)) {
+                curR.tasks = curR.tasks.filter(x => String(x.id) !== String(id));
+                if (Array.isArray(curR.propertyIds)) {
+                    curR.propertyIds = curR.propertyIds.filter(pid => String(pid) !== String(id));
+                }
+                curR.updated = new Date().toISOString();
+                persistRoutes();
+            }
+        }
+
+        // 4. Jos muokkausdialogi oli auki tälle kohteelle, suljetaan se
+        const editDlg = document.getElementById('editDialog');
+        if (editDlg && editDlg.open && typeof editingId !== 'undefined' && String(editingId) === String(id)) {
+            editingId = null;
+            if (typeof editDlg.close === 'function') editDlg.close('cancel');
+            else editDlg.style.display = 'none';
+        }
+
+        // 5. Tallennetaan ja päivitetään kaikki näkymät
+        saveAndRender();
+        if (typeof renderRoutes === 'function') renderRoutes();
+        if (typeof renderRoutesManagementView === 'function') renderRoutesManagementView();
+        if (typeof updateDriverHud === 'function') updateDriverHud();
+        if (typeof renderDriverQueue === 'function') renderDriverQueue();
+        if (typeof renderRoutePolyline === 'function') renderRoutePolyline();
+        if (typeof renderRouteAnalytics === 'function') renderRouteAnalytics();
+        if (typeof refreshYardMapTargetSelect === 'function') refreshYardMapTargetSelect();
+
+        showStatus(`Kohde "${targetName}" poistettu ajolistalta.`, 'info');
     }
+    window.deleteTask = deleteTask;
 
     function moveTask(index, direction) {
         const newIndex = index + direction;
@@ -9099,6 +9161,13 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     }
     window.savePropertyEditForm = savePropertyEditForm;
 
+    function deleteEditingTaskFromModal() {
+        const id = editingId;
+        if (id == null) return;
+        deleteTask(id);
+    }
+    window.deleteEditingTaskFromModal = deleteEditingTaskFromModal;
+
     function editTask(id) {
         if (window.tasks && Array.isArray(window.tasks) && window.tasks !== tasks) {
             tasks = window.tasks;
@@ -10000,10 +10069,10 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                         <button class="tiny-btn" type="button" onclick="openStreetViewForTask(${task.id})" title="Avaa kohde Google Street View -katunäkymässä">🛣️ Street View</button>
                         <button class="tiny-btn" type="button" onclick="quickSnapPhoto(${task.id})" title="Ota valokuva kohteesta">📷 Kuva</button>
                         <button class="photo-btn" type="button" onclick="openCustomerPhotos(${task.customerId ? task.customerId : `'${esc(task.name)}'`})" title="Näytä kohteen valokuvat">🖼️ <span data-photo-count-for="${task.customerId || esc(task.name)}">${photoCounts[String(task.customerId || task.name)] || 0}</span></button>
-                        <div class="task-tools-group admin-only" style="display: inline-flex; gap: 2px;">
-                            <button class="order-btn" title="Siirrä ylöspäin" onclick="moveTask(${index}, -1)" ${index === 0 ? 'disabled' : ''}>▲</button>
-                            <button class="order-btn" title="Siirrä alaspäin" onclick="moveTask(${index}, 1)" ${index === tasks.length - 1 ? 'disabled' : ''}>▼</button>
-                            <button class="tiny-btn danger admin-only" type="button" onclick="deleteTask(${task.id})" title="Poista kohde ajolistalta">✕</button>
+                        <div class="task-tools-group admin-only" style="display: inline-flex; gap: 4px; align-items: center;">
+                            <button class="order-btn" title="Siirrä ylöspäin" onclick="event.stopPropagation(); moveTask(${index}, -1)" ${index === 0 ? 'disabled' : ''}>▲</button>
+                            <button class="order-btn" title="Siirrä alaspäin" onclick="event.stopPropagation(); moveTask(${index}, 1)" ${index === tasks.length - 1 ? 'disabled' : ''}>▼</button>
+                            <button class="tiny-btn danger btn-delete-task admin-only" type="button" data-task-id="${task.id}" onclick="event.stopPropagation(); deleteTask(${task.id}, event);" title="Poista kohde ajolistalta">🗑️ Poista</button>
                         </div>
                     </div>
                 </div>
@@ -11502,6 +11571,35 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         syncYardMapGeofenceControls(currentMapTargetKey);
         renderTargetGeoJSONOnMap(currentMapTargetKey, true);
     }
+    window.selectYardMapTarget = selectYardMapTarget;
+
+    function openCurrentMapTargetEditModal() {
+        const target = resolveMapTargetObject(currentMapTargetKey);
+        if (!target) {
+            alert('Valitse ensin kohde listalta.');
+            return;
+        }
+        if (target.taskRef) {
+            openPropertyEditForm(target.taskRef.id);
+        } else if (target.custRef) {
+            if (typeof editCustomer === 'function') editCustomer(target.custRef.id);
+        }
+    }
+    window.openCurrentMapTargetEditModal = openCurrentMapTargetEditModal;
+
+    function deleteCurrentMapTargetFromList() {
+        const target = resolveMapTargetObject(currentMapTargetKey);
+        if (!target) {
+            alert('Valitse ensin poistettava kohde listalta.');
+            return;
+        }
+        if (target.taskRef) {
+            deleteTask(target.taskRef.id);
+        } else if (target.custRef) {
+            if (typeof deleteCustomer === 'function') deleteCustomer(target.custRef.id);
+        }
+    }
+    window.deleteCurrentMapTargetFromList = deleteCurrentMapTargetFromList;
 
     function openTaskOnYardMap(taskId) {
         const t = tasks.find(x => String(x.id) === String(taskId));
