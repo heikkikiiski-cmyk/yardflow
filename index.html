@@ -3012,6 +3012,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                 <div id="route-properties-selection-list" style="max-height: 240px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 8px; background: rgba(0,0,0,0.12); display: flex; flex-direction: column; gap: 6px;">
                     <!-- Dynamic property checkboxes -->
                 </div>
+            </div>
             <input type="hidden" id="route-edit-id" value="">
 
             <div style="margin-bottom: 12px; background: rgba(56, 189, 248, 0.08); padding: 8px 12px; border-radius: var(--radius-md); border: 1px solid rgba(56, 189, 248, 0.25);">
@@ -5621,7 +5622,12 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         const client = getSupabaseClient() || supabaseClient;
         if (!navigator.onLine || !client) return;
         let queue = JSON.parse(localStorage.getItem('yardflow_sync_queue') || '[]');
-        if (queue.length === 0) return;
+        if (queue.length === 0) {
+            if (typeof syncPendingPhotos === 'function') {
+                try { await syncPendingPhotos(); } catch (e) {}
+            }
+            return;
+        }
 
         const remainingQueue = [];
         let anySynced = false;
@@ -5670,6 +5676,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             if (typeof renderDashboardView === 'function') {
                 renderDashboardView();
             }
+        }
         if (typeof syncPendingPhotos === 'function') {
             try {
                 await syncPendingPhotos();
@@ -7787,7 +7794,16 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     }
 
     function saveAndRender() {
+        window.tasks = tasks;
         localStorage.setItem('pihatyot_tasks_v4', JSON.stringify(tasks));
+        if (typeof currentRouteId !== 'undefined' && currentRouteId && typeof routes !== 'undefined' && Array.isArray(routes)) {
+            const curR = routes.find(r => String(r.id) === String(currentRouteId));
+            if (curR) {
+                curR.tasks = JSON.parse(JSON.stringify(tasks));
+                curR.updated = new Date().toISOString();
+                persistRoutes();
+            }
+        }
         renderTasks();
     }
 
@@ -7855,8 +7871,8 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             manager_alert: false
         });
 
-        // Etsitään asiakasrekisteristä maksutapa ja sopimus
-        const custMatch = customers.find(c =>
+        // Etsitään asiakasrekisteristä maksutapa ja sopimus, tai tallennetaan uusi kohde myös asiakasrekisteriin jottei se koskaan häviä
+        let custMatch = customers.find(c =>
             (c.name && c.name.toLowerCase() === name.toLowerCase()) ||
             (c.address && c.address.toLowerCase() === address.toLowerCase())
         );
@@ -7866,6 +7882,37 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             newTask.contractType = custMatch.contractType;
             if (!newTask.phone && custMatch.phone) newTask.phone = custMatch.phone;
             if (!newTask.email && custMatch.email) newTask.email = custMatch.email;
+        } else {
+            const autoCust = normalizeGeofenceFields({
+                id: newTask.id,
+                name,
+                businessId: '',
+                address,
+                billingAddress: address,
+                contactPerson: '',
+                phone,
+                email,
+                linkedProperties: '',
+                lat: newTask.lat,
+                lon: newTask.lon,
+                paymentMethod: 'Laskutus',
+                contractType: 'Käynnit',
+                defaultType: newTask.type || 'Auraus & Hiekoitus',
+                plowPrice: 45.00,
+                hourlyRate: null,
+                sandPrice: null,
+                monthlyPrice: null,
+                gravelPrice: null,
+                notes: newTask.notes || '',
+                geofence_enabled: newTask.geofence_enabled,
+                geofence_type: newTask.geofence_type,
+                geofence_radius: newTask.geofence_radius,
+                created: new Date().toISOString()
+            });
+            customers.unshift(autoCust);
+            newTask.customerId = autoCust.id;
+            persistCustomers();
+            if (typeof renderCustomers === 'function') renderCustomers();
         }
 
         tasks.push(newTask);
@@ -8909,7 +8956,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         if (tasks.length && !confirm(`Ladataanko reitti "${r.name}"? Nykyinen lista korvataan, ja tallentamattomat muutokset menetetään.`)) return;
         tasks = JSON.parse(JSON.stringify(r.tasks)).map(t => normalizeGeofenceFields({
             ...t,
-            id: newId(),
+            id: t.id || newId(),
             done: false,
             completed: false,
             verified_on_site: false,
@@ -9518,9 +9565,10 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         const container = document.getElementById('route-properties-selection-list');
         if (!container) return;
 
-        const activePropertyIds = new Set(existingRoute ? (existingRoute.propertyIds || (existingRoute.tasks || []).map(t => t.id)) : []);
+        const activePropertyIds = new Set(existingRoute ? (existingRoute.propertyIds || (existingRoute.tasks || []).map(t => String(t.id))) : []);
+        const activePropertyNames = new Set(existingRoute ? (existingRoute.tasks || []).map(t => (t.name || '').trim().toLowerCase()).filter(Boolean) : []);
 
-        // Kootaan uniikit kohteet joko rekisteristä (customers) tai nykyisistä tehtävistä (tasks)
+        // Kootaan uniikit kohteet rekisteristä (customers), muokattavasta reitistä (existingRoute.tasks) ja nykyisistä tehtävistä (tasks)
         const items = [];
         const seenNames = new Set();
 
@@ -9531,14 +9579,44 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                     seenNames.add(key);
                     items.push({
                         id: c.id,
+                        customerId: c.id,
                         name: c.name,
                         address: c.address || '',
-                        type: c.workType || 'Auraus & Hiekoitus',
+                        phone: c.phone || '',
+                        email: c.email || '',
+                        type: c.workType || c.defaultType || 'Auraus & Hiekoitus',
                         notes: c.notes || '',
                         lat: c.lat || null,
                         lon: c.lon || null,
+                        geofence_enabled: c.geofence_enabled !== false,
                         geofence_radius: c.geofence_radius || 80,
-                        geofence_type: c.geofence_type || 'radius'
+                        geofence_type: c.geofence_type || 'radius',
+                        areaGeoJSON: c.areaGeoJSON || undefined
+                    });
+                }
+            });
+        }
+
+        if (existingRoute && Array.isArray(existingRoute.tasks) && existingRoute.tasks.length > 0) {
+            existingRoute.tasks.forEach(t => {
+                const key = (t.name || '').trim().toLowerCase();
+                if (key && !seenNames.has(key)) {
+                    seenNames.add(key);
+                    items.push({
+                        id: t.id,
+                        customerId: t.customerId || t.id,
+                        name: t.name,
+                        address: t.address || '',
+                        phone: t.phone || '',
+                        email: t.email || '',
+                        type: t.type || 'Auraus & Hiekoitus',
+                        notes: t.notes || '',
+                        lat: t.lat || null,
+                        lon: t.lon || null,
+                        geofence_enabled: t.geofence_enabled !== false,
+                        geofence_radius: t.geofence_radius || 80,
+                        geofence_type: t.geofence_type || 'radius',
+                        areaGeoJSON: t.areaGeoJSON || undefined
                     });
                 }
             });
@@ -9551,14 +9629,19 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                     seenNames.add(key);
                     items.push({
                         id: t.id,
+                        customerId: t.customerId || t.id,
                         name: t.name,
                         address: t.address || '',
+                        phone: t.phone || '',
+                        email: t.email || '',
                         type: t.type || 'Auraus & Hiekoitus',
                         notes: t.notes || '',
                         lat: t.lat || null,
                         lon: t.lon || null,
+                        geofence_enabled: t.geofence_enabled !== false,
                         geofence_radius: t.geofence_radius || 80,
-                        geofence_type: t.geofence_type || 'radius'
+                        geofence_type: t.geofence_type || 'radius',
+                        areaGeoJSON: t.areaGeoJSON || undefined
                     });
                 }
             });
@@ -9572,7 +9655,10 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
 
         container.innerHTML = items.map((item) => {
             const jsonStr = esc(JSON.stringify(item));
-            const isChecked = existingRoute ? activePropertyIds.has(item.id) : true;
+            const itemNameLower = (item.name || '').trim().toLowerCase();
+            const isChecked = existingRoute
+                ? (activePropertyIds.has(String(item.id)) || activePropertyIds.has(item.id) || activePropertyNames.has(itemNameLower))
+                : true;
             return `
                 <label style="display: flex; align-items: center; gap: 8px; padding: 6px 8px; background: rgba(255,255,255,0.03); border-radius: 6px; cursor: pointer; user-select: none;">
                     <input type="checkbox" class="route-prop-checkbox" ${isChecked ? 'checked' : ''} data-prop="${jsonStr}" onchange="updateCreateRouteSelectedCount()" style="width: auto; margin: 0;">
@@ -9631,27 +9717,39 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
 
         const routeId = editId || ('route_' + Date.now());
         const now = new Date().toISOString();
+        const existingIdx = routes.findIndex(x => String(x.id) === String(routeId));
+        const prevRouteTasks = (existingIdx >= 0 && Array.isArray(routes[existingIdx].tasks)) ? routes[existingIdx].tasks : [];
 
-        let routeTasks = selectedProps.map(p => normalizeGeofenceFields({
-            id: newId(),
-            name: p.name,
-            address: p.address,
-            type: p.type || 'Auraus & Hiekoitus',
-            notes: p.notes || '',
-            lat: p.lat,
-            lon: p.lon,
-            geofence_enabled: true,
-            geofence_type: p.geofence_type || 'radius',
-            geofence_radius: p.geofence_radius || 80,
-            done: false,
-            completed: false,
-            verified_on_site: false,
-            manual_override: false,
-            override_reason: null,
-            override_distance_meters: null,
-            completed_at: null,
-            manager_alert: false
-        }));
+        let routeTasks = selectedProps.map(p => {
+            const prevTask = prevRouteTasks.find(pt =>
+                String(pt.id) === String(p.id) ||
+                ((pt.name || '').trim().toLowerCase() === (p.name || '').trim().toLowerCase())
+            );
+            return normalizeGeofenceFields({
+                id: (prevTask && prevTask.id) ? prevTask.id : (p.id || newId()),
+                customerId: p.customerId || p.id || null,
+                name: p.name,
+                address: p.address,
+                phone: p.phone || (prevTask ? prevTask.phone : '') || '',
+                email: p.email || (prevTask ? prevTask.email : '') || '',
+                type: p.type || 'Auraus & Hiekoitus',
+                notes: p.notes || '',
+                lat: p.lat != null ? p.lat : (prevTask ? prevTask.lat : null),
+                lon: p.lon != null ? p.lon : (prevTask ? prevTask.lon : null),
+                areaGeoJSON: p.areaGeoJSON || (prevTask ? prevTask.areaGeoJSON : undefined),
+                geofence_enabled: p.geofence_enabled !== false,
+                geofence_type: p.geofence_type || 'radius',
+                geofence_radius: p.geofence_radius || 80,
+                done: prevTask ? !!prevTask.done : false,
+                completed: prevTask ? !!prevTask.completed : false,
+                verified_on_site: prevTask ? !!prevTask.verified_on_site : false,
+                manual_override: prevTask ? !!prevTask.manual_override : false,
+                override_reason: prevTask ? prevTask.override_reason : null,
+                override_distance_meters: prevTask ? prevTask.override_distance_meters : null,
+                completed_at: prevTask ? prevTask.completed_at : null,
+                manager_alert: prevTask ? !!prevTask.manager_alert : false
+            });
+        });
 
         // Automaattinen optimointi jos ruksi valittuna
         const autoOptCheck = document.getElementById('route-auto-optimize-check');
@@ -9680,13 +9778,12 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             }
         }
 
-        const existingIdx = routes.findIndex(x => String(x.id) === String(routeId));
         if (existingIdx >= 0) {
             routes[existingIdx] = {
                 ...routes[existingIdx],
                 name: routeName,
                 driver: driverName,
-                propertyIds: selectedProps.map(p => p.id),
+                propertyIds: routeTasks.map(t => t.id),
                 updated: now,
                 tasks: routeTasks,
                 depot: { ...depot },
@@ -9697,7 +9794,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                 id: routeId,
                 name: routeName,
                 driver: driverName,
-                propertyIds: selectedProps.map(p => p.id),
+                propertyIds: routeTasks.map(t => t.id),
                 created: now,
                 updated: now,
                 tasks: routeTasks,
@@ -9834,13 +9931,20 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         // Synkronoidaan myös asiakasrekisteriin, jos sama kohde löytyy sieltä
         const cust = customers.find(c =>
             (t.customerId && String(c.id) === String(t.customerId)) ||
+            (c.id && String(c.id) === String(t.id)) ||
             (c.name && c.name.toLowerCase() === t.name.toLowerCase())
         );
         if (cust) {
+            cust.name = t.name;
+            cust.address = address;
+            if (t.phone !== undefined) cust.phone = t.phone;
+            if (t.email !== undefined) cust.email = t.email;
+            cust.notes = t.notes;
             cust.geofence_enabled = t.geofence_enabled;
             cust.geofence_type = t.geofence_type;
             cust.geofence_radius = t.geofence_radius;
             persistCustomers();
+            if (typeof renderCustomers === 'function') renderCustomers();
         }
 
         if (changed) {
@@ -9988,7 +10092,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     // ---------- Varmuuskopio ----------
     function exportBackup() {
         const data = {
-            version: 9,
+            version: 10,
             exported: new Date().toISOString(),
             tasks,
             depot,
@@ -9996,6 +10100,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             currentRouteId,
             returnToDepot: returnCheckbox.checked,
             customers,
+            drivers: typeof getStoredDrivers === 'function' ? getStoredDrivers() : [],
             yardflow_work_logs: getStoredWorkLogs(),
             yardflow_dashboard_prefs: typeof getDashboardPrefs === 'function' ? getDashboardPrefs() : null,
             yardflow_home_widgets: typeof getHomeWidgetConfig === 'function' ? getHomeWidgetConfig() : null,
@@ -10029,6 +10134,10 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                     persistCustomers();
                     renderCustomers();
                 }
+                if (Array.isArray(data.drivers) && typeof persistDrivers === 'function') {
+                    persistDrivers(data.drivers);
+                    if (typeof renderDriversView === 'function') renderDriversView();
+                }
                 if (Array.isArray(data.yardflow_work_logs)) {
                     saveStoredWorkLogs(data.yardflow_work_logs);
                     updateWorkHistoryBadge();
@@ -10052,7 +10161,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                     saveHomeWidgetConfig(data.yardflow_home_widgets);
                     applyHomeWidgetVisibility();
                 }
-                if (data.yardflow_fuel_consumption != null || data.yardflow_fuel_price != null) {
+                if ((data.yardflow_fuel_consumption != null || data.yardflow_fuel_price != null) && typeof updateFuelSettings === 'function') {
                     updateFuelSettings(data.yardflow_fuel_consumption, data.yardflow_fuel_price);
                 }
                 if (data.yard_polygons_v1 && typeof data.yard_polygons_v1 === 'object') {

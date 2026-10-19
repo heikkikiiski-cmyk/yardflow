@@ -69,7 +69,30 @@ function runTests() {
     console.log('7. Tarkistetaan tiedostojen synkronointi pääkansion ja www/-kansion välillä...');
     assert.strictEqual(html, wwwHtml, 'index.html ja www/index.html tulee olla identtiset');
 
-    console.log('✅ KAIKKI TESTIT HYVÄKSYTTY ONNISTUNEESTI! (7/7)');
+    // 8. Kaikkien <script>-lohkojen syntaksitarkistus (vm.Script)
+    console.log('8. Tarkistetaan kaikkien JavaScript-lohkojen syntaksi...');
+    const vm = require('vm');
+    const scriptRegex = /<script\b[^>]*>([\s\S]*?)<\/script>/gi;
+    let match;
+    let scriptCount = 0;
+    while ((match = scriptRegex.exec(html)) !== null) {
+        const code = match[1].trim();
+        if (!code) continue;
+        scriptCount++;
+        assert.doesNotThrow(() => {
+            new vm.Script(code, { filename: `script_${scriptCount}.js` });
+        }, `Script-lohkon #${scriptCount} tulee kääntyä ilman syntaksivirheitä`);
+    }
+    assert(scriptCount >= 2, 'Tiedostossa tulee olla vähintään 2 inline script -lohkoa');
+
+    // 9. Tietojen säilyvyys ja synkronointi (mikään ei häviä)
+    console.log('9. Tarkistetaan tietojen pysyvyys (tasks, customers, routes, drivers, varmuuskopiot)...');
+    assert(html.includes('curR.tasks = JSON.parse(JSON.stringify(tasks));'), 'saveAndRender tulee pitää aktiivisen reitin kohteet synkronoituna');
+    assert(html.includes('customers.unshift(autoCust);'), 'addTask tulee tallentaa uudet kohteet myös asiakasrekisteriin');
+    assert(html.includes('id: t.id || newId()'), 'loadRoute tulee säilyttää kohteen id');
+    assert(html.includes('drivers: typeof getStoredDrivers === \'function\' ? getStoredDrivers() : []'), 'exportBackup tulee sisältää kuljettajat');
+
+    console.log('✅ KAIKKI TESTIT HYVÄKSYTTY ONNISTUNEESTI! (9/9)');
 }
 
 runTests();
