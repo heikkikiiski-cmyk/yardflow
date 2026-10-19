@@ -595,6 +595,72 @@
         /* ============================================================
            KÄYTTÖTILAN VALINTA & RAJOITUKSET (Kenttätila vs. Hallintatila)
            ============================================================ */
+        /* Hampurilaisvalikon tilanvaihtaja (Drawer Mode Switcher) */
+        .drawer-mode-section { padding: 12px 14px 14px 14px; background: var(--bg-secondary, rgba(0, 0, 0, 0.08)); border-bottom: 1px solid var(--border); }
+        .drawer-mode-label { font-size: 0.76rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .drawer-mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .drawer-mode-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 44px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.16s ease;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .drawer-mode-btn:hover { border-color: var(--border-hover, var(--accent)); background: var(--bg-card-hover, rgba(255, 255, 255, 0.06)); }
+        .drawer-mode-btn.active.field-mode-active {
+            background: rgba(16, 185, 129, 0.2) !important;
+            border-color: #10b981 !important;
+            color: #10b981 !important;
+            box-shadow: 0 0 0 1px #10b981, 0 2px 8px rgba(16, 185, 129, 0.25);
+        }
+        .drawer-mode-btn.active.admin-mode-active {
+            background: rgba(14, 165, 233, 0.2) !important;
+            border-color: #0ea5e9 !important;
+            color: #38bdf8 !important;
+            box-shadow: 0 0 0 1px #0ea5e9, 0 2px 8px rgba(14, 165, 233, 0.25);
+        }
+
+        /* Yhteystilakuvake (Online / Offline Cloud Status) */
+        .connection-status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 10px;
+            min-height: 36px;
+            border-radius: var(--radius-pill);
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--fg);
+            background: var(--segmented-bg);
+            border: 1px solid var(--border-light);
+            cursor: pointer;
+            user-select: none;
+            transition: all var(--transition);
+        }
+        .connection-status-pill:hover { border-color: var(--accent); }
+        .connection-status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #10b981;
+            box-shadow: 0 0 6px #10b981;
+        }
+        .connection-status-pill.offline .connection-status-dot {
+            background: #f59e0b;
+            box-shadow: 0 0 6px #f59e0b;
+        }
+
         .mode-switch-group { display: inline-flex; background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 2px; gap: 2px; align-items: center; }
         .mode-btn { background: transparent; border: none; color: var(--text-muted); font-size: 0.8rem; font-weight: 600; padding: 5px 10px; border-radius: var(--radius-pill); cursor: pointer; transition: var(--transition); display: inline-flex; align-items: center; gap: 4px; }
         .mode-btn:hover { color: var(--text-main); }
@@ -798,6 +864,23 @@
 
     <div class="drawer-user-info">
         <span class="drawer-mode-indicator" id="drawerModeText">🚜 Kenttätila aktiivinen</span>
+        <span id="drawerConnectionBadge" style="font-size: 0.74rem; color: #10b981; font-weight: 700;">● Online</span>
+    </div>
+
+    <!-- Tilanvalitsin hampurilaisvalikon sisällä -->
+    <div class="drawer-mode-section">
+        <div class="drawer-mode-label">
+            <span>Käyttötila</span>
+            <span style="font-weight: 500; font-size: 0.72rem; text-transform: none; color: var(--muted);">Valitse näkymä:</span>
+        </div>
+        <div class="drawer-mode-grid" role="group" aria-label="Käyttötilan valinta">
+            <button type="button" class="drawer-mode-btn field-mode-active active" id="drawerBtnModeField" onclick="selectAppModeFromDrawer('field')" title="Siirry kuljettajan kenttätilaan">
+                <span>🚜</span> <span>Kenttätila</span>
+            </button>
+            <button type="button" class="drawer-mode-btn admin-mode-active" id="drawerBtnModeAdmin" onclick="selectAppModeFromDrawer('admin')" title="Siirry hallintatilaan ja reitinsuunnitteluun">
+                <span>🛠️</span> <span>Hallintatila</span>
+            </button>
+        </div>
     </div>
 
     <nav class="drawer-nav">
@@ -855,16 +938,11 @@
         </div>
     </div>
     <div class="header-actions">
-        <!-- Käyttötilan valinta (Kenttä vs. Hallinta) -->
-        <div class="mode-switch-group" role="group" aria-label="Käyttötilan valinta">
-            <button type="button" class="mode-btn active" id="btnModeField" onclick="setAppMode('field')" title="Kenttätila (Kuljettaja / Huoltomies)">
-                🚜 Kenttä
-            </button>
-            <button type="button" class="mode-btn" id="btnModeAdmin" onclick="setAppMode('admin')" title="Hallintatila (Työnjohto / Suunnittelu)">
-                🛠️ Hallinta
-            </button>
+        <!-- Yhteystilakuvake ☁️ -->
+        <div id="connectionStatusIndicator" class="connection-status-pill" title="Yhteystila: Yhdistetty paikallisesti ja pilveen" onclick="checkNetworkConnection(true)">
+            <span class="connection-status-dot"></span>
+            <span class="connection-status-text">☁️ Online</span>
         </div>
-        <span class="mode-status-badge mode-badge-field" id="appModeBadge" title="Nykyinen käyttötila">🚜 Kenttätila</span>
 
         <button id="themeToggleBtn" class="theme-toggle-btn" type="button" onclick="toggleTheme()" title="Vaihda teemaa (Kirkas / Tumma)" aria-label="Vaihda teemaa">
             <span class="theme-toggle-icon">☀️</span>
@@ -2390,12 +2468,16 @@
 
         const btnField = document.getElementById('btnModeField');
         const btnAdmin = document.getElementById('btnModeAdmin');
+        const drawerBtnField = document.getElementById('drawerBtnModeField');
+        const drawerBtnAdmin = document.getElementById('drawerBtnModeAdmin');
         const badge = document.getElementById('appModeBadge');
         const btnSettingsField = document.getElementById('btnSettingsModeField');
         const btnSettingsAdmin = document.getElementById('btnSettingsModeAdmin');
 
         if (btnField) btnField.classList.toggle('active', currentAppMode === 'field');
         if (btnAdmin) btnAdmin.classList.toggle('active', currentAppMode === 'admin');
+        if (drawerBtnField) drawerBtnField.classList.toggle('active', currentAppMode === 'field');
+        if (drawerBtnAdmin) drawerBtnAdmin.classList.toggle('active', currentAppMode === 'admin');
 
         if (btnSettingsField) {
             btnSettingsField.className = currentAppMode === 'field' ? 'btn-primary' : 'btn-outline';
@@ -3111,12 +3193,42 @@
     }
     window.navToTab = navToTab;
 
-    function toggleFieldModeFromDrawer() {
+    function selectAppModeFromDrawer(mode) {
         closeAppDrawer();
-        setAppMode('field');
-        switchTab('routes');
+        setAppMode(mode);
+        if (mode === 'field') {
+            switchTab('routes');
+        } else {
+            // Kun käyttäjä valitsee Hallintatilan: siirrytään Dashboard / Hallintanäkymään
+            switchTab('dashboard');
+        }
+    }
+    window.selectAppModeFromDrawer = selectAppModeFromDrawer;
+
+    function toggleFieldModeFromDrawer() {
+        selectAppModeFromDrawer('field');
     }
     window.toggleFieldModeFromDrawer = toggleFieldModeFromDrawer;
+
+    function checkNetworkConnection(notify = false) {
+        const isOnline = navigator.onLine !== false;
+        const pill = document.getElementById('connectionStatusIndicator');
+        const drawerBadge = document.getElementById('drawerConnectionBadge');
+        if (pill) {
+            pill.classList.toggle('offline', !isOnline);
+            const textEl = pill.querySelector('.connection-status-text');
+            if (textEl) textEl.textContent = isOnline ? '☁️ Online' : '⚠️ Offline';
+            pill.title = isOnline ? 'Yhteystila: Online (Käytettävissä)' : 'Yhteystila: Offline (Toimii paikallisesti)';
+        }
+        if (drawerBadge) {
+            drawerBadge.textContent = isOnline ? '● Online' : '○ Offline';
+            drawerBadge.style.color = isOnline ? '#10b981' : '#f59e0b';
+        }
+        if (notify && typeof showToast === 'function') {
+            showToast(isOnline ? '☁️ Yhteys kunnossa (Online)' : '⚠️ Laitteesi on offline-tilassa (Toimii paikallisesti)');
+        }
+    }
+    window.checkNetworkConnection = checkNetworkConnection;
 
     function startTourShortcut() {
         setAppMode('field');
@@ -9525,6 +9637,11 @@
     if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
         window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(console.error));
     }
+
+    // Verkkoyhteyden tila (Online / Offline)
+    window.addEventListener('online', () => checkNetworkConnection(false));
+    window.addEventListener('offline', () => checkNetworkConnection(false));
+    checkNetworkConnection(false);
 
     // Initialisoidaan suodattimet, Dashboard ja Drawer
     populateCustomerFilterSelects();
