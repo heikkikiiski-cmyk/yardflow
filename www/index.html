@@ -671,10 +671,12 @@
         .mode-badge-admin { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.35); }
 
         /* ============================================================
-           KULJETTAJAN KENTTÄTILA (FIELD MODE) - PELKISTETTY KÄYTTÖLIITTYMÄ
+           KULJETTAJA- JA ADMIN-ROOLIEN NÄKYVYYDET
            ============================================================ */
-        html[data-app-mode="field"] .nav-tabs { display: none !important; }
         html[data-app-mode="field"] .admin-only { display: none !important; }
+        html[data-app-mode="admin"] .driver-only { display: none !important; }
+
+        html[data-app-mode="field"] .nav-tabs { display: none !important; }
         html[data-app-mode="field"] #routeSidebarPanel { display: none !important; }
 
         html[data-app-mode="field"] .container,
@@ -922,54 +924,80 @@
         <span id="drawerConnectionBadge" style="font-size: 0.74rem; color: #10b981; font-weight: 700;">● Online</span>
     </div>
 
-    <!-- Tilanvalitsin hampurilaisvalikon sisällä -->
+    <!-- Käyttäjäroolin valitsin hampurilaisvalikon sisällä (Admin vs. Kuski) -->
     <div class="drawer-mode-section">
         <div class="drawer-mode-label">
-            <span>Käyttötila</span>
-            <span style="font-weight: 500; font-size: 0.72rem; text-transform: none; color: var(--muted);">Valitse näkymä:</span>
+            <span>Käyttäjärooli</span>
+            <span style="font-weight: 500; font-size: 0.72rem; text-transform: none; color: var(--muted);">Valitse rooli:</span>
         </div>
-        <div class="drawer-mode-grid" role="group" aria-label="Käyttötilan valinta">
-            <button type="button" class="drawer-mode-btn field-mode-active active" id="drawerBtnModeField" onclick="selectAppModeFromDrawer('field')" title="Siirry kuljettajan kenttätilaan">
-                <span>🚜</span> <span>Kenttätila</span>
+        <div class="drawer-mode-grid" role="group" aria-label="Käyttäjäroolin valinta">
+            <button type="button" class="drawer-mode-btn field-mode-active active" id="drawerBtnModeField" onclick="selectAppModeFromDrawer('field')" title="Siirry kuljettajan työnäkymään">
+                <span>🚜</span> <span>Kuljettaja</span>
             </button>
-            <button type="button" class="drawer-mode-btn admin-mode-active" id="drawerBtnModeAdmin" onclick="selectAppModeFromDrawer('admin')" title="Siirry hallintatilaan ja reitinsuunnitteluun">
-                <span>🛠️</span> <span>Hallintatila</span>
+            <button type="button" class="drawer-mode-btn admin-mode-active" id="drawerBtnModeAdmin" onclick="selectAppModeFromDrawer('admin')" title="Siirry työnjohdon hallintatilaan">
+                <span>🛠️</span> <span>Työnjohto (Admin)</span>
             </button>
         </div>
     </div>
 
     <nav class="drawer-nav">
+        <!-- 🏠 Koti (Kuski: Työpäivänäkymä / Admin: Dashboard) -->
         <button type="button" class="drawer-nav-item active" id="nav-home" onclick="navToTab('dashboard')">
             <span class="nav-item-icon">🏠</span>
-            <span class="nav-item-label">Koti / Dashboard</span>
+            <span class="nav-item-label" id="navHomeLabel">Koti / Dashboard</span>
         </button>
+
+        <!-- 🗺️ Kartta (Kuski: Reittikartta ja aurattavat alueet / Admin: Kartta & Reittisuunnittelu) -->
         <button type="button" class="drawer-nav-item" id="nav-map" onclick="navToTab('routes')">
             <span class="nav-item-icon">🗺️</span>
-            <span class="nav-item-label">Kartta &amp; Reitinsuunnittelu</span>
+            <span class="nav-item-label" id="navMapLabel">Kartta &amp; Reitinsuunnittelu</span>
         </button>
-        <button type="button" class="drawer-nav-item" id="nav-customers" onclick="navToTab('customers')">
+
+        <!-- ADMIN-ONLY NÄKYMÄT -->
+        <!-- 🛣️ Reitit (Vain Admin: reittien luonti, hallinta ja listaus) -->
+        <button type="button" class="drawer-nav-item admin-only" id="nav-routes-mgmt" onclick="navToTab('routes-mgmt')">
+            <span class="nav-item-icon">🛣️</span>
+            <span class="nav-item-label">Reitit</span>
+            <span class="nav-badge" id="drawerRouteCountBadge">0</span>
+        </button>
+
+        <!-- 🚜 Kuljettajat (Vain Admin: kuskien lisäys, yhteystiedot, määritetyt reitit) -->
+        <button type="button" class="drawer-nav-item admin-only" id="nav-drivers" onclick="navToTab('drivers')">
+            <span class="nav-item-icon">🚜</span>
+            <span class="nav-item-label">Kuljettajat</span>
+            <span class="nav-badge" id="drawerDriverCountBadge">0</span>
+        </button>
+
+        <!-- 👥 Asiakkaat (Vain Admin) -->
+        <button type="button" class="drawer-nav-item admin-only" id="nav-customers" onclick="navToTab('customers')">
             <span class="nav-item-icon">👥</span>
-            <span class="nav-item-label">Asiakkaat</span>
+            <span class="nav-item-label">Asiakkaat &amp; Kohteet</span>
             <span class="nav-badge" id="drawerCustomerBadge">0</span>
         </button>
-        <button type="button" class="drawer-nav-item" id="nav-history" onclick="navToTab('history')">
-            <span class="nav-item-icon">📋</span>
-            <span class="nav-item-label">Tehdyt työt &amp; Raportit</span>
+
+        <!-- 📊 Raportit & Työlokit (Vain Admin) -->
+        <button type="button" class="drawer-nav-item admin-only" id="nav-history" onclick="navToTab('history')">
+            <span class="nav-item-icon">📊</span>
+            <span class="nav-item-label">Raportit &amp; Työlokit</span>
             <span class="nav-badge" id="drawerHistoryBadge">0</span>
         </button>
-        <button type="button" class="drawer-nav-item" id="nav-billing" onclick="navToTab('billing')">
+
+        <!-- 💶 Laskutus (Vain Admin) -->
+        <button type="button" class="drawer-nav-item admin-only" id="nav-billing" onclick="navToTab('billing')">
             <span class="nav-item-icon">💶</span>
             <span class="nav-item-label">Laskutus</span>
         </button>
-        <div class="drawer-divider"></div>
-        <button type="button" class="drawer-nav-item" id="nav-field-mode" onclick="toggleFieldModeFromDrawer()">
-            <span class="nav-item-icon">🚜</span>
-            <span class="nav-item-label">Kuskitila / Field Mode</span>
-        </button>
-        <button type="button" class="drawer-nav-item" id="nav-settings" onclick="navToTab('settings')">
+
+        <div class="drawer-divider admin-only"></div>
+
+        <!-- ⚙️ Asetukset (Vain Admin) -->
+        <button type="button" class="drawer-nav-item admin-only" id="nav-settings" onclick="navToTab('settings')">
             <span class="nav-item-icon">⚙️</span>
             <span class="nav-item-label">Asetukset</span>
         </button>
+
+        <!-- Yhteensopivuuspiilotettu id nav-field-mode -->
+        <button type="button" id="nav-field-mode" style="display: none;" onclick="toggleFieldModeFromDrawer()" aria-hidden="true"></button>
     </nav>
 
     <div class="drawer-footer">
@@ -1548,6 +1576,106 @@
                 <button type="button" id="btn-driver-obstacle" class="btn-driver-obstacle" onclick="reportNextYardObstacle()" title="Ilmoita este tai syy, miksi kohdetta ei voida tehdä">
                     ⚠️ Ilmoita esteestä
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NÄKYMÄ 1B: REITTIEN HALLINTA & LISTAUS (#view-routes / Vain Admin) -->
+    <div id="view-routes" style="display: none;">
+        <div class="card" style="max-width: 1200px; margin: 0 auto;">
+            <!-- Yläpalkki -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <h3 style="margin: 0; font-size: 1.25rem; display: flex; align-items: center; gap: 8px;">
+                        <span>🛣️</span>
+                        <span>Reittien hallinta (<span id="routesMgmtCountBadge">0</span>)</span>
+                    </h3>
+                    <div style="font-size: 0.82rem; color: var(--muted); margin-top: 3px;">
+                        Luo uusia reittejä, määritä kuljettajia, optimoi ajojärjestys ja seuraa kierrosten tilaa
+                    </div>
+                </div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button type="button" class="btn-outline" onclick="switchTab('routes')" style="min-height: 40px; padding: 0 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                        🗺️ Avaa karttanäkymä
+                    </button>
+                    <button type="button" class="btn-primary" onclick="openCreateRouteModal()" style="min-height: 40px; padding: 0 16px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                        ➕ Luo uusi reitti
+                    </button>
+                </div>
+            </div>
+
+            <!-- Hakukenttä ja suodatin -->
+            <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
+                <input type="text" id="routesMgmtSearch" placeholder="🔍 Etsi reittiä tai kuljettajaa..." oninput="renderRoutesManagementView()" style="flex: 1; min-width: 240px; margin-bottom: 0;">
+                <select id="routesMgmtDriverFilter" onchange="renderRoutesManagementView()" style="width: auto; min-width: 180px; margin-bottom: 0;">
+                    <option value="">Kaikki kuljettajat</option>
+                </select>
+            </div>
+
+            <!-- Reittikorttien ruudukko / lista -->
+            <div id="routesMgmtList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px;">
+                <!-- Populated dynamically by renderRoutesManagementView() -->
+            </div>
+        </div>
+    </div>
+
+    <!-- NÄKYMÄ 1C: KULJETTAJIEN HALLINTA (#view-drivers / Vain Admin) -->
+    <div id="view-drivers" style="display: none;">
+        <div class="card" style="max-width: 1200px; margin: 0 auto;">
+            <!-- Yläpalkki -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <h3 style="margin: 0; font-size: 1.25rem; display: flex; align-items: center; gap: 8px;">
+                        <span>🚜</span>
+                        <span>Kuljettajien hallinta (<span id="driversCountBadge">0</span>)</span>
+                    </h3>
+                    <div style="font-size: 0.82rem; color: var(--muted); margin-top: 3px;">
+                        Hallinnoi kuljettajatietoja, kalustoa, yhteystietoja ja määritettyjä aurausreittejä
+                    </div>
+                </div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button type="button" class="btn-primary" onclick="openAddDriverDrawer()" style="min-height: 40px; padding: 0 16px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                        ➕ Lisää kuljettaja
+                    </button>
+                </div>
+            </div>
+
+            <!-- AVATTAVA LOMAKE: Uuden kuljettajan lisäys -->
+            <div id="addDriverDrawer" class="drawer-panel" style="display: none; margin-bottom: 16px;">
+                <div class="drawer-header">
+                    <h4 id="driverFormTitle">➕ Lisää uusi kuljettaja</h4>
+                    <button class="tiny-btn" type="button" onclick="closeAddDriverDrawer()">✕ Sulje</button>
+                </div>
+                <input type="hidden" id="driverEditId" value="">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px;">
+                    <div>
+                        <label for="driverInputName" style="font-weight: 700;">Kuljettajan nimi *:</label>
+                        <input type="text" id="driverInputName" placeholder="esim. Pekka Peltola" required style="margin-bottom: 0;">
+                    </div>
+                    <div>
+                        <label for="driverInputPhone" style="font-weight: 700;">Puhelinnumero *:</label>
+                        <input type="tel" id="driverInputPhone" placeholder="esim. 040 123 4567" required style="margin-bottom: 0;">
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                    <div>
+                        <label for="driverInputEmail">Sähköposti:</label>
+                        <input type="email" id="driverInputEmail" placeholder="esim. pekka@auraus.fi" style="margin-bottom: 0;">
+                    </div>
+                    <div>
+                        <label for="driverInputVehicle">Ajoneuvo / Kalusto:</label>
+                        <input type="text" id="driverInputVehicle" placeholder="esim. Valtra N174 + lumiaura, Mönkijä, Wille" style="margin-bottom: 0;">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" class="btn-outline" onclick="closeAddDriverDrawer()">Peruuta</button>
+                    <button type="button" class="btn-primary" onclick="saveDriverFromForm()" style="padding: 8px 20px; font-weight: 700;">💾 Tallenna kuljettaja</button>
+                </div>
+            </div>
+
+            <!-- Kuljettajakorttien lista -->
+            <div id="driversListContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 14px;">
+                <!-- Populated dynamically by renderDriversView() -->
             </div>
         </div>
     </div>
@@ -2528,6 +2656,13 @@
                 <div id="route-properties-selection-list" style="max-height: 240px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 8px; background: rgba(0,0,0,0.12); display: flex; flex-direction: column; gap: 6px;">
                     <!-- Dynamic property checkboxes -->
                 </div>
+            <input type="hidden" id="route-edit-id" value="">
+
+            <div style="margin-bottom: 12px; background: rgba(56, 189, 248, 0.08); padding: 8px 12px; border-radius: var(--radius-md); border: 1px solid rgba(56, 189, 248, 0.25);">
+                <label class="check-row" style="margin: 0; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" id="route-auto-optimize-check" checked style="width: auto; margin: 0;">
+                    <span style="font-weight: 600; color: var(--fg);">⚡ Optimoi kohteiden ajojärjestys automaattisesti</span>
+                </label>
             </div>
 
             <div class="dialog-actions" style="display: flex; gap: 10px; margin-top: 14px;">
@@ -2615,30 +2750,25 @@
     window.updateThemeUI = updateThemeUI;
 
     // ============================================================
-    // 🚜 KÄYTTÖTILAN HALLINTA (Kenttätila vs. Hallintatila)
+    // 🚜 KÄYTTÖTILAN JA ROOLIEN HALLINTA (Kuljettaja vs. Työnjohto/Admin)
     // ============================================================
-    let currentAppMode = 'field'; // Oletuksena kenttätila turvalliseen ajoon
+    let currentAppMode = 'field'; // 'field' = Kuljettaja, 'admin' = Työnjohto
 
     function setAppMode(mode) {
         currentAppMode = (mode === 'admin') ? 'admin' : 'field';
         window.currentAppMode = currentAppMode;
-        if (typeof updateDrawerBadges === 'function') updateDrawerBadges();
         try {
             localStorage.setItem('yardflow_app_mode', currentAppMode);
         } catch (e) {}
 
         document.documentElement.setAttribute('data-app-mode', currentAppMode);
 
-        const btnField = document.getElementById('btnModeField');
-        const btnAdmin = document.getElementById('btnModeAdmin');
         const drawerBtnField = document.getElementById('drawerBtnModeField');
         const drawerBtnAdmin = document.getElementById('drawerBtnModeAdmin');
         const badge = document.getElementById('appModeBadge');
         const btnSettingsField = document.getElementById('btnSettingsModeField');
         const btnSettingsAdmin = document.getElementById('btnSettingsModeAdmin');
 
-        if (btnField) btnField.classList.toggle('active', currentAppMode === 'field');
-        if (btnAdmin) btnAdmin.classList.toggle('active', currentAppMode === 'admin');
         if (drawerBtnField) drawerBtnField.classList.toggle('active', currentAppMode === 'field');
         if (drawerBtnAdmin) drawerBtnAdmin.classList.toggle('active', currentAppMode === 'admin');
 
@@ -2652,16 +2782,26 @@
         if (badge) {
             if (currentAppMode === 'field') {
                 badge.className = 'mode-status-badge mode-badge-field';
-                badge.textContent = '🚜 Kenttätila';
-                badge.title = 'Kenttätila aktiivinen: häiriötön kuljettajanäkymä ja nopea kuittaus.';
+                badge.textContent = '🚜 Kuljettaja';
+                badge.title = 'Kuljettajatila aktiivinen: häiriötön työpäivänäkymä, reittikartta ja nopea kuittaus.';
             } else {
                 badge.className = 'mode-status-badge mode-badge-admin';
-                badge.textContent = '🛠️ Hallintatila';
-                badge.title = 'Hallintatila aktiivinen: piirtotyökalut, asiakkaat ja laskutus.';
+                badge.textContent = '🛠️ Työnjohto (Admin)';
+                badge.title = 'Hallintatila aktiivinen: reitit, kuljettajat, piirtotyökalut, asiakkaat ja laskutus.';
             }
         }
 
-        // Jos poistutaan hallintatilasta kenttätilaan, suljetaan avoimet piirto- ja muokkaustoiminnot
+        // Päivitetään valikon tekstit roolin mukaisiksi
+        const navHomeLabel = document.getElementById('navHomeLabel');
+        const navMapLabel = document.getElementById('navMapLabel');
+        if (navHomeLabel) {
+            navHomeLabel.textContent = currentAppMode === 'field' ? 'Koti (Työpäivä)' : 'Koti (Dashboard)';
+        }
+        if (navMapLabel) {
+            navMapLabel.textContent = currentAppMode === 'field' ? 'Reittikartta' : 'Kartta & Reitinsuunnittelu';
+        }
+
+        // Jos poistutaan hallintatilasta kuljettajatilaan, suljetaan avoimet piirto- ja muokkaustoiminnot
         if (currentAppMode === 'field') {
             if (yardMap && yardMap.pm) {
                 yardMap.pm.disableDraw();
@@ -2683,7 +2823,13 @@
                 activePinMovingTaskId = null;
             }
 
-            switchTab('routes');
+            // Kuljettajalla sallitut näkymät ovat vain 'dashboard' (koti) ja 'routes' (kartta)
+            const activeTab = window.currentTabName || 'routes';
+            if (activeTab !== 'dashboard' && activeTab !== 'routes') {
+                switchTab('routes');
+            } else {
+                switchTab(activeTab);
+            }
             updateDriverHud();
             window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
             const c = document.getElementById('app-container') || document.querySelector('.container');
@@ -2691,6 +2837,7 @@
         }
 
         if (typeof renderTasks === 'function') renderTasks();
+        if (typeof updateDrawerBadges === 'function') updateDrawerBadges();
 
         if (typeof yardMap !== 'undefined' && yardMap) {
             setTimeout(() => {
@@ -3374,9 +3521,6 @@
 
     function navToTab(tab) {
         closeAppDrawer();
-        if ((tab === 'routes' || tab === 'map') && currentAppMode === 'field') {
-            setAppMode('admin');
-        }
         switchTab(tab);
     }
     window.navToTab = navToTab;
@@ -3385,9 +3529,8 @@
         closeAppDrawer();
         setAppMode(mode);
         if (mode === 'field') {
-            switchTab('routes');
+            switchTab('dashboard');
         } else {
-            // Kun käyttäjä valitsee Hallintatilan: siirrytään Dashboard / Hallintanäkymään
             switchTab('dashboard');
         }
     }
@@ -3454,11 +3597,19 @@
         if (histBadge && typeof getStoredWorkLogs === 'function') {
             histBadge.textContent = getStoredWorkLogs().length;
         }
+        const routeBadge = document.getElementById('drawerRouteCountBadge');
+        if (routeBadge && typeof routes !== 'undefined' && Array.isArray(routes)) {
+            routeBadge.textContent = routes.length;
+        }
+        const driverBadge = document.getElementById('drawerDriverCountBadge');
+        if (driverBadge && typeof getStoredDrivers === 'function') {
+            driverBadge.textContent = getStoredDrivers().length;
+        }
         const modeText = document.getElementById('drawerModeText');
         if (modeText) {
             modeText.textContent = (typeof currentAppMode !== 'undefined' && currentAppMode === 'field')
-                ? '🚜 Kenttätila aktiivinen'
-                : '🛠️ Hallintatila aktiivinen';
+                ? '🚜 Kuljettajan työnäkymä'
+                : '🛠️ Työnjohto aktiivinen';
         }
     }
     window.updateDrawerBadges = updateDrawerBadges;
@@ -3687,8 +3838,17 @@
         if (tab === 'map') tab = 'routes';
         if (tab === 'home') tab = 'dashboard';
 
+        // Kuljettajalla sallitut näkymät ovat 'dashboard' (koti) ja 'routes' (kartta)
+        if (currentAppMode === 'field' && tab !== 'dashboard' && tab !== 'routes') {
+            tab = 'routes';
+        }
+
+        window.currentTabName = tab;
+
         const dashView = document.getElementById('dashboard-view');
         const routesView = document.getElementById('viewRoutes');
+        const routesMgmtView = document.getElementById('view-routes');
+        const driversView = document.getElementById('view-drivers');
         const custView = document.getElementById('customers-view') || document.getElementById('viewCustomers');
         const historyView = document.getElementById('work-history-view');
         const billingView = document.getElementById('billing-view');
@@ -3696,20 +3856,22 @@
 
         if (dashView) dashView.style.display = tab === 'dashboard' ? 'block' : 'none';
         if (routesView) routesView.style.display = tab === 'routes' ? '' : 'none';
+        if (routesMgmtView) routesMgmtView.style.display = tab === 'routes-mgmt' ? 'block' : 'none';
+        if (driversView) driversView.style.display = tab === 'drivers' ? 'block' : 'none';
         if (custView) custView.style.display = tab === 'customers' ? '' : 'none';
         if (historyView) historyView.style.display = tab === 'history' ? '' : 'none';
         if (billingView) billingView.style.display = tab === 'billing' ? '' : 'none';
         if (settingsView) settingsView.style.display = tab === 'settings' ? '' : 'none';
 
         // Päivitetään sivupalkkivalikon aktiivinen linkki
-        const isFieldRoute = (tab === 'routes' && typeof currentAppMode !== 'undefined' && currentAppMode === 'field');
         const navItems = [
             { id: 'nav-home', active: tab === 'dashboard' },
-            { id: 'nav-map', active: tab === 'routes' && !isFieldRoute },
+            { id: 'nav-map', active: tab === 'routes' },
+            { id: 'nav-routes-mgmt', active: tab === 'routes-mgmt' },
+            { id: 'nav-drivers', active: tab === 'drivers' },
             { id: 'nav-customers', active: tab === 'customers' },
             { id: 'nav-history', active: tab === 'history' },
             { id: 'nav-billing', active: tab === 'billing' },
-            { id: 'nav-field-mode', active: isFieldRoute },
             { id: 'nav-settings', active: tab === 'settings' }
         ];
         navItems.forEach(item => {
@@ -3731,6 +3893,8 @@
         if (tabBtnSettings) tabBtnSettings.classList.toggle('active', tab === 'settings');
 
         if (tab === 'dashboard') renderDashboardView();
+        if (tab === 'routes-mgmt') renderRoutesManagementView();
+        if (tab === 'drivers') renderDriversView();
         if (tab === 'customers') renderCustomers();
         if (tab === 'history') { populateCustomerFilterSelects(); renderWorkHistory(); }
         if (tab === 'billing') { populateCustomerFilterSelects(); renderBillingSummary(); }
@@ -7802,28 +7966,393 @@
     window.restorePanelCollapseStates = restorePanelCollapseStates;
 
     // ============================================================
+    // 🚜 KULJETTAJAT -DATA JA HALLINTA (DRIVERS CRUD & STATE)
+    // ============================================================
+    const DEFAULT_DRIVERS = [
+        { id: 'drv_1', name: 'Hessu', phone: '040 123 4567', email: 'hessu@yardflow.fi', vehicle: 'Valtra N174 + lumiaura' },
+        { id: 'drv_2', name: 'Pekka', phone: '050 987 6543', email: 'pekka@yardflow.fi', vehicle: 'Wille 465 pyöräkuormaaja' },
+        { id: 'drv_3', name: 'Matti', phone: '045 555 1234', email: 'matti@yardflow.fi', vehicle: 'Polaris Sportsman 570 -mönkijä' },
+        { id: 'drv_4', name: 'Kalle', phone: '040 777 8899', email: 'kalle@yardflow.fi', vehicle: 'John Deere 6120M' }
+    ];
+
+    function getStoredDrivers() {
+        try {
+            const raw = localStorage.getItem('yardflow_drivers_v1');
+            if (raw) {
+                const arr = JSON.parse(raw);
+                if (Array.isArray(arr) && arr.length > 0) return arr;
+            }
+        } catch (e) {}
+        return [...DEFAULT_DRIVERS];
+    }
+
+    function persistDrivers(driversList) {
+        try {
+            localStorage.setItem('yardflow_drivers_v1', JSON.stringify(driversList));
+        } catch (e) {}
+        if (typeof updateDrawerBadges === 'function') updateDrawerBadges();
+    }
+
+    function openAddDriverDrawer(driverId = null) {
+        const drawer = document.getElementById('addDriverDrawer');
+        if (!drawer) return;
+        const title = document.getElementById('driverFormTitle');
+        const editIdInput = document.getElementById('driverEditId');
+        const nameInput = document.getElementById('driverInputName');
+        const phoneInput = document.getElementById('driverInputPhone');
+        const emailInput = document.getElementById('driverInputEmail');
+        const vehicleInput = document.getElementById('driverInputVehicle');
+
+        if (driverId) {
+            const drivers = getStoredDrivers();
+            const d = drivers.find(x => String(x.id) === String(driverId));
+            if (d) {
+                if (title) title.textContent = '✏️ Muokkaa kuljettajaa';
+                if (editIdInput) editIdInput.value = d.id;
+                if (nameInput) nameInput.value = d.name || '';
+                if (phoneInput) phoneInput.value = d.phone || '';
+                if (emailInput) emailInput.value = d.email || '';
+                if (vehicleInput) vehicleInput.value = d.vehicle || '';
+            }
+        } else {
+            if (title) title.textContent = '➕ Lisää uusi kuljettaja';
+            if (editIdInput) editIdInput.value = '';
+            if (nameInput) nameInput.value = '';
+            if (phoneInput) phoneInput.value = '';
+            if (emailInput) emailInput.value = '';
+            if (vehicleInput) vehicleInput.value = '';
+        }
+
+        drawer.style.display = 'block';
+        if (nameInput) nameInput.focus();
+    }
+    window.openAddDriverDrawer = openAddDriverDrawer;
+
+    function closeAddDriverDrawer() {
+        const drawer = document.getElementById('addDriverDrawer');
+        if (drawer) drawer.style.display = 'none';
+    }
+    window.closeAddDriverDrawer = closeAddDriverDrawer;
+
+    function saveDriverFromForm() {
+        const editId = document.getElementById('driverEditId')?.value;
+        const name = document.getElementById('driverInputName')?.value.trim();
+        const phone = document.getElementById('driverInputPhone')?.value.trim();
+        const email = document.getElementById('driverInputEmail')?.value.trim();
+        const vehicle = document.getElementById('driverInputVehicle')?.value.trim();
+
+        if (!name || !phone) {
+            alert('Täytä vähintään kuljettajan nimi ja puhelinnumero!');
+            return;
+        }
+
+        const drivers = getStoredDrivers();
+        if (editId) {
+            const idx = drivers.findIndex(x => String(x.id) === String(editId));
+            if (idx >= 0) {
+                drivers[idx] = { ...drivers[idx], name, phone, email, vehicle };
+            }
+        } else {
+            drivers.push({
+                id: 'drv_' + Date.now(),
+                name,
+                phone,
+                email,
+                vehicle
+            });
+        }
+
+        persistDrivers(drivers);
+        closeAddDriverDrawer();
+        renderDriversView();
+        showStatus(`Kuljettaja "${esc(name)}" tallennettu!`, 'success');
+    }
+    window.saveDriverFromForm = saveDriverFromForm;
+
+    function deleteDriver(driverId) {
+        const drivers = getStoredDrivers();
+        const d = drivers.find(x => String(x.id) === String(driverId));
+        if (!d) return;
+        if (!confirm(`Haluatko varmasti poistaa kuljettajan "${d.name}"?`)) return;
+
+        const updated = drivers.filter(x => String(x.id) !== String(driverId));
+        persistDrivers(updated);
+        renderDriversView();
+        showStatus(`Kuljettaja "${esc(d.name)}" poistettu.`, 'info');
+    }
+    window.deleteDriver = deleteDriver;
+
+    function renderDriversView() {
+        const container = document.getElementById('driversListContainer');
+        const badge = document.getElementById('driversCountBadge');
+        if (!container) return;
+
+        const drivers = getStoredDrivers();
+        if (badge) badge.textContent = drivers.length;
+
+        if (drivers.length === 0) {
+            container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 36px 16px; color: var(--muted);"><div style="font-size: 2rem; margin-bottom: 8px;">🚜</div><div style="font-weight: 600;">Ei tallennettuja kuljettajia.</div><div>Lisää ensimmäinen kuljettaja "+ Lisää kuljettaja" -painikkeesta.</div></div>';
+            return;
+        }
+
+        // Haetaan tallennetut reitit
+        const allRoutes = (typeof routes !== 'undefined' && Array.isArray(routes)) ? routes : [];
+
+        container.innerHTML = drivers.map(d => {
+            // Etsitään kuskille kuuluvat reitit
+            const assignedRoutes = allRoutes.filter(r => r.driver && r.driver.toLowerCase() === d.name.toLowerCase());
+            
+            // Lasketaan tänään kuitatut kohteet tämän kuskin reiteiltä tai aktiivisesta tasks-listasta jos sama kuski
+            let totalTasks = 0;
+            let doneTasks = 0;
+            assignedRoutes.forEach(r => {
+                const rTasks = r.tasks || [];
+                totalTasks += rTasks.length;
+                doneTasks += rTasks.filter(t => t.done).length;
+            });
+
+            const cur = typeof getCurrentRoute === 'function' ? getCurrentRoute() : null;
+            if (cur && cur.driver && cur.driver.toLowerCase() === d.name.toLowerCase()) {
+                totalTasks = tasks.length;
+                doneTasks = tasks.filter(t => t.done).length;
+            }
+
+            const pct = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
+
+            return `
+            <div class="card driver-card" style="border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; background: var(--bg-card); display: flex; flex-direction: column; gap: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                    <div>
+                        <div style="font-size: 1.15rem; font-weight: 800; color: var(--fg); display: flex; align-items: center; gap: 8px;">
+                            <span>🚜</span>
+                            <span>${esc(d.name)}</span>
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--muted); margin-top: 2px;">
+                            ${esc(d.vehicle || 'Kalusto ei määritelty')}
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 6px;">
+                        <button type="button" class="tiny-btn" onclick="openAddDriverDrawer('${d.id}')" title="Muokkaa kuljettajaa">✏️</button>
+                        <button type="button" class="tiny-btn danger" onclick="deleteDriver('${d.id}')" title="Poista kuljettaja">🗑️</button>
+                    </div>
+                </div>
+
+                <!-- Yhteystiedot suorilla linkeillä -->
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 10px 12px; font-size: 0.85rem; display: flex; flex-direction: column; gap: 6px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span>📞</span>
+                        <a href="tel:${esc(d.phone.replace(/[^0-9+]/g, ''))}" style="color: var(--accent); font-weight: 700; text-decoration: none;">${esc(d.phone)}</a>
+                    </div>
+                    ${d.email ? `
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span>✉️</span>
+                        <a href="mailto:${esc(d.email)}" style="color: var(--muted); text-decoration: none; word-break: break-all;">${esc(d.email)}</a>
+                    </div>` : ''}
+                </div>
+
+                <!-- Päivän eteneminen -->
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; margin-bottom: 4px;">
+                        <span style="font-weight: 600; color: var(--fg);">Päivän kuittaukset:</span>
+                        <span style="font-weight: 700; color: #10b981;">${doneTasks} / ${totalTasks} (${pct}%)</span>
+                    </div>
+                    <div class="progress-bar-track" style="height: 8px; border-radius: 4px; background: var(--bg-secondary); overflow: hidden;">
+                        <div class="progress-bar-fill" style="width: ${pct}%; height: 100%; background: linear-gradient(90deg, #10b981, #059669);"></div>
+                    </div>
+                </div>
+
+                <!-- Osoitetut reitit -->
+                <div style="border-top: 1px dashed var(--border); padding-top: 10px;">
+                    <div style="font-size: 0.76rem; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 6px;">Määritetyt reitit (${assignedRoutes.length}):</div>
+                    ${assignedRoutes.length === 0 ? '<div style="font-size: 0.8rem; color: var(--muted); font-style: italic;">Ei määritettyjä reittejä tälle kuljettajalle.</div>' : `
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        ${assignedRoutes.map(r => `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 8px; background: rgba(0,0,0,0.15); border-radius: 4px; font-size: 0.8rem;">
+                                <span style="font-weight: 600; color: var(--fg);">${esc(r.name)}</span>
+                                <span style="color: var(--muted); font-size: 0.74rem;">${(r.tasks || []).length} kohdetta</span>
+                            </div>
+                        `).join('')}
+                    </div>`}
+                </div>
+            </div>`;
+        }).join('');
+    }
+    window.renderDriversView = renderDriversView;
+
+    // ============================================================
+    // 🛣️ REITTIEN HALLINTA & LISTAUS (#view-routes / ROUTES MANAGEMENT)
+    // ============================================================
+    function renderRoutesManagementView() {
+        const container = document.getElementById('routesMgmtList');
+        const badge = document.getElementById('routesMgmtCountBadge');
+        const filterSelect = document.getElementById('routesMgmtDriverFilter');
+        const searchInput = document.getElementById('routesMgmtSearch');
+        if (!container) return;
+
+        const allRoutes = (typeof routes !== 'undefined' && Array.isArray(routes)) ? routes : [];
+        if (badge) badge.textContent = allRoutes.length;
+
+        // Täytetään kuljettajasuodatin dynaamisesti
+        if (filterSelect) {
+            const currentFilterVal = filterSelect.value;
+            const drivers = getStoredDrivers();
+            const driverNames = Array.from(new Set(drivers.map(d => d.name)));
+            allRoutes.forEach(r => { if (r.driver) driverNames.push(r.driver); });
+            const uniqueNames = Array.from(new Set(driverNames.filter(Boolean)));
+
+            filterSelect.innerHTML = '<option value="">Kaikki kuljettajat</option>' +
+                uniqueNames.map(name => `<option value="${esc(name)}" ${name === currentFilterVal ? 'selected' : ''}>${esc(name)}</option>`).join('');
+        }
+
+        const searchTerm = (searchInput ? searchInput.value.trim().toLowerCase() : '');
+        const driverFilter = (filterSelect ? filterSelect.value : '');
+
+        let filtered = allRoutes.filter(r => {
+            const matchesSearch = !searchTerm || (r.name && r.name.toLowerCase().includes(searchTerm)) || (r.driver && r.driver.toLowerCase().includes(searchTerm));
+            const matchesDriver = !driverFilter || (r.driver && r.driver.toLowerCase() === driverFilter.toLowerCase());
+            return matchesSearch && matchesDriver;
+        });
+
+        if (filtered.length === 0) {
+            container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 36px 16px; color: var(--muted);"><div style="font-size: 2rem; margin-bottom: 8px;">🛣️</div><div style="font-weight: 600;">Ei reittejä löytynyt.</div><div>Luo uusi reitti "+ Luo uusi reitti" -painikkeesta.</div></div>';
+            return;
+        }
+
+        container.innerHTML = filtered.map(r => {
+            const isActive = String(r.id) === String(currentRouteId);
+            const rTasks = r.tasks || [];
+            const doneCount = rTasks.filter(t => t.done).length;
+            const totalCount = rTasks.length;
+            
+            let statusBadge = '<span class="status-pill" style="background: rgba(100, 116, 139, 0.2); color: #94a3b8; border: 1px solid rgba(100, 116, 139, 0.35);">Suunniteltu</span>';
+            if (isActive) {
+                if (totalCount > 0 && doneCount === totalCount) {
+                    statusBadge = '<span class="status-pill status-ready" style="background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.35);">Valmis</span>';
+                } else {
+                    statusBadge = '<span class="status-pill" style="background: rgba(14, 165, 233, 0.2); color: #38bdf8; border: 1px solid rgba(14, 165, 233, 0.35);">● Ajossa</span>';
+                }
+            } else if (totalCount > 0 && doneCount === totalCount) {
+                statusBadge = '<span class="status-pill status-ready" style="background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.35);">Valmis</span>';
+            }
+
+            return `
+            <div class="card route-mgmt-card ${isActive ? 'active-route-card' : ''}" style="border: 1px solid ${isActive ? 'var(--accent)' : 'var(--border)'}; border-radius: var(--radius-lg); padding: 16px; background: var(--bg-card); display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px;">
+                        <div>
+                            <h4 style="margin: 0; font-size: 1.1rem; font-weight: 800; color: var(--fg);">${esc(r.name)}</h4>
+                            <div style="font-size: 0.78rem; color: var(--muted); margin-top: 3px;">Päivitetty ${esc(fmtDate(r.updated || r.created))}</div>
+                        </div>
+                        ${statusBadge}
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 10px; font-size: 0.85rem;">
+                        <div style="display: flex; justify-content: space-between; padding: 4px 6px; background: rgba(255,255,255,0.03); border-radius: 4px;">
+                            <span style="color: var(--muted);">🚜 Kuljettaja:</span>
+                            <strong style="color: #38bdf8;">${esc(r.driver || 'Ei osoitettu')}</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 4px 6px; background: rgba(255,255,255,0.03); border-radius: 4px;">
+                            <span style="color: var(--muted);">📍 Kohteita:</span>
+                            <strong>${totalCount} kpl (${doneCount} tehty)</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 8px; border-top: 1px dashed var(--border); padding-top: 10px;">
+                    <div style="display: flex; gap: 6px;">
+                        <button type="button" class="btn-primary" style="flex: 1; min-height: 36px; padding: 4px 10px; font-size: 0.84rem; font-weight: 700;" onclick="loadAndOpenRoute('${r.id}')">
+                            ▶ ${isActive ? 'Aktiivinen reitti' : 'Ota ajoon'}
+                        </button>
+                        <button type="button" class="btn-outline" style="min-height: 36px; padding: 4px 10px; font-size: 0.84rem;" onclick="reassignRouteDriver('${r.id}')" title="Määritä toiselle kuljettajalle">
+                            🔄 Kuski
+                        </button>
+                    </div>
+                    <div style="display: flex; gap: 6px; justify-content: flex-end;">
+                        <button type="button" class="tiny-btn" onclick="openCreateRouteModal('${r.id}')">✏️ Muokkaa</button>
+                        <button type="button" class="tiny-btn danger" onclick="deleteRoute('${r.id}')">🗑️ Poista</button>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+    window.renderRoutesManagementView = renderRoutesManagementView;
+
+    function loadAndOpenRoute(id) {
+        if (typeof loadRoute === 'function') {
+            loadRoute(id);
+        }
+    }
+    window.loadAndOpenRoute = loadAndOpenRoute;
+
+    function reassignRouteDriver(id) {
+        const r = routes.find(x => String(x.id) === String(id));
+        if (!r) return;
+
+        const drivers = getStoredDrivers();
+        const driverListStr = drivers.map((d, i) => `${i + 1}. ${d.name}`).join('\n');
+        const input = prompt(`Määritä reitille "${r.name}" uusi kuljettaja:\n\nValitse listasta tai kirjoita nimi:\n${driverListStr}`, r.driver || '');
+        if (input && input.trim()) {
+            r.driver = input.trim();
+            r.updated = new Date().toISOString();
+            persistRoutes();
+            renderRoutesManagementView();
+            renderRoutes();
+            renderActiveRoute();
+            updateDriverHud();
+            showStatus(`Reitti "${esc(r.name)}" osoitettu kuljettajalle "${esc(r.driver)}".`, 'success');
+        }
+    }
+    window.reassignRouteDriver = reassignRouteDriver;
+
+    // ============================================================
     // ➕ "LUO UUSI REITTI" -MODALIN JA KUSKIN VALINNAN TOIMINNOT
     // ============================================================
-    function openCreateRouteModal() {
+    function openCreateRouteModal(editRouteId = null) {
         const dlg = document.getElementById('modal-create-route');
         if (!dlg) return;
 
+        const editIdInput = document.getElementById('route-edit-id');
         const nameInput = document.getElementById('route-new-name');
-        if (nameInput) {
-            nameInput.value = `Reitti ${new Date().toLocaleDateString('fi-FI')}`;
-        }
-
         const driverSel = document.getElementById('route-assigned-driver');
-        if (driverSel) {
-            driverSel.value = 'Hessu';
-        }
         const customDriverInput = document.getElementById('route-custom-driver-input');
-        if (customDriverInput) {
-            customDriverInput.style.display = 'none';
-            customDriverInput.value = '';
+
+        // Päivitetään kuskit select-valikkoon tallennetuista kuljettajista
+        if (driverSel) {
+            const drivers = getStoredDrivers();
+            driverSel.innerHTML = drivers.map(d => `<option value="${esc(d.name)}">${esc(d.name)} (${esc(d.vehicle || 'Kalusto')})</option>`).join('') +
+                '<option value="__custom__">+ Kirjoita muu kuljettaja...</option>';
         }
 
-        populateCreateRoutePropertiesList();
+        if (editRouteId) {
+            const r = routes.find(x => String(x.id) === String(editRouteId));
+            if (r) {
+                if (editIdInput) editIdInput.value = r.id;
+                if (nameInput) nameInput.value = r.name || '';
+                if (driverSel) {
+                    const match = Array.from(driverSel.options).some(o => o.value === r.driver);
+                    if (match) {
+                        driverSel.value = r.driver;
+                        if (customDriverInput) customDriverInput.style.display = 'none';
+                    } else {
+                        driverSel.value = '__custom__';
+                        if (customDriverInput) {
+                            customDriverInput.style.display = 'block';
+                            customDriverInput.value = r.driver || '';
+                        }
+                    }
+                }
+                populateCreateRoutePropertiesList(r);
+            }
+        } else {
+            if (editIdInput) editIdInput.value = '';
+            if (nameInput) nameInput.value = `Reitti ${new Date().toLocaleDateString('fi-FI')}`;
+            if (driverSel && driverSel.options.length > 0) driverSel.selectedIndex = 0;
+            if (customDriverInput) {
+                customDriverInput.style.display = 'none';
+                customDriverInput.value = '';
+            }
+            populateCreateRoutePropertiesList(null);
+        }
 
         if (typeof dlg.showModal === 'function') {
             dlg.showModal();
@@ -7857,9 +8386,11 @@
     }
     window.handleDriverSelectChange = handleDriverSelectChange;
 
-    function populateCreateRoutePropertiesList() {
+    function populateCreateRoutePropertiesList(existingRoute = null) {
         const container = document.getElementById('route-properties-selection-list');
         if (!container) return;
+
+        const activePropertyIds = new Set(existingRoute ? (existingRoute.propertyIds || (existingRoute.tasks || []).map(t => t.id)) : []);
 
         // Kootaan uniikit kohteet joko rekisteristä (customers) tai nykyisistä tehtävistä (tasks)
         const items = [];
@@ -7911,11 +8442,12 @@
             return;
         }
 
-        container.innerHTML = items.map((item, idx) => {
+        container.innerHTML = items.map((item) => {
             const jsonStr = esc(JSON.stringify(item));
+            const isChecked = existingRoute ? activePropertyIds.has(item.id) : true;
             return `
                 <label style="display: flex; align-items: center; gap: 8px; padding: 6px 8px; background: rgba(255,255,255,0.03); border-radius: 6px; cursor: pointer; user-select: none;">
-                    <input type="checkbox" class="route-prop-checkbox" checked data-prop="${jsonStr}" onchange="updateCreateRouteSelectedCount()" style="width: auto; margin: 0;">
+                    <input type="checkbox" class="route-prop-checkbox" ${isChecked ? 'checked' : ''} data-prop="${jsonStr}" onchange="updateCreateRouteSelectedCount()" style="width: auto; margin: 0;">
                     <div style="flex: 1; min-width: 0;">
                         <div style="font-size: 0.86rem; font-weight: 600; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${esc(item.name)}</div>
                         <div style="font-size: 0.74rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${esc(item.address || 'Ei osoitetta')} &bull; ${esc(item.type)}</div>
@@ -7944,6 +8476,7 @@
     window.updateCreateRouteSelectedCount = updateCreateRouteSelectedCount;
 
     function saveNewCreatedRoute() {
+        const editId = document.getElementById('route-edit-id')?.value;
         const nameInput = document.getElementById('route-new-name');
         const routeName = (nameInput ? nameInput.value.trim() : '') || `Reitti ${new Date().toLocaleDateString('fi-FI')}`;
 
@@ -7968,10 +8501,10 @@
             }
         }).filter(Boolean);
 
-        const routeId = 'route_' + Date.now();
+        const routeId = editId || ('route_' + Date.now());
         const now = new Date().toISOString();
 
-        const routeTasks = selectedProps.map(p => normalizeGeofenceFields({
+        let routeTasks = selectedProps.map(p => normalizeGeofenceFields({
             id: newId(),
             name: p.name,
             address: p.address,
@@ -7992,19 +8525,60 @@
             manager_alert: false
         }));
 
-        const newRouteObj = {
-            id: routeId,
-            name: routeName,
-            driver: driverName,
-            propertyIds: selectedProps.map(p => p.id),
-            created: now,
-            updated: now,
-            tasks: routeTasks,
-            depot: { ...depot },
-            returnToDepot: returnCheckbox ? returnCheckbox.checked : false
-        };
+        // Automaattinen optimointi jos ruksi valittuna
+        const autoOptCheck = document.getElementById('route-auto-optimize-check');
+        if (autoOptCheck && autoOptCheck.checked && routeTasks.length > 2) {
+            const withCoords = routeTasks.filter(t => t.lat && t.lon);
+            const withoutCoords = routeTasks.filter(t => !t.lat || !t.lon);
+            if (withCoords.length > 2) {
+                const startPoint = (depot && depot.lat && depot.lon) ? { lat: depot.lat, lon: depot.lon } : withCoords[0];
+                let unvisited = [...withCoords];
+                let ordered = [];
+                let curr = startPoint;
+                while (unvisited.length > 0) {
+                    let bestIdx = 0;
+                    let bestDist = Infinity;
+                    for (let i = 0; i < unvisited.length; i++) {
+                        const d = dist(curr, unvisited[i]);
+                        if (d < bestDist) {
+                            bestDist = d;
+                            bestIdx = i;
+                        }
+                    }
+                    curr = unvisited.splice(bestIdx, 1)[0];
+                    ordered.push(curr);
+                }
+                routeTasks = [...ordered, ...withoutCoords];
+            }
+        }
 
-        routes.unshift(newRouteObj);
+        const existingIdx = routes.findIndex(x => String(x.id) === String(routeId));
+        if (existingIdx >= 0) {
+            routes[existingIdx] = {
+                ...routes[existingIdx],
+                name: routeName,
+                driver: driverName,
+                propertyIds: selectedProps.map(p => p.id),
+                updated: now,
+                tasks: routeTasks,
+                depot: { ...depot },
+                returnToDepot: returnCheckbox ? returnCheckbox.checked : false
+            };
+        } else {
+            const newRouteObj = {
+                id: routeId,
+                name: routeName,
+                driver: driverName,
+                propertyIds: selectedProps.map(p => p.id),
+                created: now,
+                updated: now,
+                tasks: routeTasks,
+                depot: { ...depot },
+                returnToDepot: returnCheckbox ? returnCheckbox.checked : false
+            };
+            routes.unshift(newRouteObj);
+        }
+
         currentRouteId = routeId;
         persistRoutes();
 
@@ -8014,14 +8588,10 @@
         renderRoutes();
         renderActiveRoute();
         updateDriverHud();
+        renderRoutesManagementView();
 
         closeCreateRouteModal();
-        showStatus(`Reitti "${esc(routeName)}" luotu ja osoitettu kuskille "${esc(driverName)}" (${selectedProps.length} kohdetta)!`, 'success');
-
-        // Siirrytään kartta/reittinäkymään jos oltiin muualla
-        if (typeof switchTab === 'function') {
-            switchTab('routes');
-        }
+        showStatus(`Reitti "${esc(routeName)}" tallennettu ja osoitettu kuskille "${esc(driverName)}" (${selectedProps.length} kohdetta)!`, 'success');
     }
     window.saveNewCreatedRoute = saveNewCreatedRoute;
 
