@@ -2922,7 +2922,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     </dialog>
 
     <!-- ASIAKKAAN / KOHTEEN GEOFENCE-MÄÄRITYSDIALOGI (#customerGeofenceDialog) -->
-    <dialog id="customerGeofenceDialog" class="app-dialog modal-property">
+    <dialog id="customerGeofenceDialog" class="app-dialog modal-property" style="max-width: 680px; width: 95%;">
         <form method="dialog" class="dialog-content" style="max-width: 680px;" onsubmit="event.preventDefault(); saveCustomerGeofence();">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
                 <h3 style="margin: 0; font-size: 1.15rem; display: flex; align-items: center; gap: 8px;">
@@ -2956,12 +2956,21 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                     </div>
                 </div>
 
-                <!-- Kohdistettu karttanäkymä vain tälle kiinteistölle -->
-                <div style="height: 300px; width: 100%; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border); margin-bottom: 8px; position: relative;">
-                    <div id="customerGeofenceMap" style="width: 100%; height: 100%;"></div>
+                <div id="gfCustPolygonNotice" style="display: none; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: var(--radius-md); padding: 8px 12px; margin-bottom: 8px; font-size: 0.82rem; color: var(--fg);">
+                    🛰️ <strong>Polygon-tila valittu:</strong> Kohteen geofence määräytyy satelliittikartalla piirrettyjen piha-alueiden mukaisesti (+50 m GPS-toleranssi).
                 </div>
-                <div style="font-size: 0.78rem; color: var(--muted); margin-bottom: 8px;">
-                    💡 Voit raahata ympyrän keskipistettä tai säätää säteen liukusäätimellä.
+
+                <!-- Kohdistettu karttanäkymä vain tälle kiinteistölle -->
+                <div style="height: 340px; width: 100%; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border); margin-bottom: 8px; position: relative; background: #0f172a;">
+                    <div id="customerGeofenceMap" style="width: 100%; height: 100%; min-height: 340px;"></div>
+                    <div style="position: absolute; top: 10px; right: 10px; z-index: 1000; display: flex; gap: 4px;">
+                        <button type="button" class="tiny-btn" id="btnGfMapSat" onclick="setCustomerGeofenceMapBase('satellite')" style="background: rgba(15,23,42,0.88); backdrop-filter: blur(4px); font-size: 0.74rem;">🛰️ Satelliitti</button>
+                        <button type="button" class="tiny-btn" id="btnGfMapStreet" onclick="setCustomerGeofenceMapBase('street')" style="background: rgba(15,23,42,0.88); backdrop-filter: blur(4px); font-size: 0.74rem;">🗺️ Kartta</button>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--muted); margin-bottom: 8px;">
+                    <span>💡 <strong>Klikkaa karttaa</strong> tai raahaa merkkiä siirtääksesi aluetta.</span>
+                    <span id="gfCustCoordInfo" style="font-family: monospace; font-size: 0.78rem; color: #38bdf8;"></span>
                 </div>
             </div>
 
@@ -11778,9 +11787,69 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     // 📍 ASIAKASKOHTAINEN GEOFENCE-EDITORIDIALOGI
     // ============================================================
     let custGfMap = null;
+    let custGfTileLayer = null;
     let custGfCircle = null;
     let custGfMarker = null;
+    let custGfPolygonGroup = null;
     let activeGfCustomer = null;
+    let custGfMapBase = 'satellite';
+
+    function createCustomerGfTileLayer(baseType) {
+        if (baseType === 'street') {
+            return L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 20,
+                attribution: '&copy; OpenStreetMap'
+            });
+        }
+        return L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            maxNativeZoom: 19,
+            maxZoom: 21,
+            attribution: 'Tiles &copy; Esri'
+        });
+    }
+
+    function setCustomerGeofenceMapBase(baseType) {
+        custGfMapBase = baseType;
+        const btnSat = document.getElementById('btnGfMapSat');
+        const btnStreet = document.getElementById('btnGfMapStreet');
+        if (btnSat) btnSat.style.border = (baseType === 'satellite') ? '2px solid #38bdf8' : '1px solid var(--border)';
+        if (btnStreet) btnStreet.style.border = (baseType === 'street') ? '2px solid #38bdf8' : '1px solid var(--border)';
+        if (!custGfMap) return;
+        if (custGfTileLayer && custGfMap.hasLayer(custGfTileLayer)) {
+            custGfMap.removeLayer(custGfTileLayer);
+        }
+        custGfTileLayer = createCustomerGfTileLayer(baseType);
+        custGfTileLayer.addTo(custGfMap);
+        if (typeof custGfTileLayer.bringToBack === 'function') {
+            custGfTileLayer.bringToBack();
+        }
+    }
+    window.setCustomerGeofenceMapBase = setCustomerGeofenceMapBase;
+
+    function updateCustomerGeofencePosition(lat, lon, panMap = false) {
+        if (lat == null || lon == null || isNaN(Number(lat)) || isNaN(Number(lon))) return;
+        const nLat = Number(lat);
+        const nLon = Number(lon);
+        const latLng = [nLat, nLon];
+
+        if (custGfMarker) custGfMarker.setLatLng(latLng);
+        if (custGfCircle) custGfCircle.setLatLng(latLng);
+
+        if (activeGfCustomer) {
+            activeGfCustomer._tempLat = nLat;
+            activeGfCustomer._tempLon = nLon;
+        }
+
+        const coordEl = document.getElementById('gfCustCoordInfo');
+        if (coordEl) {
+            coordEl.textContent = `${nLat.toFixed(5)}, ${nLon.toFixed(5)}`;
+        }
+
+        if (panMap && custGfMap) {
+            custGfMap.panTo(latLng);
+        }
+    }
+    window.updateCustomerGeofencePosition = updateCustomerGeofencePosition;
 
     function openGeofenceEditorForCustomer(customerId) {
         const c = customers.find(x => String(x.id) === String(customerId));
@@ -11809,6 +11878,12 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         if (radiusVal) radiusVal.textContent = curRad;
 
         toggleGfCustFields();
+        onGfCustTypeChange();
+
+        const coordEl = document.getElementById('gfCustCoordInfo');
+        if (coordEl) {
+            coordEl.textContent = (c.lat && c.lon) ? `${Number(c.lat).toFixed(5)}, ${Number(c.lon).toFixed(5)}` : 'Haetaan sijaintia...';
+        }
 
         if (typeof dlg.showModal === 'function') {
             dlg.showModal();
@@ -11816,9 +11891,18 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             dlg.style.display = 'block';
         }
 
+        // Alustetaan kartta välittömästi sekä viiveellä, jotta dialogin DOM-mitat ovat asettuneet
+        initCustomerGeofenceMap(c);
         setTimeout(() => {
-            initCustomerGeofenceMap(c);
-        }, 120);
+            if (custGfMap) {
+                custGfMap.invalidateSize();
+            }
+        }, 80);
+        setTimeout(() => {
+            if (custGfMap) {
+                custGfMap.invalidateSize();
+            }
+        }, 220);
     }
     window.openGeofenceEditorForCustomer = openGeofenceEditorForCustomer;
 
@@ -11835,9 +11919,11 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     window.toggleGfCustFields = toggleGfCustFields;
 
     function onGfCustTypeChange() {
-        const type = document.getElementById('gfCustType')?.value;
+        const type = document.getElementById('gfCustType')?.value || 'radius';
         const radiusGroup = document.getElementById('gfCustRadiusGroup');
+        const polygonNotice = document.getElementById('gfCustPolygonNotice');
         if (radiusGroup) radiusGroup.style.display = (type === 'radius') ? 'block' : 'none';
+        if (polygonNotice) polygonNotice.style.display = (type === 'polygon') ? 'block' : 'none';
         if (custGfCircle && custGfMap) {
             if (type === 'radius') {
                 if (!custGfMap.hasLayer(custGfCircle)) custGfMap.addLayer(custGfCircle);
@@ -11876,51 +11962,129 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                 lat = 61.4978;
                 lon = 23.7610;
             }
+
+            // Jos asiakkaalla on katuosoite, yritetään hakea tarkat koordinaatit taustalla
+            if (customer.address && typeof fetchCoordinates === 'function') {
+                fetchCoordinates(customer.address).then(coords => {
+                    if (coords && coords.lat && coords.lon && activeGfCustomer === customer) {
+                        if (!customer.lat || !customer.lon) {
+                            customer.lat = coords.lat;
+                            customer.lon = coords.lon;
+                        }
+                        updateCustomerGeofencePosition(coords.lat, coords.lon, true);
+                        if (custGfMap) custGfMap.setView([coords.lat, coords.lon], 18);
+                    }
+                }).catch(() => {});
+            }
         }
+
+        const centerCoords = [Number(lat), Number(lon)];
 
         if (!custGfMap) {
             custGfMap = L.map('customerGeofenceMap', {
-                center: [lat, lon],
+                center: centerCoords,
                 zoom: 18,
-                maxZoom: 21
+                maxZoom: 21,
+                attributionControl: false
             });
-            const layers = getBaseLayers();
-            const base = (layers && layers[currentMapBase]) ? layers[currentMapBase] : L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 21 });
-            base.addTo(custGfMap);
+
+            custGfTileLayer = createCustomerGfTileLayer(custGfMapBase);
+            custGfTileLayer.addTo(custGfMap);
+
+            custGfPolygonGroup = new L.FeatureGroup().addTo(custGfMap);
+
+            // 📍 KLIKKAUS KARTTAAN: Siirtää geofence-alueen keskipisteen välittömästi klikattuun kohtaan
+            custGfMap.on('click', e => {
+                if (e && e.latlng) {
+                    updateCustomerGeofencePosition(e.latlng.lat, e.latlng.lng, false);
+                }
+            });
         } else {
-            custGfMap.setView([lat, lon], 18);
-            custGfMap.invalidateSize();
+            custGfMap.setView(centerCoords, 18);
+            if (!custGfTileLayer || !custGfMap.hasLayer(custGfTileLayer)) {
+                custGfTileLayer = createCustomerGfTileLayer(custGfMapBase);
+                custGfTileLayer.addTo(custGfMap);
+            }
         }
 
+        // Varmistetaan että kartan koko päivittyy dialogin sisällä oikein
+        custGfMap.invalidateSize();
+
+        // Poistetaan edelliset markerit ja ympyrät
         if (custGfMarker && custGfMap.hasLayer(custGfMarker)) custGfMap.removeLayer(custGfMarker);
         if (custGfCircle && custGfMap.hasLayer(custGfCircle)) custGfMap.removeLayer(custGfCircle);
 
-        const rad = Number(customer.geofence_radius) || 80;
-        custGfMarker = L.marker([lat, lon], {
+        // Piirretään asiakkaalle mahdollisesti aiemmin tallennetut piha-alueet taustalle (Polygon-tuki)
+        if (custGfPolygonGroup) {
+            custGfPolygonGroup.clearLayers();
+            try {
+                const targetKey = makeTargetGeoKey(customer.name, customer.address);
+                const geo = getSavedGeoJSONForTarget(targetKey);
+                if (geo && Array.isArray(geo.features) && geo.features.length > 0) {
+                    const geoLayer = L.geoJSON(geo, {
+                        style: function(feat) {
+                            const catKey = feat?.properties?.category || 'machine';
+                            const cat = YARD_CATEGORIES[catKey] || YARD_CATEGORIES.machine;
+                            return {
+                                color: cat.color,
+                                fillColor: cat.fillColor,
+                                fillOpacity: 0.35,
+                                weight: 2
+                            };
+                        }
+                    });
+                    geoLayer.addTo(custGfPolygonGroup);
+                }
+            } catch (polyErr) {
+                console.warn('Geofence polygon render error:', polyErr);
+            }
+        }
+
+        // Luodaan raahattava geofence-sijaintineula
+        custGfMarker = L.marker(centerCoords, {
             draggable: true,
             icon: L.divIcon({
                 className: 'custom-map-pin',
-                html: '<div style="background:#0284c7; color:#fff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,0.3); font-size:14px;">📍</div>',
-                iconSize: [28, 28],
-                iconAnchor: [14, 28]
-            })
-        }).addTo(custGfMap);
-
-        custGfCircle = L.circle([lat, lon], {
-            radius: rad,
-            color: '#38bdf8',
-            fillColor: '#38bdf8',
-            fillOpacity: 0.25,
-            weight: 2
+                html: `<div style="display:flex; flex-direction:column; align-items:center; transform: translate(-50%, -100%); cursor: grab;">
+                    <div style="background:#0284c7; color:#fff; width:34px; height:34px; border-radius:50% 50% 50% 0; transform: rotate(-45deg); display:flex; align-items:center; justify-content:center; border:2.5px solid #fff; box-shadow:0 4px 12px rgba(0,0,0,0.45);">
+                        <span style="transform: rotate(45deg); font-size:16px; margin-top:-2px;">📍</span>
+                    </div>
+                </div>`,
+                iconSize: [0, 0],
+                iconAnchor: [0, 0]
+            }),
+            zIndexOffset: 2000
         }).addTo(custGfMap);
 
         custGfMarker.on('drag', e => {
             const pos = e.target.getLatLng();
-            if (custGfCircle) custGfCircle.setLatLng(pos);
-            customer._tempLat = pos.lat;
-            customer._tempLon = pos.lng;
+            updateCustomerGeofencePosition(pos.lat, pos.lng, false);
         });
 
+        custGfMarker.on('dragend', e => {
+            const pos = e.target.getLatLng();
+            updateCustomerGeofencePosition(pos.lat, pos.lng, false);
+        });
+
+        // Luodaan geofence-ympyrä
+        const rad = Number(customer.geofence_radius) || 80;
+        custGfCircle = L.circle(centerCoords, {
+            radius: rad,
+            color: '#0284c7',
+            fillColor: '#38bdf8',
+            fillOpacity: 0.28,
+            weight: 3,
+            dashArray: '6, 6'
+        }).addTo(custGfMap);
+
+        // Klikkaus myös ympyräalueeseen siirtää keskipisteen
+        custGfCircle.on('click', e => {
+            if (e && e.latlng) {
+                updateCustomerGeofencePosition(e.latlng.lat, e.latlng.lng, false);
+            }
+        });
+
+        updateCustomerGeofencePosition(centerCoords[0], centerCoords[1], false);
         onGfCustTypeChange();
     }
 
@@ -11958,21 +12122,24 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
 
         // Päivitetään myös aktiivisessa tasks-listassa jos löytyy sama kohde
         tasks.forEach(t => {
-            if (t.customerId === activeGfCustomer.id || (t.name === activeGfCustomer.name && t.address === activeGfCustomer.address)) {
+            if (String(t.customerId) === String(activeGfCustomer.id) ||
+                String(t.id) === String(activeGfCustomer.id) ||
+                ((t.name || '').trim().toLowerCase() === (activeGfCustomer.name || '').trim().toLowerCase())) {
                 t.geofence_enabled = activeGfCustomer.geofence_enabled;
                 t.geofence_type = activeGfCustomer.geofence_type;
                 t.geofence_radius = activeGfCustomer.geofence_radius;
                 if (activeGfCustomer.lat && activeGfCustomer.lon) {
                     t.lat = activeGfCustomer.lat;
                     t.lon = activeGfCustomer.lon;
+                    t.gps = true;
                 }
             }
         });
-        localStorage.setItem('pihatyot_tasks_v4', JSON.stringify(tasks));
 
         persistCustomers();
         renderCustomers();
-        renderTasks();
+        saveAndRender();
+        if (typeof renderYardGeofenceCircle === 'function') renderYardGeofenceCircle();
 
         closeCustomerGeofenceDialog();
         showStatus(`Geofence-alue tallennettu kohteelle "${activeGfCustomer.name}"!`, 'success');
