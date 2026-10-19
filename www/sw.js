@@ -1,9 +1,16 @@
 // Palvelutyöläinen: YardFlow toimii offline-tilassa (esim. huonon kentän peitossa).
 // Kasvata versiota aina kun muutat tiedostoja, niin päivitys tulee käyttöön.
-const CACHE = 'yardflow-v1-12';
+const CACHE = 'yardflow-v1-15';
 const ASSETS = [
     './',
     './index.html',
+    './css/style.css',
+    './js/geofence.js',
+    './js/state.js',
+    './js/map.js',
+    './js/search.js',
+    './js/completion.js',
+    './js/app.js',
     './manifest.webmanifest',
     './icons/icon-192.png',
     './icons/icon-512.png',
