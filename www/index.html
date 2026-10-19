@@ -2096,6 +2096,268 @@
             background: rgba(14, 165, 233, 0.3) !important;
         }
 
+        /* Driver HUD Työjono & Työkalut */
+        .driver-hud-tools-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .btn-driver-tool {
+            background: #0284c7;
+            color: #ffffff;
+            font-size: 0.84rem;
+            font-weight: 700;
+            border-radius: var(--radius-md);
+            padding: 8px 14px;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35);
+            transition: var(--transition);
+        }
+        .btn-driver-tool:hover {
+            background: #0369a1;
+        }
+        .btn-driver-tool:active {
+            transform: scale(0.98);
+        }
+        .btn-driver-tool-outline {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
+            font-size: 0.84rem;
+            font-weight: 600;
+            border-radius: var(--radius-md);
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: var(--transition);
+        }
+        .btn-driver-tool-outline:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        .btn-driver-tool-outline.active {
+            background: rgba(14, 165, 233, 0.2);
+            border-color: #38bdf8;
+            color: #38bdf8;
+        }
+
+        .driver-queue-container {
+            background: var(--bg-main);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            margin-top: 10px;
+            max-height: 290px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .driver-queue-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border);
+        }
+        .driver-queue-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .driver-queue-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 8px 10px;
+            gap: 8px;
+            transition: var(--transition);
+        }
+        .driver-queue-item.is-active {
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 1px #38bdf8;
+        }
+        .driver-queue-item.is-done {
+            opacity: 0.65;
+            background: rgba(16, 185, 129, 0.08);
+        }
+        .driver-queue-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .driver-queue-num {
+            display: inline-block;
+            width: 22px;
+            font-weight: 800;
+            color: #38bdf8;
+            font-size: 0.86rem;
+        }
+        .driver-queue-name {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .driver-queue-addr {
+            font-size: 0.78rem;
+            color: var(--muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .driver-queue-actions {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        .driver-queue-move-btn {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            min-width: 38px;
+            height: 34px;
+            font-size: 0.76rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 6px;
+            transition: var(--transition);
+        }
+        .driver-queue-move-btn:hover:not(:disabled) {
+            background: #0284c7;
+            color: #fff;
+            border-color: #0284c7;
+        }
+        .driver-queue-move-btn:disabled {
+            opacity: 0.3;
+            cursor: default;
+        }
+
+        /* Hallintapaneelin siirtymäyhteenveto (#route-analytics-panel) */
+        .route-analytics-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 14px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+        .route-analytics-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .route-analytics-title {
+            font-size: 0.92rem;
+            font-weight: 800;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .route-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .route-kpi-box {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 8px;
+            text-align: center;
+        }
+        .route-kpi-label {
+            font-size: 0.72rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            margin-bottom: 2px;
+        }
+        .route-kpi-value {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+        .route-fuel-settings-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.15);
+            padding: 8px 10px;
+            border-radius: var(--radius-md);
+            margin-bottom: 10px;
+            font-size: 0.78rem;
+            flex-wrap: wrap;
+        }
+        .route-fuel-input-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .route-fuel-input-group input {
+            width: 65px;
+            padding: 3px 6px;
+            font-size: 0.8rem;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            margin-bottom: 0;
+            text-align: right;
+            font-weight: 700;
+        }
+        .route-legs-details {
+            border-top: 1px dashed var(--border);
+            padding-top: 8px;
+            margin-top: 8px;
+        }
+        .route-legs-summary-btn {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #38bdf8;
+            cursor: pointer;
+            user-select: none;
+            outline: none;
+        }
+        .route-legs-list {
+            margin-top: 6px;
+            max-height: 160px;
+            overflow-y: auto;
+            font-size: 0.78rem;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .route-leg-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 6px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 4px;
+            color: var(--muted);
+        }
+        .route-leg-row strong {
+            color: var(--text-main);
+        }
+
         /* Kotinäkymän widgetit */
         .dashboard-widget {
             transition: var(--transition);
@@ -2283,6 +2545,9 @@
             <div id="optimizerStatus" class="status-box"></div>
             <div id="routeLinks"></div>
 
+            <!-- Hallintapaneelin siirtymäyhteenveto ja kululaskenta (#route-analytics-panel) -->
+            <div id="route-analytics-panel" class="route-analytics-panel"></div>
+
             <!-- 2 selkeää päätoimintoa kuljettajalle -->
             <div class="primary-actions-row">
                 <button class="btn-action" onclick="autoOptimizeRoute()" id="btnOptimize">
@@ -2467,6 +2732,25 @@
                 <div id="driverHudNote" class="driver-hud-note" style="display: none;">
                     <span>⚠️</span>
                     <span id="driverHudNoteText"></span>
+                </div>
+
+                <!-- Työkalurivi: Automaattinen optimointi ja työjonon avaus -->
+                <div class="driver-hud-tools-row">
+                    <button type="button" id="btn-optimize-route" class="btn-driver-tool" onclick="optimizeDriverRoute()" title="Järjestä käymättömät kohteet lyhimmän siirtymämatkan mukaan">
+                        ⚡ Optimoi reitti automaattisesti
+                    </button>
+                    <button type="button" id="btn-toggle-driver-queue" class="btn-driver-tool-outline" onclick="toggleDriverQueue()" title="Näytä tai piilota päivän ajojärjestys">
+                        📋 Työjono (<span id="driverQueueCountBadge">0</span>)
+                    </button>
+                </div>
+
+                <!-- Kuljettajan avattava/pelkistetty päivän työjono (#driver-queue-container) -->
+                <div id="driver-queue-container" class="driver-queue-container" style="display: none;">
+                    <div class="driver-queue-header">
+                        <span>📋 Päivän työjono ja ajojärjestys</span>
+                        <span id="driverQueueStats" style="font-size: 0.76rem; color: var(--muted);"></span>
+                    </div>
+                    <div id="driverQueueList" class="driver-queue-list"></div>
                 </div>
             </div>
 
@@ -3724,6 +4008,383 @@
     window.navigateToNextYard = navigateToNextYard;
 
     
+    // ---------- KARTAN REITTI-POLYLINE (LEAFLET) ----------
+    let routePolylineLayer = null;
+
+    function renderRoutePolyline() {
+        if (typeof yardMap === 'undefined' || !yardMap) return;
+
+        // Kerätään pisteet nykyisessä ajojärjestyksessä
+        const pts = [];
+        if (depot && depot.lat && depot.lon && typeof hasDepot === 'function' && hasDepot()) {
+            pts.push({ lat: depot.lat, lon: depot.lon, name: 'Varikko' });
+        }
+
+        if (tasks && Array.isArray(tasks)) {
+            tasks.forEach(t => {
+                if (t.lat && t.lon) {
+                    pts.push(t);
+                }
+            });
+        }
+
+        if (depot && depot.lat && depot.lon && typeof hasDepot === 'function' && hasDepot() && returnCheckbox && returnCheckbox.checked && pts.length > 1) {
+            pts.push({ lat: depot.lat, lon: depot.lon, name: 'Varikko' });
+        }
+
+        if (routePolylineLayer) {
+            try {
+                yardMap.removeLayer(routePolylineLayer);
+            } catch (e) {}
+            routePolylineLayer = null;
+        }
+
+        if (pts.length >= 2) {
+            const latlngs = pts.map(p => [p.lat, p.lon]);
+            routePolylineLayer = L.polyline(latlngs, {
+                color: '#0284c7',
+                weight: 3.5,
+                dashArray: '6, 8',
+                opacity: 0.85,
+                lineJoin: 'round'
+            }).addTo(yardMap);
+
+            if (typeof routePolylineLayer.bringToBack === 'function') {
+                routePolylineLayer.bringToBack();
+            }
+        }
+    }
+    window.renderRoutePolyline = renderRoutePolyline;
+
+    // ---------- SIIRTYMÄMATKAT & POLTTOAINEEN KULULASKENTA (#route-analytics-panel) ----------
+    let fuelConsumptionL100km = parseFloat(localStorage.getItem('yardflow_fuel_consumption')) || 15.0;
+    let fuelPricePerLitre = parseFloat(localStorage.getItem('yardflow_fuel_price')) || 1.95;
+
+    function updateFuelSettings(consumption, price) {
+        if (consumption != null && !isNaN(consumption)) {
+            fuelConsumptionL100km = parseFloat(consumption);
+            localStorage.setItem('yardflow_fuel_consumption', fuelConsumptionL100km);
+        }
+        if (price != null && !isNaN(price)) {
+            fuelPricePerLitre = parseFloat(price);
+            localStorage.setItem('yardflow_fuel_price', fuelPricePerLitre);
+        }
+        renderRouteAnalytics();
+    }
+    window.updateFuelSettings = updateFuelSettings;
+
+    function renderRouteAnalytics() {
+        const panel = document.getElementById('route-analytics-panel');
+        if (!panel) return;
+
+        // Kerätään pisteet ajojärjestyksessä
+        const pts = [];
+        if (depot && depot.lat && depot.lon && typeof hasDepot === 'function' && hasDepot()) {
+            pts.push({ lat: depot.lat, lon: depot.lon, name: depot.address || 'Varikko' });
+        }
+
+        if (tasks && Array.isArray(tasks)) {
+            tasks.forEach((t, i) => {
+                if (t.lat && t.lon) {
+                    pts.push({ lat: t.lat, lon: t.lon, name: t.name || t.address || ('Kohde ' + (i + 1)), done: t.done });
+                }
+            });
+        }
+
+        if (depot && depot.lat && depot.lon && typeof hasDepot === 'function' && hasDepot() && returnCheckbox && returnCheckbox.checked && pts.length > 1) {
+            pts.push({ lat: depot.lat, lon: depot.lon, name: depot.address || 'Varikko' });
+        }
+
+        if (pts.length < 2) {
+            panel.innerHTML = '<div class="route-analytics-header">' +
+                '<div class="route-analytics-title">📊 Siirtymämatkat &amp; Kululaskenta</div>' +
+                '</div>' +
+                '<div style="font-size: 0.8rem; color: var(--muted); padding: 4px 0;">' +
+                'Lisää reitille vähintään kaksi koordinaateilla varustettua kohdetta nähdäksesi siirtymämatkat ja kuluarvion.' +
+                '</div>';
+            return;
+        }
+
+        let totalKm = 0;
+        const legs = [];
+        for (let i = 1; i < pts.length; i++) {
+            const legKm = dist(pts[i - 1], pts[i]);
+            totalKm += legKm;
+            const legMinutes = Math.max(1, Math.round((legKm / 35) * 60));
+            legs.push({
+                from: pts[i - 1].name,
+                to: pts[i].name,
+                km: legKm,
+                minutes: legMinutes
+            });
+        }
+
+        const totalMinutes = Math.round((totalKm / 35) * 60);
+        const hours = Math.floor(totalMinutes / 60);
+        const mins = totalMinutes % 60;
+        const timeStr = hours > 0 ? (hours + ' h ' + mins + ' min') : (mins + ' min');
+
+        const fuelLitres = totalKm * (fuelConsumptionL100km / 100);
+        const fuelCost = fuelLitres * fuelPricePerLitre;
+
+        panel.innerHTML = '<div class="route-analytics-header">' +
+            '<div class="route-analytics-title">📊 Siirtymämatkat &amp; Polttoainearvio</div>' +
+            '<span class="status-pill status-ready" style="font-size: 0.72rem; padding: 2px 8px;">35 km/h taajama</span>' +
+            '</div>' +
+
+            '<div class="route-kpi-grid">' +
+                '<div class="route-kpi-box">' +
+                    '<div class="route-kpi-label">Siirtymät yht.</div>' +
+                    '<div class="route-kpi-value">' + totalKm.toFixed(1) + ' km</div>' +
+                '</div>' +
+                '<div class="route-kpi-box">' +
+                    '<div class="route-kpi-label">Arvioitu ajoaika</div>' +
+                    '<div class="route-kpi-value">' + timeStr + '</div>' +
+                '</div>' +
+                '<div class="route-kpi-box">' +
+                    '<div class="route-kpi-label">Polttoainekulut</div>' +
+                    '<div class="route-kpi-value" style="color: #10b981;">' + fuelCost.toFixed(2) + ' €</div>' +
+                '</div>' +
+            '</div>' +
+
+            '<div class="route-fuel-settings-row">' +
+                '<div class="route-fuel-input-group">' +
+                    '<label for="routeFuelConsumption">Kulutus:</label>' +
+                    '<input type="number" id="routeFuelConsumption" step="0.5" min="1" max="100" value="' + fuelConsumptionL100km + '" onchange="updateFuelSettings(this.value, null)">' +
+                    '<span>l/100km</span>' +
+                '</div>' +
+                '<div class="route-fuel-input-group">' +
+                    '<label for="routeFuelPrice">Hinta:</label>' +
+                    '<input type="number" id="routeFuelPrice" step="0.01" min="0.5" max="10" value="' + fuelPricePerLitre.toFixed(2) + '" onchange="updateFuelSettings(null, this.value)">' +
+                    '<span>€/l</span>' +
+                '</div>' +
+                '<span style="color: var(--muted); font-size: 0.72rem; margin-left: auto;">(' + fuelLitres.toFixed(1) + ' litraa)</span>' +
+            '</div>' +
+
+            '<details class="route-legs-details" open>' +
+                '<summary class="route-legs-summary-btn">Kohteiden väliset siirtymät (' + legs.length + ' etappia) ▾</summary>' +
+                '<div class="route-legs-list">' +
+                    legs.map(function(leg, idx) {
+                        return '<div class="route-leg-row">' +
+                            '<span><strong>' + (idx + 1) + '.</strong> ' + esc(leg.from) + ' ➔ ' + esc(leg.to) + '</span>' +
+                            '<span><strong>' + leg.km.toFixed(1) + ' km</strong> (~' + leg.minutes + ' min)</span>' +
+                        '</div>';
+                    }).join('') +
+                '</div>' +
+            '</details>';
+    }
+    window.renderRouteAnalytics = renderRouteAnalytics;
+
+    // ---------- KULJETTAJAN TYÖJONO (#driver-queue-container) ----------
+    function toggleDriverQueue() {
+        const container = document.getElementById('driver-queue-container');
+        if (!container) return;
+        const isHidden = container.style.display === 'none';
+        container.style.display = isHidden ? 'block' : 'none';
+        const toggleBtn = document.getElementById('btn-toggle-driver-queue');
+        if (toggleBtn) {
+            toggleBtn.classList.toggle('active', isHidden);
+        }
+        if (isHidden) {
+            renderDriverQueue();
+        }
+    }
+    window.toggleDriverQueue = toggleDriverQueue;
+
+    function renderDriverQueue() {
+        const list = document.getElementById('driverQueueList');
+        const countBadge = document.getElementById('driverQueueCountBadge');
+        const statsEl = document.getElementById('driverQueueStats');
+        if (!list) return;
+
+        if (!tasks || tasks.length === 0) {
+            list.innerHTML = '<div style="font-size: 0.82rem; color: var(--muted); text-align: center; padding: 10px;">Ei kohteita ajojonossa.</div>';
+            if (countBadge) countBadge.textContent = '0';
+            if (statsEl) statsEl.textContent = '';
+            return;
+        }
+
+        const doneCount = tasks.filter(t => t.done).length;
+        if (countBadge) countBadge.textContent = String(tasks.length);
+        if (statsEl) statsEl.textContent = doneCount + '/' + tasks.length + ' kuitattu';
+
+        const nextTask = tasks.find(t => !t.done && !t.blocked) || tasks.find(t => !t.done);
+
+        list.innerHTML = tasks.map(function(task, index) {
+            const isActive = nextTask && task.id === nextTask.id;
+            const isDone = !!task.done;
+            const isBlocked = !!task.blocked;
+
+            let badgeHtml = '<span class="status-pill" style="font-size: 0.7rem; padding: 2px 6px;">Tekemättä</span>';
+            if (isDone) {
+                badgeHtml = '<span class="status-pill status-ready" style="font-size: 0.7rem; padding: 2px 6px;">✓ Valmis</span>';
+            } else if (isBlocked) {
+                badgeHtml = '<span class="status-pill" style="font-size: 0.7rem; padding: 2px 6px; background: rgba(245, 158, 11, 0.2); color: #f59e0b;">⚠️ Este</span>';
+            } else if (isActive) {
+                badgeHtml = '<span class="status-pill" style="font-size: 0.7rem; padding: 2px 6px; background: rgba(14, 165, 233, 0.2); color: #38bdf8;">📍 Seuraava</span>';
+            }
+
+            const isFirst = index === 0;
+            const isLast = index === tasks.length - 1;
+
+            return '<div class="driver-queue-item ' + (isActive ? 'is-active ' : '') + (isDone ? 'is-done' : '') + '">' +
+                '<span class="driver-queue-num">' + (index + 1) + '.</span>' +
+                '<div class="driver-queue-info" onclick="selectActiveProperty(' + task.id + ', true)" style="cursor: pointer;" title="Keskity kohteeseen">' +
+                    '<div class="driver-queue-name">' + esc(task.name || 'Nimetön kohde') + '</div>' +
+                    '<div class="driver-queue-addr">' + esc(task.address || '') + '</div>' +
+                '</div>' +
+                badgeHtml +
+                '<div class="driver-queue-actions">' +
+                    '<button type="button" class="driver-queue-move-btn" onclick="moveDriverQueueItem(' + index + ', -1)" ' + (isFirst ? 'disabled' : '') + ' title="Siirrä ylemmäs">▲ Ylös</button>' +
+                    '<button type="button" class="driver-queue-move-btn" onclick="moveDriverQueueItem(' + index + ', 1)" ' + (isLast ? 'disabled' : '') + ' title="Siirrä alemmas">▼ Alas</button>' +
+                '</div>' +
+            '</div>';
+        }).join('');
+    }
+    window.renderDriverQueue = renderDriverQueue;
+
+    function moveDriverQueueItem(index, direction) {
+        const newIndex = index + direction;
+        if (newIndex < 0 || newIndex >= tasks.length) return;
+        const item = tasks.splice(index, 1)[0];
+        tasks.splice(newIndex, 0, item);
+        saveAndRender();
+        renderDriverQueue();
+        updateDriverHud();
+        renderRoutePolyline();
+        renderRouteAnalytics();
+    }
+    window.moveDriverQueueItem = moveDriverQueueItem;
+
+    // ---------- KULJETTAJAN REITTIN OPTIMOINTI (NEAREST NEIGHBOR + GPS) ----------
+    async function optimizeDriverRoute() {
+        const pending = tasks.filter(t => !t.done);
+        if (pending.length < 2) {
+            showStatus('Optimointiin tarvitaan vähintään 2 tekemätöntä kohdetta.', 'info');
+            return;
+        }
+
+        const btnOpt = document.getElementById('btn-optimize-route');
+        if (btnOpt) {
+            btnOpt.disabled = true;
+            btnOpt.textContent = '⏳ Optimoidaan...';
+        }
+
+        showStatus('Haetaan sijaintia ja optimoidaan reittiä...', 'loading');
+
+        // Yritetään hakea kuskin nykyinen GPS-sijainti
+        let startPoint = null;
+        if (navigator.geolocation) {
+            try {
+                const pos = await new Promise(function(resolve, reject) {
+                    navigator.geolocation.getCurrentPosition(resolve, reject, {
+                        enableHighAccuracy: true,
+                        timeout: 3000,
+                        maximumAge: 15000
+                    });
+                });
+                if (pos && pos.coords) {
+                    startPoint = {
+                        lat: pos.coords.latitude,
+                        lon: pos.coords.longitude,
+                        isStart: true,
+                        name: 'Nykyinen sijainti'
+                    };
+                }
+            } catch (e) {
+                console.log('GPS not available for route start, using first yard:', e);
+            }
+        }
+
+        // Varmistetaan että kaikilla tekemättömillä on koordinaatit
+        await ensureCoords(pending, 'Haetaan koordinaatteja');
+
+        const valid = pending.filter(t => t.lat && t.lon);
+        const missing = pending.filter(t => !t.lat || !t.lon);
+
+        if (valid.length < 2) {
+            if (btnOpt) {
+                btnOpt.disabled = false;
+                btnOpt.textContent = '⚡ Optimoi reitti automaattisesti';
+            }
+            showStatus('Kohteilta puuttuu koordinaatit optimointia varten.', 'info');
+            return;
+        }
+
+        let itemsToOrder;
+        if (startPoint) {
+            itemsToOrder = valid;
+        } else {
+            startPoint = valid[0];
+            itemsToOrder = valid.slice(1);
+        }
+
+        // Nearest Neighbor -algoritmi
+        let unvisited = [...itemsToOrder];
+        let ordered = [];
+        if (!startPoint.isStart) ordered.push(startPoint);
+        let current = startPoint;
+
+        while (unvisited.length > 0) {
+            let bestIndex = 0;
+            let bestDist = Infinity;
+            for (let i = 0; i < unvisited.length; i++) {
+                const d = dist(current, unvisited[i]);
+                if (d < bestDist) {
+                    bestDist = d;
+                    bestIndex = i;
+                }
+            }
+            current = unvisited.splice(bestIndex, 1)[0];
+            ordered.push(current);
+        }
+
+        // 2-opt parannus lyhyimmän siirtymämatkan varmistamiseksi
+        const n = ordered.length;
+        let improved = true;
+        let guard = 0;
+        while (improved && guard++ < 80) {
+            improved = false;
+            for (let i = 0; i < n - 2; i++) {
+                for (let j = i + 2; j < n; j++) {
+                    const a = ordered[i], b = ordered[i + 1], c = ordered[j], d = ordered[j + 1];
+                    const delta = dist(a, c) + (d ? dist(b, d) : 0) - dist(a, b) - (d ? dist(c, d) : 0);
+                    if (delta < -0.001) {
+                        let l = i + 1, r = j;
+                        while (l < r) {
+                            [ordered[l], ordered[r]] = [ordered[r], ordered[l]];
+                            l++; r--;
+                        }
+                        improved = true;
+                    }
+                }
+            }
+        }
+
+        // Yhdistetään: optimoidut tekemättömät + puuttuvat + jo tehdyt
+        tasks = [...ordered, ...missing, ...tasks.filter(t => t.done)];
+        saveAndRender();
+
+        if (btnOpt) {
+            btnOpt.disabled = false;
+            btnOpt.textContent = '⚡ Optimoi reitti automaattisesti';
+        }
+
+        showStatus('⚡ Reitti optimoitu automaattisesti! Lyhin siirtymäjärjestys laskettu.', 'success');
+        updateDriverHud();
+        renderDriverQueue();
+        renderRoutePolyline();
+        renderRouteAnalytics();
+
+        if (typeof yardMap !== 'undefined' && yardMap) {
+            const next = tasks.find(t => !t.done);
+            if (next && next.lat && next.lon) {
+                yardMap.flyTo([next.lat, next.lon], 17, { duration: 0.8 });
+            }
+        }
+    }
+    window.optimizeDriverRoute = optimizeDriverRoute;
+
     // ---------- KULJETTAJAN KENTTÄTILAN HUD-TOIMINNOT ----------
     function updateDriverHud() {
         if (!tasks) return;
@@ -7601,6 +8262,10 @@
 
             tasks = [...ordered, ...missing, ...tasks.filter(t => t.done)];
             saveAndRender();
+            renderRoutePolyline();
+            renderRouteAnalytics();
+            renderDriverQueue();
+            updateDriverHud();
 
             let msg = `✨ ${ordered.length} kohdetta järjestetty lyhimpään ajojärjestykseen.`;
             if (failed.length) {
@@ -7769,6 +8434,9 @@
         updateDistanceSummary(pending);
         renderActiveRoute();
         updateDashboardWidgets();
+        renderRouteAnalytics();
+        renderDriverQueue();
+        renderRoutePolyline();
 
         const searchCountEl = document.getElementById('search-count');
 
@@ -9305,6 +9973,7 @@
 
         yardDrawnItems = new L.FeatureGroup();
         yardMap.addLayer(yardDrawnItems);
+        renderRoutePolyline();
 
         if (yardMap.pm) {
             yardMap.pm.addControls({
