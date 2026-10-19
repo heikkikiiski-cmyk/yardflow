@@ -674,7 +674,12 @@
            KULJETTAJA- JA ADMIN-ROOLIEN NÄKYVYYDET
            ============================================================ */
         html[data-app-mode="field"] .admin-only { display: none !important; }
-        html[data-app-mode="admin"] .driver-only { display: none !important; }
+        html[data-app-mode="admin"] .driver-only,
+        html[data-app-mode="admin"] .driver-hud-top,
+        html[data-app-mode="admin"] .driver-hud-bottom,
+        html[data-app-mode="admin"] #driver-hud-top,
+        html[data-app-mode="admin"] #driver-hud-bottom,
+        html[data-app-mode="admin"] .task-action-row { display: none !important; }
 
         html[data-app-mode="field"] .nav-tabs { display: none !important; }
         html[data-app-mode="field"] #routeSidebarPanel { display: none !important; }
@@ -696,9 +701,63 @@
         html[data-app-mode="field"] .current-property-card { position: relative !important; display: block !important; z-index: 5 !important; margin-top: 18px !important; margin-bottom: 16px !important; max-width: 760px; margin-left: auto !important; margin-right: auto !important; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important; }
         html[data-app-mode="field"] .driver-hud-bottom { display: flex !important; position: relative !important; z-index: 5 !important; max-width: 760px; margin-left: auto !important; margin-right: auto !important; width: 100%; box-sizing: border-box; margin-top: 12px !important; }
 
-        /* Oletuksena (hallintatilassa) kuljettajan HUD on piilossa */
+        /* Oletuksena (hallintatilassa) kuljettajan HUD ja kuittauspainikkeet ovat piilossa */
         .driver-hud-top,
-        .driver-hud-bottom { display: none; }
+        .driver-hud-bottom { display: none !important; }
+        html[data-app-mode="field"] .driver-hud-top { display: block !important; }
+        html[data-app-mode="field"] .driver-hud-bottom { display: flex !important; }
+
+        /* Yhtenäiset Tallenna ja Peruuta -painikkeet kaikille modaleille ja lomakkeille */
+        .btn-form-save {
+            background: var(--accent-blue, #0284c7) !important;
+            color: #ffffff !important;
+            border: 1px solid var(--accent-blue, #0284c7) !important;
+            border-radius: var(--radius-md) !important;
+            font-weight: 700 !important;
+            cursor: pointer !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 6px !important;
+            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35) !important;
+            transition: transform 0.1s ease, box-shadow 0.15s ease, background 0.15s ease !important;
+        }
+        .btn-form-save:hover {
+            background: #0369a1 !important;
+            border-color: #0369a1 !important;
+            box-shadow: 0 6px 18px rgba(2, 132, 199, 0.45) !important;
+        }
+        .btn-form-save:active { transform: scale(0.98) !important; }
+
+        .btn-form-cancel {
+            background: rgba(255, 255, 255, 0.08) !important;
+            color: var(--text-main, #f8fafc) !important;
+            border: 1px solid var(--border, rgba(255, 255, 255, 0.18)) !important;
+            border-radius: var(--radius-md) !important;
+            font-weight: 600 !important;
+            cursor: pointer !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 6px !important;
+            transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease !important;
+        }
+        .btn-form-cancel:hover {
+            background: rgba(255, 255, 255, 0.16) !important;
+            border-color: rgba(255, 255, 255, 0.35) !important;
+        }
+        .btn-form-cancel:active { transform: scale(0.98) !important; }
+
+        /* Kartan aluepiirron ja muokkauksen toimintorivi */
+        .yard-draw-actions {
+            animation: fadeIn 0.2s ease-in-out;
+        }
+        .admin-map-quick-controls .tiny-btn.active {
+            background: var(--accent-blue, #0284c7) !important;
+            color: #ffffff !important;
+            border-color: var(--accent-blue, #0284c7) !important;
+            font-weight: 700 !important;
+        }
 
         /* Kuljettajan HUD: Yläpalkki (Seuraava kohde, osoite, huomiot) */
         .driver-hud-top { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 12px 16px; margin-bottom: 8px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3); position: relative; z-index: 5; }
@@ -717,7 +776,7 @@
         .driver-hud-note { background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); color: #f59e0b; border-radius: var(--radius-md); padding: 8px 12px; font-size: 0.86rem; font-weight: 600; display: flex; align-items: flex-start; gap: 8px; margin-top: 6px; }
 
         /* Kuljettajan HUD: Alapalkki (Suuri vihreä kuittaus + esteilmoitus) */
-        .driver-hud-bottom { display: flex; gap: 10px; margin-top: 8px; align-items: stretch; position: relative; z-index: 5; }
+        .driver-hud-bottom { gap: 10px; margin-top: 8px; align-items: stretch; position: relative; z-index: 5; }
         .btn-driver-complete { flex: 2.2; min-height: 60px; background: #10b981; color: #ffffff; border: none; border-radius: var(--radius-lg); font-size: 1.15rem; font-weight: 800; letter-spacing: 0.02em; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4); transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.15s ease; user-select: none; }
         .btn-driver-complete:hover { background: #059669; }
         .btn-driver-complete:active { transform: scale(0.98); }
@@ -1307,8 +1366,11 @@
                             <button type="button" class="btn-primary" style="flex: 1; min-height: 40px; font-size: 0.85rem; padding: 6px 10px;" onclick="navigateToNextYard()">
                                 🧭 Navigoi
                             </button>
-                            <button type="button" class="btn-success" style="flex: 1; min-height: 40px; font-size: 0.85rem; padding: 6px 10px;" onclick="completeNextYard()">
+                            <button type="button" class="btn-success driver-only" style="flex: 1; min-height: 40px; font-size: 0.85rem; padding: 6px 10px;" onclick="completeNextYard()">
                                 ✓ Kuittaa
+                            </button>
+                            <button type="button" class="btn-outline admin-only" style="flex: 1; min-height: 40px; font-size: 0.85rem; padding: 6px 10px;" onclick="switchTab('routes')" title="Näytä kohde kartalla">
+                                📍 Kartalle
                             </button>
                         </div>
                     </div>
@@ -1432,7 +1494,10 @@
                     </div>
                 </div>
 
-                <button class="btn-primary" onclick="addTask()">💾 Tallenna kohde listaan</button>
+                <div class="dialog-actions modal-action-buttons" style="display: flex; gap: 10px; margin-top: 14px;">
+                    <button type="button" class="btn-outline btn-form-cancel" style="flex: 1;" onclick="closeAddTaskDrawer()">✕ Peruuta</button>
+                    <button type="button" class="btn-primary btn-form-save" style="flex: 1.5; padding: 10px 20px; font-weight: 700;" onclick="addTask()">💾 Tallenna kohde</button>
+                </div>
             </div>
 
             <!-- AVATTAVA PANEELI 2: Varikko, Reittityökalut & Tallennetut reitit -->
@@ -1467,10 +1532,15 @@
                         </button>
                     </div>
                     <div class="route-actions-grid" style="margin-top: 8px;">
-                        <button class="btn-primary" style="min-height: 42px; font-size: 0.86rem;" onclick="saveRoute()">
+                        <button type="button" class="btn-outline btn-form-cancel" style="min-height: 42px; font-size: 0.86rem;" onclick="closeRouteConfigDrawer()">
+                            ✕ Peruuta
+                        </button>
+                        <button type="button" class="btn-primary btn-form-save" style="min-height: 42px; font-size: 0.86rem;" onclick="saveRoute()">
                             💾 Tallenna reitti
                         </button>
-                        <button class="btn-outline" onclick="newEmptyRoute()" title="Tyhjennä lista uutta reittiä varten">
+                    </div>
+                    <div style="margin-top: 6px;">
+                        <button type="button" class="btn-outline" style="width: 100%; font-size: 0.82rem; padding: 6px;" onclick="newEmptyRoute()" title="Tyhjennä lista uutta reittiä varten">
                             ➕ Tyhjennä lista
                         </button>
                     </div>
@@ -1576,11 +1646,19 @@
 
             <h3>
                 <span id="yardMapTitleText">🗺️ Kartta &amp; Alueiden piirto</span>
-                <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
-                    <button type="button" id="quickMapBaseToggleBtn" class="tiny-btn" onclick="toggleMapBaseQuick()" title="Vaihda karttapohjaa (Satelliitti / Selkeä peruskartta)">
+                <div class="admin-map-quick-controls" style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                    <div class="admin-only" style="display: inline-flex; background: rgba(0,0,0,0.25); padding: 2px; border-radius: var(--radius-sm); border: 1px solid var(--border); gap: 2px;">
+                        <button type="button" id="adminMapBaseSatBtn" class="tiny-btn active" onclick="setMapBaseLayer('satellite')" title="🛰️ Satelliitti (Esri World Imagery)">
+                            🛰️ Satelliitti
+                        </button>
+                        <button type="button" id="adminMapBaseStreetBtn" class="tiny-btn" onclick="setMapBaseLayer('street')" title="🗺️ Normaali kartta (OpenStreetMap)">
+                            🗺️ Normaali kartta
+                        </button>
+                    </div>
+                    <button type="button" id="quickMapBaseToggleBtn" class="tiny-btn driver-only" onclick="toggleMapBaseQuick()" title="Vaihda karttapohjaa (Satelliitti / Selkeä peruskartta)">
                         🛰️ Satelliitti
                     </button>
-                    <button type="button" id="quickMapBoundariesBtn" class="tiny-btn" onclick="toggleBoundariesQuick()" title="Kytke tontinrajat päälle tai pois">
+                    <button type="button" id="quickMapBoundariesBtn" class="tiny-btn" onclick="toggleBoundariesQuick()" title="Kytke tontin- ja kiinteistörajat päälle tai pois">
                         📐 Rajat: Pois
                     </button>
                     <button type="button" class="tiny-btn" onclick="openStreetViewCurrentMapTarget()" title="Avaa valittu kohde Google Street View -katunäkymässä">
@@ -1648,10 +1726,26 @@
                 </div>
             </div>
 
+            <!-- Kartan aluepiirron ja muokkauksen Tallenna / Peruuta -toimintorivi -->
+            <div id="yard-draw-actions" class="yard-draw-actions admin-only" style="display: none; align-items: center; justify-content: space-between; gap: 10px; background: rgba(15, 23, 42, 0.95); border: 1.5px solid var(--accent-blue, #0284c7); border-radius: var(--radius-md); padding: 8px 12px; margin-bottom: 8px;">
+                <div style="font-size: 0.84rem; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    <span>✏️</span>
+                    <span id="yardDrawModeLabel">Alueen muokkaustila aktiivinen</span>
+                </div>
+                <div style="display: flex; gap: 8px; align-items: center; flex-shrink: 0;">
+                    <button type="button" class="btn-outline btn-form-cancel" onclick="cancelYardDrawOrEdit()" style="padding: 6px 14px; font-size: 0.82rem; min-height: 36px;" title="Peruuta ja hylkää luonnos">
+                        ✕ Peruuta
+                    </button>
+                    <button type="button" class="btn-primary btn-form-save" onclick="saveAndFinishYardDraw()" style="padding: 6px 16px; font-size: 0.82rem; min-height: 36px; font-weight: 700;" title="Tallenna piirretty alue">
+                        💾 Tallenna alue
+                    </button>
+                </div>
+            </div>
+
             <div id="yardSatelliteMap"></div>
 
             <!-- KULJETTAJAN ALAPALKIN PIKATOIMINNOT (Näkyy vain kenttätilassa) -->
-            <div id="driver-hud-bottom" class="driver-hud-bottom">
+            <div id="driver-hud-bottom" class="driver-hud-bottom driver-only">
                 <button type="button" id="btn-driver-complete" class="btn-driver-complete" onclick="completeNextYard()">
                     <span>✓</span>
                     <span id="btnDriverCompleteText">KUITTAA TEHDYKSI</span>
@@ -1727,8 +1821,8 @@
                 </div>
             </div>
 
-            <!-- AVATTAVA LOMAKE: Uuden kuljettajan lisäys -->
-            <div id="addDriverDrawer" class="drawer-panel" style="display: none; margin-bottom: 16px;">
+            <!-- AVATTAVA LOMAKE: Uuden kuljettajan lisäys (#modal-add-driver) -->
+            <div id="addDriverDrawer" class="drawer-panel modal-add-driver" data-modal-id="modal-add-driver" style="display: none; margin-bottom: 16px;">
                 <div class="drawer-header">
                     <h4 id="driverFormTitle">➕ Lisää uusi kuljettaja</h4>
                     <button class="tiny-btn" type="button" onclick="closeAddDriverDrawer()">✕ Sulje</button>
@@ -1754,9 +1848,9 @@
                         <input type="text" id="driverInputVehicle" placeholder="esim. Valtra N174 + lumiaura, Mönkijä, Wille" style="margin-bottom: 0;">
                     </div>
                 </div>
-                <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                    <button type="button" class="btn-outline" onclick="closeAddDriverDrawer()">Peruuta</button>
-                    <button type="button" class="btn-primary" onclick="saveDriverFromForm()" style="padding: 8px 20px; font-weight: 700;">💾 Tallenna kuljettaja</button>
+                <div class="dialog-actions modal-action-buttons" style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 14px;">
+                    <button type="button" class="btn-outline btn-form-cancel" style="min-width: 110px;" onclick="closeAddDriverDrawer()">✕ Peruuta</button>
+                    <button type="button" class="btn-primary btn-form-save" onclick="saveDriverFromForm()" style="min-width: 160px; padding: 10px 20px; font-weight: 700;">💾 Tallenna kuljettaja</button>
                 </div>
             </div>
 
@@ -1920,7 +2014,10 @@
                     </div>
                 </div>
 
-                <button class="btn-primary" onclick="addCustomerFromForm()" style="min-height: 44px; font-weight: 700;">💾 Tallenna asiakas rekisteriin</button>
+                <div class="dialog-actions modal-action-buttons" style="display: flex; gap: 10px; margin-top: 14px;">
+                    <button type="button" class="btn-outline btn-form-cancel" style="flex: 1;" onclick="closeAddCustomerDrawer()">✕ Peruuta</button>
+                    <button type="button" class="btn-primary btn-form-save" style="flex: 1.5; min-height: 44px; padding: 10px 20px; font-weight: 700;" onclick="addCustomerFromForm()">💾 Tallenna asiakas</button>
+                </div>
             </div>
 
             <input type="text" id="custSearchInput" class="search-input" placeholder="🔍 Etsi asiakasta nimellä, y-tunnuksella, osoitteella, puhelimella tai kiinteistöllä..." oninput="renderCustomers()">
@@ -2417,19 +2514,19 @@
             <h3 id="nameDialogTitle">Nimeä reitti</h3>
             <label for="nameDialogInput">Reitin nimi:</label>
             <input type="text" id="nameDialogInput" placeholder="esim. Kissanmaa aurauskierros" required>
-            <div class="dialog-actions">
-                <button type="button" class="btn-outline" onclick="document.getElementById('nameDialog').close('cancel')">Peruuta</button>
-                <button type="submit" value="ok" class="btn-primary" style="width: auto; padding: 10px 20px;">Tallenna</button>
+            <div class="dialog-actions modal-action-buttons">
+                <button type="button" class="btn-outline btn-form-cancel" onclick="document.getElementById('nameDialog').close('cancel')">✕ Peruuta</button>
+                <button type="submit" value="ok" class="btn-primary btn-form-save" style="width: auto; padding: 10px 20px; font-weight: 700;">💾 Tallenna</button>
             </div>
         </form>
     </dialog>
 
-    <!-- Kohteen muokkausdialogi -->
-    <dialog id="editDialog" class="app-dialog">
+    <!-- Kohteen muokkausdialogi (#modal-property) -->
+    <dialog id="editDialog" class="app-dialog modal-property" data-modal-id="modal-property">
         <form id="property-edit-form" method="dialog" class="dialog-content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
                 <h3 style="margin: 0; font-size: 1.15rem;">✏️ Muokkaa kohdetta</h3>
-                <button type="button" class="tiny-btn" onclick="document.getElementById('editDialog').close('cancel')">✕ Sulje</button>
+                <button type="button" class="tiny-btn" onclick="closePropertyEditForm()">✕ Sulje</button>
             </div>
 
             <label for="editName">Kohteen nimi:</label>
@@ -2484,9 +2581,9 @@
             <label for="editNotes">Kuskin lisäohjeet / huomiot:</label>
             <textarea id="editNotes" rows="2" placeholder="esim. Varo kaivonkantta, auraus vain sisäpihalle"></textarea>
 
-            <div class="dialog-actions" style="display: flex; gap: 10px; margin-top: 14px;">
-                <button type="button" class="btn-outline" style="flex: 1;" onclick="document.getElementById('editDialog').close('cancel')">Peruuta</button>
-                <button type="submit" id="btn-save-property-edits" value="ok" class="btn-primary" style="flex: 1.5; padding: 10px 20px; font-weight: 700;">💾 Tallenna muutokset</button>
+            <div class="dialog-actions modal-action-buttons" style="display: flex; gap: 10px; margin-top: 14px;">
+                <button type="button" class="btn-outline btn-form-cancel" style="flex: 1;" onclick="closePropertyEditForm()">✕ Peruuta</button>
+                <button type="submit" id="btn-save-property-edits" value="ok" class="btn-primary btn-form-save" style="flex: 1.5; padding: 10px 20px; font-weight: 700;">💾 Tallenna muutokset</button>
             </div>
         </form>
     </dialog>
@@ -2618,9 +2715,9 @@
                 </div>
             </div>
 
-            <div class="dialog-actions">
-                <button type="button" class="btn-outline" onclick="document.getElementById('editCustomerDialog').close()">Peruuta</button>
-                <button type="submit" value="ok" class="btn-primary" style="min-height: 40px; padding: 0 18px;">💾 Tallenna muutokset</button>
+            <div class="dialog-actions modal-action-buttons" style="display: flex; gap: 10px; margin-top: 14px;">
+                <button type="button" class="btn-outline btn-form-cancel" style="flex: 1;" onclick="closeEditCustomerModal()">✕ Peruuta</button>
+                <button type="submit" value="ok" class="btn-primary btn-form-save" style="flex: 1.5; min-height: 40px; padding: 10px 20px; font-weight: 700;">💾 Tallenna muutokset</button>
             </div>
         </form>
     </dialog>
@@ -2664,9 +2761,9 @@
                 <textarea id="geofenceOverrideCustomReason" rows="2" placeholder="Kirjoita miksi kuittaus tehdään kohteen ulkopuolelta..." oninput="updateGeofenceOverrideModalState()" style="margin-bottom: 0;"></textarea>
             </div>
 
-            <div class="dialog-actions">
-                <button type="button" class="btn-outline" onclick="cancelGeofenceManualOverride()">Peruuta</button>
-                <button type="submit" id="btnConfirmGeofenceOverride" class="btn-primary" style="width: auto; padding: 10px 20px; background: var(--accent-amber); box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3);" disabled>
+            <div class="dialog-actions modal-action-buttons">
+                <button type="button" class="btn-outline btn-form-cancel" onclick="cancelGeofenceManualOverride()">✕ Peruuta</button>
+                <button type="submit" id="btnConfirmGeofenceOverride" class="btn-primary btn-form-save" style="width: auto; padding: 10px 20px; background: var(--accent-amber); border-color: var(--accent-amber); box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3);" disabled>
                     ⚠️ Vahvista manuaalikuittaus
                 </button>
             </div>
@@ -2729,12 +2826,12 @@
                 <span id="obstaclePhotoNotice" style="font-size: 0.78rem; color: var(--accent-green); display: none; margin-left: 8px;">✓ Kuva liitetty</span>
             </div>
 
-            <div class="dialog-actions" style="display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap;">
+            <div class="dialog-actions modal-action-buttons" style="display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap;">
                 <button type="button" id="btnRemoveObstacle" class="btn-outline" onclick="removeObstacleFromTask()" style="display: none; color: var(--muted); margin-right: auto;">
                     Palauta normaaliksi
                 </button>
-                <button type="button" class="btn-outline" onclick="cancelTaskObstacle()">Peruuta</button>
-                <button type="submit" id="btnConfirmTaskObstacle" class="btn-primary" style="width: auto; padding: 10px 20px; background: #ef4444; border-color: #ef4444; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);" disabled>
+                <button type="button" class="btn-outline btn-form-cancel" onclick="cancelTaskObstacle()">✕ Peruuta</button>
+                <button type="submit" id="btnConfirmTaskObstacle" class="btn-primary btn-form-save" style="width: auto; padding: 10px 20px; background: #ef4444; border-color: #ef4444; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);" disabled>
                     🚫 Vahvista ja lähetä ilmoitus
                 </button>
             </div>
@@ -2793,10 +2890,10 @@
                 </label>
             </div>
 
-            <div class="dialog-actions" style="display: flex; gap: 10px; margin-top: 14px;">
-                <button type="button" class="btn-outline" style="flex: 1;" onclick="closeCreateRouteModal()">Peruuta</button>
-                <button type="submit" id="btnSaveNewRoute" class="btn-primary" style="flex: 1.5; padding: 10px 20px; font-weight: 700;">
-                    💾 Tallenna ja määritä reitti
+            <div class="dialog-actions modal-action-buttons" style="display: flex; gap: 10px; margin-top: 14px;">
+                <button type="button" class="btn-outline btn-form-cancel" style="flex: 1;" onclick="closeCreateRouteModal()">✕ Peruuta</button>
+                <button type="submit" id="btnSaveNewRoute" class="btn-primary btn-form-save" style="flex: 1.5; padding: 10px 20px; font-weight: 700;">
+                    💾 Tallenna reitti
                 </button>
             </div>
         </form>
@@ -9905,12 +10002,13 @@
                 ${isMovingThisPin ? `
                 <div style="background: rgba(245, 158, 11, 0.16); border: 1px solid rgba(245, 158, 11, 0.5); border-radius: var(--radius-sm); padding: 8px 10px; font-size: 0.82rem; color: var(--accent-amber); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
                     <span>📍 <b>Sijainti avattu siirrettäväksi:</b> Klikkaa kartalta uusi kohta tai raahaa merkkiä.</span>
-                    <button type="button" class="tiny-btn" style="background: var(--accent-amber); color: #000; font-weight: 700; white-space: nowrap; padding: 4px 10px; margin: 0;" onclick="toggleMoveCardPin(${task.id}, event)">Valmis ✓</button>
+                    <button type="button" class="tiny-btn" style="background: var(--accent-amber); color: #000; font-weight: 700; white-space: nowrap; padding: 4px 10px; margin: 0;" onclick="toggleMoveCardPin(${task.id}, event)">Sijainti OK ✓</button>
                 </div>
                 ` : ''}
 
-                <!-- Kuittaus ja este-painikkeet -->
-                <div class="task-action-row" style="display: flex; gap: 8px; margin-top: 4px;">
+                <!-- Kuittaus ja este-painikkeet (vain kuskille, poistettu Adminilta) -->
+                ${currentAppMode === 'field' ? `
+                <div class="task-action-row driver-only" style="display: flex; gap: 8px; margin-top: 4px;">
                     <button type="button" class="${completeBtnClass}" style="flex: 1;" onclick="handleCompleteTaskClick(${task.id}, this)" title="${task.done ? 'Klikkaa palauttaaksesi kohteen tekemättömäksi' : 'Tarkistaa GPS-sijainnin ja kuittaa pihan valmiiksi'}">
                         ${isBlocked ? '✓ Kuittaa valmiiksi (este poistunut)' : completeBtnText}
                     </button>
@@ -9920,6 +10018,7 @@
                     </button>
                     ` : ''}
                 </div>
+                ` : ''}
 
                 <!-- Toimintonapit kortin alaosaan: [📍 Kartalle] (keskittää kartan kohteeseen), [✏️ Muokkaa] (avaa kohteen muokkauksen) -->
                 <div class="task-tools-row" style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; border-top: 1px solid var(--border); padding-top: 8px; gap: 6px; flex-wrap: wrap;">
@@ -10706,6 +10805,22 @@
                 layer.setStyle({ weight: Math.max(cat.weight, 4), dashArray: '6, 4' });
             }
 
+            // Tallennetaan alkuperäiset koordinaatit peruutusta varten
+            if (!layer._originalLatLngs) {
+                try {
+                    layer._originalLatLngs = JSON.stringify(layer.getLatLngs());
+                } catch (e) {}
+            }
+
+            // Aktivoidaan suora pisteiden siirtely ja muokkaus (Leaflet-Geoman)
+            if (layer.pm && typeof layer.pm.enable === 'function') {
+                layer.pm.enable({
+                    allowSelfIntersection: false,
+                    snappable: true,
+                    snapDistance: 20
+                });
+            }
+
             // Alustetaan ja aktivoidaan Leaflet.Path.Transform (All-in-One Transform)
             if (!layer.transform && typeof L !== 'undefined' && L.Handler && L.Handler.PathTransform) {
                 layer.transform = new L.Handler.PathTransform(layer, {
@@ -10719,11 +10834,13 @@
                 });
             }
 
-            if (layer.transform) {
-                layer.transform.enable();
-            }
+            // Näytetään Tallenna / Peruuta -toimintorivi
+            const actionRow = document.getElementById('yard-draw-actions');
+            const modeLabel = document.getElementById('yardDrawModeLabel');
+            if (actionRow) actionRow.style.display = 'flex';
+            if (modeLabel) modeLabel.textContent = `Muokataan: ${cat.label} (Siirrä kulmapisteitä tai vedä aluetta)`;
 
-            setYardMapStatus(`Valittu: ${cat.label} — Siirrä raahaamalla sisältä, muuta kokoa kulmista, käännä yläkahvasta. Tuplaklikkaa säätääksesi kulmapisteitä.`);
+            setYardMapStatus(`Valittu: ${cat.label} — Voit siirtää kulmapisteitä suoraan kartalla tai raahata aluetta. Tallenna tai peruuta yläpalkista.`);
         }
     }
 
@@ -11187,12 +11304,130 @@
             }
         });
 
+        const actionRow = document.getElementById('yard-draw-actions');
+        const modeLabel = document.getElementById('yardDrawModeLabel');
+        if (actionRow) actionRow.style.display = 'flex';
+        if (modeLabel) modeLabel.textContent = `Piirretään uutta: ${cat.label} (Klikkaa kulmapisteet kartalle)`;
+
         if (category === 'snowdump') {
             setYardMapStatus('❄️ Lumenkaatoalue: klikkaa laatikon kulmat kartalle. Voit sen jälkeen siirtää, kääntää ja muuttaa kokoa suoraan valintakahvoista.');
         } else {
             setYardMapStatus(`${cat.label}: klikkaa alueen kulmapisteet kartalle ja sulje alue klikkaamalla aloitukseen. Muokkaa klikkaamalla aluetta.`);
         }
     }
+
+    function cancelYardDrawOrEdit() {
+        if (selectedMapLayer) {
+            if (selectedMapLayer._originalLatLngs) {
+                try {
+                    selectedMapLayer.setLatLngs(JSON.parse(selectedMapLayer._originalLatLngs));
+                } catch (e) {}
+                delete selectedMapLayer._originalLatLngs;
+            }
+            if (selectedMapLayer.pm && typeof selectedMapLayer.pm.enabled === 'function' && selectedMapLayer.pm.enabled()) {
+                selectedMapLayer.pm.disable();
+            }
+            if (selectedMapLayer.transform && selectedMapLayer.transform._enabled) {
+                selectedMapLayer.transform.disable();
+            }
+            if (typeof selectedMapLayer.setStyle === 'function') {
+                const prevCat = YARD_CATEGORIES[selectedMapLayer._yardCategory] || YARD_CATEGORIES.machine;
+                selectedMapLayer.setStyle({ weight: prevCat.weight, dashArray: null });
+            }
+            selectedMapLayer = null;
+        }
+
+        if (yardMap && yardMap.pm) {
+            yardMap.pm.disableDraw();
+            yardMap.pm.disableGlobalEditMode();
+            if (typeof yardMap.pm.disableGlobalRotateMode === 'function') yardMap.pm.disableGlobalRotateMode();
+        }
+
+        clearToolbarActiveStates();
+        const actionRow = document.getElementById('yard-draw-actions');
+        if (actionRow) actionRow.style.display = 'none';
+        setYardMapStatus('Alueen muokkaus tai piirto peruutettu. Alkuperäinen tila palautettu.');
+        if (typeof showNotification === 'function') {
+            showNotification('Muutokset peruutettu', 'info');
+        }
+    }
+    window.cancelYardDrawOrEdit = cancelYardDrawOrEdit;
+
+    function saveAndFinishYardDraw() {
+        if (selectedMapLayer) {
+            if (selectedMapLayer.pm && typeof selectedMapLayer.pm.enabled === 'function' && selectedMapLayer.pm.enabled()) {
+                selectedMapLayer.pm.disable();
+            }
+            if (selectedMapLayer.transform && selectedMapLayer.transform._enabled) {
+                selectedMapLayer.transform.disable();
+            }
+            if (typeof selectedMapLayer.setStyle === 'function') {
+                const prevCat = YARD_CATEGORIES[selectedMapLayer._yardCategory] || YARD_CATEGORIES.machine;
+                selectedMapLayer.setStyle({ weight: prevCat.weight, dashArray: null });
+            }
+            delete selectedMapLayer._originalLatLngs;
+            selectedMapLayer = null;
+        }
+
+        if (yardMap && yardMap.pm) {
+            yardMap.pm.disableDraw();
+            yardMap.pm.disableGlobalEditMode();
+            if (typeof yardMap.pm.disableGlobalRotateMode === 'function') yardMap.pm.disableGlobalRotateMode();
+        }
+
+        saveCurrentTargetGeoJSON();
+        clearToolbarActiveStates();
+        const actionRow = document.getElementById('yard-draw-actions');
+        if (actionRow) actionRow.style.display = 'none';
+        setYardMapStatus('Alueen muutokset tallennettu kohteelle.');
+        if (typeof showNotification === 'function') {
+            showNotification('Alue tallennettu onnistuneesti', 'success');
+        }
+    }
+    window.saveAndFinishYardDraw = saveAndFinishYardDraw;
+
+    // Yhtenäiset modaalien ja sivupaneelien sulkufunktiot (Peruuta-painikkeille)
+    function closeAddTaskDrawer() {
+        const drawer = document.getElementById('addTaskDrawer');
+        if (drawer) drawer.style.display = 'none';
+        document.getElementById('btnToggleAddTask')?.classList.remove('active');
+        if (typeof disableMapPinDropMode === 'function' && isPinDropModeActive) disableMapPinDropMode();
+    }
+    window.closeAddTaskDrawer = closeAddTaskDrawer;
+
+    function closeAddCustomerDrawer() {
+        const drawer = document.getElementById('addCustomerDrawer');
+        if (drawer) drawer.style.display = 'none';
+    }
+    window.closeAddCustomerDrawer = closeAddCustomerDrawer;
+
+    function closeRouteConfigDrawer() {
+        const drawer = document.getElementById('routeConfigDrawer');
+        if (drawer) drawer.style.display = 'none';
+        document.getElementById('btnToggleRouteConfig')?.classList.remove('active');
+    }
+    window.closeRouteConfigDrawer = closeRouteConfigDrawer;
+
+    function closePropertyEditForm() {
+        const dlg = document.getElementById('editDialog');
+        if (dlg && typeof dlg.close === 'function') {
+            dlg.close('cancel');
+        } else if (dlg) {
+            dlg.style.display = 'none';
+        }
+        if (typeof disableMapPinDropMode === 'function' && isPinDropModeActive) disableMapPinDropMode();
+    }
+    window.closePropertyEditForm = closePropertyEditForm;
+
+    function closeEditCustomerModal() {
+        const dlg = document.getElementById('editCustomerDialog');
+        if (dlg && typeof dlg.close === 'function') {
+            dlg.close('cancel');
+        } else if (dlg) {
+            dlg.style.display = 'none';
+        }
+    }
+    window.closeEditCustomerModal = closeEditCustomerModal;
 
     // Yhteensopivuusfunktiot mahdollisille aiemmille kutsuille
     function toggleYardEditMode() {
@@ -11270,7 +11505,7 @@
     // ============================================================
     let currentMapBase = (function() {
         try {
-            return localStorage.getItem('yardflow_map_base') || 'satellite';
+            return localStorage.getItem('yardflow_admin_map_base') || localStorage.getItem('yardflow_map_base') || 'satellite';
         } catch (e) {
             return 'satellite';
         }
@@ -11278,6 +11513,8 @@
 
     let showBoundaries = (function() {
         try {
+            const adminVal = localStorage.getItem('yardflow_admin_boundaries');
+            if (adminVal !== null) return adminVal === 'true';
             return localStorage.getItem('yardflow_show_boundaries') === 'true';
         } catch (e) {
             return false;
@@ -11332,6 +11569,7 @@
         currentMapBase = layerName;
         try {
             localStorage.setItem('yardflow_map_base', layerName);
+            localStorage.setItem('yardflow_admin_map_base', layerName);
         } catch (e) {}
 
         const layers = getBaseLayers();
@@ -11358,6 +11596,7 @@
         showBoundaries = !!enable;
         try {
             localStorage.setItem('yardflow_show_boundaries', String(showBoundaries));
+            localStorage.setItem('yardflow_admin_boundaries', String(showBoundaries));
         } catch (e) {}
 
         const layer = getBoundaryLayer();
@@ -11402,6 +11641,13 @@
             }
         }
 
+        const adminSatBtn = document.getElementById('adminMapBaseSatBtn');
+        const adminStreetBtn = document.getElementById('adminMapBaseStreetBtn');
+        if (adminSatBtn && adminStreetBtn) {
+            adminSatBtn.classList.toggle('active', currentMapBase === 'satellite');
+            adminStreetBtn.classList.toggle('active', currentMapBase === 'street');
+        }
+
         const toggleBoundaries = document.getElementById('toggle-map-boundaries');
         const boundariesStatus = document.getElementById('boundariesToggleStatus');
         if (toggleBoundaries) {
@@ -11435,7 +11681,13 @@
         yardMap = L.map('yardSatelliteMap', {
             center: [initLat, initLon],
             zoom: 18,
-            maxZoom: 21
+            maxZoom: 21,
+            dragging: true,
+            touchZoom: true,
+            scrollWheelZoom: true,
+            doubleClickZoom: true,
+            boxZoom: true,
+            keyboard: true
         });
         window.map = yardMap;
         window.yardMap = yardMap;
@@ -11455,6 +11707,41 @@
             const bLayer = getBoundaryLayer();
             if (bLayer) bLayer.addTo(yardMap);
         }
+
+        // Leaflet Layer Control (L.control.layers)
+        try {
+            if (typeof L.control.layers === 'function') {
+                const baseMaps = {
+                    "🛰️ Satelliitti": layers.satellite,
+                    "🗺️ Normaali kartta": layers.street
+                };
+                const overlayMaps = {
+                    "📐 Tontinrajat": getBoundaryLayer()
+                };
+                L.control.layers(baseMaps, overlayMaps, { position: 'topright', collapsed: true }).addTo(yardMap);
+            }
+        } catch (ctrlErr) {
+            console.warn('L.control.layers ei saatavilla', ctrlErr);
+        }
+
+        yardMap.on('baselayerchange', e => {
+            const chosen = (e.layer === layers.street) ? 'street' : 'satellite';
+            if (currentMapBase !== chosen) {
+                setMapBaseLayer(chosen);
+            }
+        });
+
+        yardMap.on('overlayadd', e => {
+            if (e.layer === getBoundaryLayer()) {
+                toggleBoundariesLayer(true);
+            }
+        });
+
+        yardMap.on('overlayremove', e => {
+            if (e.layer === getBoundaryLayer()) {
+                toggleBoundariesLayer(false);
+            }
+        });
 
         updateMapSettingsUi();
 
