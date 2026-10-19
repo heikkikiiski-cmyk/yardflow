@@ -11,6 +11,11 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="icon" type="image/png" href="icons/icon-192.png">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <!-- Leaflet & Leaflet-Geoman CDN -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+    <link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.17.0/dist/leaflet-geoman.css" crossorigin="">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.17.0/dist/leaflet-geoman.min.js" crossorigin=""></script>
     <script>
         (function() {
             try {
@@ -1363,6 +1368,30 @@
             min-height: 40px;
             font-size: 0.86rem;
         }
+        #yardSatelliteMap {
+            width: 100%;
+            height: 420px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            z-index: 1;
+            background: #0b1120;
+        }
+        .snowdump-marker-pin {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            background: #0ea5e9;
+            color: #ffffff;
+            border: 2px solid #ffffff;
+            border-radius: 20px;
+            padding: 3px 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            white-space: nowrap;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.45);
+        }
     </style>
 </head>
 <body>
@@ -1538,6 +1567,51 @@
             </div>
 
             <div id="taskList"></div>
+        </div>
+
+        <!-- SATELLIITTIKARTTA & ALUEIDEN PIIRTO (Leaflet + Leaflet-Geoman) -->
+        <div class="card" id="yardMapCard">
+            <h3>
+                <span>🛰️ Satelliittikartta &amp; Alueiden piirto</span>
+                <button type="button" class="tiny-btn" onclick="openStreetViewCurrentMapTarget()" title="Avaa valittu kohde Google Street View -katunäkymässä">
+                    🛣️ Avaa Street View
+                </button>
+            </h3>
+
+            <label for="yardMapTargetSelect">Valitse tarkasteltava / piirrettävä kohde:</label>
+            <select id="yardMapTargetSelect" onchange="selectYardMapTarget(this.value)" style="margin-bottom: 10px;">
+                <option value="">-- Valitse kohde listalta --</option>
+            </select>
+
+            <!-- 3 piirtokategoriaa -->
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
+                <button type="button" class="drawer-toggle-btn" id="btnDrawMachine" onclick="startYardDraw('machine')" style="border-left: 4px solid #0ea5e9;">
+                    🚜 Konealue
+                </button>
+                <button type="button" class="drawer-toggle-btn" id="btnDrawManual" onclick="startYardDraw('manual')" style="border-left: 4px solid #f59e0b;">
+                    🧹 Käsityöalue
+                </button>
+                <button type="button" class="drawer-toggle-btn" id="btnDrawSnowdump" onclick="startYardDraw('snowdump')" style="border-left: 4px solid #38bdf8;">
+                    ❄️ Lumenkaatopaikka
+                </button>
+            </div>
+
+            <!-- Valitun alueen poisto & kartan tyhjennys -->
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;">
+                <span id="yardMapStatus" class="muted-text" style="font-size: 0.78rem;">
+                    Valitse kohde ja piirrä konealueet (sininen), käsityöalueet (oranssi/punainen) tai lumenkaatopaikat (❄️).
+                </span>
+                <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                    <button type="button" class="tiny-btn danger" id="btnDeleteSelectedArea" onclick="deleteSelectedYardFeature()" title="Poista valittu alue tai kytke poistotila päälle">
+                        🗑️ Poista valittu alue
+                    </button>
+                    <button type="button" class="tiny-btn danger" onclick="clearCurrentTargetMap()" title="Tyhjennä kaikki tämän kohteen piirretyt alueet ja pisteet">
+                        🧹 Tyhjennä kartta
+                    </button>
+                </div>
+            </div>
+
+            <div id="yardSatelliteMap"></div>
         </div>
     </div>
 
@@ -3900,6 +3974,8 @@
                             🚜 Lisää ajolistalle
                         </button>
                         <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                            <button class="tiny-btn" type="button" onclick="openCustomerOnYardMap(${c.id})" title="Avaa kohteen satelliittikartta ja piirrä piha-alueet">🛰️ Pihakartta</button>
+                            <button class="tiny-btn" type="button" onclick="openStreetViewForCustomer(${c.id})" title="Avaa kohde Google Street View -katunäkymässä">🛣️ Avaa Street View</button>
                             <button class="photo-btn" type="button" onclick="openCustomerPhotos(${c.id})" title="Kohteen valokuvat">📷 <span data-photo-count-for="${c.id}">${photoCounts[String(c.id)] || 0}</span></button>
                             <button class="tiny-btn" onclick="editCustomer(${c.id})" title="Muokkaa asiakkaan tietoja">✎ Muokkaa</button>
                             <button class="tiny-btn danger" onclick="deleteCustomer(${c.id})" title="Poista asiakas">✕</button>
@@ -3908,6 +3984,7 @@
                 </div>
             `;
         }).join('');
+        if (typeof refreshYardMapTargetSelect === 'function') refreshYardMapTargetSelect();
     }
 
     let depot = JSON.parse(localStorage.getItem('pihatyot_depot_v4')) || {
@@ -4917,6 +4994,8 @@
                         <button class="order-btn" title="Siirrä alaspäin" onclick="moveTask(${index}, 1)" ${index === tasks.length - 1 ? 'disabled' : ''}>▼</button>
                     </div>
                     <div class="task-tools-group">
+                        <button class="tiny-btn" type="button" onclick="openTaskOnYardMap(${task.id})" title="Avaa satelliittikartta ja piirrä kone-/käsityöalueet">🛰️ Pihakartta</button>
+                        <button class="tiny-btn" type="button" onclick="openStreetViewForTask(${task.id})" title="Avaa kohde Google Street View -katunäkymässä">🛣️ Avaa Street View</button>
                         <button class="tiny-btn" type="button" onclick="quickSnapPhoto(${task.id})" title="Ota valokuva kohteesta">📷 Ota kuva</button>
                         <button class="photo-btn" type="button" onclick="openCustomerPhotos(${task.customerId ? task.customerId : `'${esc(task.name)}'`})" title="Näytä kohteen valokuvat">🖼️ <span data-photo-count-for="${task.customerId || esc(task.name)}">${photoCounts[String(task.customerId || task.name)] || 0}</span></button>
                         <button class="tiny-btn" type="button" onclick="setTaskGPS(${task.id})" title="Tallenna nykyinen GPS-sijaintisi tämän kohteen sijainniksi">📍 GPS</button>
@@ -4927,6 +5006,612 @@
             `;
             listEl.appendChild(item);
         });
+        if (typeof refreshYardMapTargetSelect === 'function') refreshYardMapTargetSelect();
+    }
+
+    // ============================================================
+    // 🛰️ SATELLIITTIKARTTA, ALUEIDEN PIIRTO (Leaflet + Geoman) & STREET VIEW
+    // ============================================================
+    const YARD_GEOJSON_STORAGE_KEY = 'yardflow_target_geojson_v1';
+    const YARD_ACTIVE_TARGET_KEY = 'yardflow_active_map_target_v1';
+
+    let yardGeoStore = {};
+    try {
+        yardGeoStore = JSON.parse(localStorage.getItem(YARD_GEOJSON_STORAGE_KEY)) || {};
+    } catch (e) {
+        yardGeoStore = {};
+    }
+
+    const YARD_CATEGORIES = {
+        machine: {
+            key: 'machine',
+            label: '🚜 Konealue',
+            color: '#0ea5e9',
+            fillColor: '#0ea5e9',
+            fillOpacity: 0.35,
+            weight: 3
+        },
+        manual: {
+            key: 'manual',
+            label: '🧹 Käsityöalue',
+            color: '#ef4444',
+            fillColor: '#f59e0b',
+            fillOpacity: 0.45,
+            weight: 3
+        },
+        snowdump: {
+            key: 'snowdump',
+            label: '❄️ Lumenkaatopaikka',
+            color: '#38bdf8'
+        }
+    };
+
+    let yardMap = null;
+    let yardDrawnItems = null;
+    let currentDrawCategory = 'machine';
+    let selectedMapLayer = null;
+    let currentMapTargetKey = localStorage.getItem(YARD_ACTIVE_TARGET_KEY) || '';
+
+    function makeTargetGeoKey(name, address) {
+        const n = String(name || '').trim().toLowerCase();
+        const a = String(address || '').trim().toLowerCase();
+        if (!n && !a) return 'default_yard';
+        return `${n}|${a}`;
+    }
+
+    function createSnowdumpIcon() {
+        if (typeof L === 'undefined') return null;
+        return L.divIcon({
+            className: 'snowdump-div-icon',
+            html: `<div class="snowdump-marker-pin">❄️ Lumenkaato</div>`,
+            iconSize: [110, 28],
+            iconAnchor: [55, 14],
+            popupAnchor: [0, -14]
+        });
+    }
+
+    function setYardMapStatus(msg) {
+        const el = document.getElementById('yardMapStatus');
+        if (el) el.textContent = msg;
+    }
+
+    // --- 3. Google Street View -linkitys ---
+    function buildStreetViewUrl(lat, lon) {
+        return `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${encodeURIComponent(lat)},${encodeURIComponent(lon)}`;
+    }
+
+    async function openStreetViewWithCoordsOrAddress(obj, onCoordsFound) {
+        if (!obj) return;
+        if (obj.lat && obj.lon) {
+            window.open(buildStreetViewUrl(obj.lat, obj.lon), '_blank', 'noopener');
+            return;
+        }
+        // Katsotaan löytyykö samalle osoitteelle jo koordinaatit toisesta kohteesta
+        const matchTask = tasks.find(t => t.lat && t.lon && t.address && obj.address && t.address.toLowerCase() === obj.address.toLowerCase());
+        if (matchTask) {
+            obj.lat = matchTask.lat;
+            obj.lon = matchTask.lon;
+            if (onCoordsFound) onCoordsFound(obj.lat, obj.lon);
+            window.open(buildStreetViewUrl(obj.lat, obj.lon), '_blank', 'noopener');
+            return;
+        }
+
+        // Avataan välilehti synkronisesti, jotta selaimen ponnahdusikkunoiden esto ei estä sitä
+        const win = window.open('about:blank', '_blank');
+        showStatus(`Haetaan kohteen "${esc(obj.name || obj.address)}" koordinaatteja Street View -näkymään...`, 'loading');
+        const c = await fetchCoordinates(obj.address);
+        if (c && c.lat && c.lon) {
+            obj.lat = c.lat;
+            obj.lon = c.lon;
+            if (onCoordsFound) onCoordsFound(c.lat, c.lon);
+            const url = buildStreetViewUrl(c.lat, c.lon);
+            if (win) win.location.href = url;
+            else window.open(url, '_blank', 'noopener');
+            showStatus(`Street View avattu kohteelle "${esc(obj.name || obj.address)}".`, 'success');
+        } else {
+            const fallbackUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(obj.address || obj.name || '')}`;
+            if (win) win.location.href = fallbackUrl;
+            else window.open(fallbackUrl, '_blank', 'noopener');
+            showStatus('Tarkkoja koordinaatteja ei löytynyt, avattiin osoitehaku.', 'info');
+        }
+    }
+
+    function openStreetViewForTask(taskId) {
+        const t = tasks.find(x => String(x.id) === String(taskId));
+        if (!t) return;
+        openStreetViewWithCoordsOrAddress(t, () => saveAndRender());
+    }
+
+    function openStreetViewForCustomer(custId) {
+        const c = customers.find(x => String(x.id) === String(custId));
+        if (!c) return;
+        openStreetViewWithCoordsOrAddress(c, () => persistCustomers());
+    }
+
+    function openStreetViewCurrentMapTarget() {
+        const target = resolveMapTargetObject(currentMapTargetKey);
+        if (target) {
+            openStreetViewWithCoordsOrAddress(target, (lat, lon) => {
+                target.lat = lat;
+                target.lon = lon;
+                saveAndRender();
+                persistCustomers();
+            });
+            return;
+        }
+        if (yardMap) {
+            const center = yardMap.getCenter();
+            window.open(buildStreetViewUrl(center.lat, center.lng), '_blank', 'noopener');
+        }
+    }
+
+    // --- Kohteen valinta ja synkronointi ---
+    function getAllMapTargets() {
+        const list = [];
+        const seen = new Set();
+
+        tasks.forEach(t => {
+            const key = makeTargetGeoKey(t.name, t.address);
+            if (!seen.has(key)) {
+                seen.add(key);
+                list.push({
+                    key,
+                    name: t.name,
+                    address: t.address,
+                    lat: t.lat,
+                    lon: t.lon,
+                    taskRef: t,
+                    custRef: customers.find(c => makeTargetGeoKey(c.name, c.address) === key) || null
+                });
+            }
+        });
+
+        customers.forEach(c => {
+            const key = makeTargetGeoKey(c.name, c.address);
+            if (!seen.has(key)) {
+                seen.add(key);
+                list.push({
+                    key,
+                    name: c.name,
+                    address: c.address,
+                    lat: c.lat || null,
+                    lon: c.lon || null,
+                    taskRef: null,
+                    custRef: c
+                });
+            }
+        });
+
+        return list;
+    }
+
+    function resolveMapTargetObject(key) {
+        const all = getAllMapTargets();
+        if (!all.length) return null;
+        return all.find(x => x.key === key) || all[0];
+    }
+
+    function getSavedGeoJSONForTarget(key) {
+        const k = key || 'default_yard';
+        const target = getAllMapTargets().find(x => x.key === k);
+        if (target?.taskRef?.areaGeoJSON && target.taskRef.areaGeoJSON.features) {
+            return target.taskRef.areaGeoJSON;
+        }
+        if (target?.custRef?.areaGeoJSON && target.custRef.areaGeoJSON.features) {
+            return target.custRef.areaGeoJSON;
+        }
+        if (yardGeoStore[k] && yardGeoStore[k].features) {
+            return yardGeoStore[k];
+        }
+        return { type: 'FeatureCollection', features: [] };
+    }
+
+    function persistGeoJSONForTarget(key, featureCollection) {
+        const k = key || 'default_yard';
+        yardGeoStore[k] = featureCollection;
+        try {
+            localStorage.setItem(YARD_GEOJSON_STORAGE_KEY, JSON.stringify(yardGeoStore));
+        } catch (e) {
+            console.warn('GeoJSON tallennusvirhe:', e);
+        }
+
+        // Tallennetaan GeoJSON myös suoraan kyseisen kohteen (task & customer) alle localStorageen
+        let tasksUpdated = false;
+        tasks.forEach(t => {
+            if (makeTargetGeoKey(t.name, t.address) === k) {
+                t.areaGeoJSON = featureCollection;
+                tasksUpdated = true;
+            }
+        });
+        if (tasksUpdated) {
+            localStorage.setItem('pihatyot_tasks_v4', JSON.stringify(tasks));
+        }
+
+        let custUpdated = false;
+        customers.forEach(c => {
+            if (makeTargetGeoKey(c.name, c.address) === k) {
+                c.areaGeoJSON = featureCollection;
+                custUpdated = true;
+            }
+        });
+        if (custUpdated) {
+            localStorage.setItem('pihatyot_customers_v1', JSON.stringify(customers));
+        }
+    }
+
+    function refreshYardMapTargetSelect() {
+        const sel = document.getElementById('yardMapTargetSelect');
+        if (!sel) return;
+        const targets = getAllMapTargets();
+
+        if (!targets.length) {
+            sel.innerHTML = '<option value="default_yard">-- Yleiskartta (lisää kohde tai piirrä suoraan) --</option>';
+            currentMapTargetKey = 'default_yard';
+            return;
+        }
+
+        if (!currentMapTargetKey || !targets.some(t => t.key === currentMapTargetKey)) {
+            currentMapTargetKey = targets[0].key;
+            localStorage.setItem(YARD_ACTIVE_TARGET_KEY, currentMapTargetKey);
+        }
+
+        sel.innerHTML = targets.map(t => {
+            const geo = getSavedGeoJSONForTarget(t.key);
+            const count = geo?.features?.length || 0;
+            const countSuffix = count > 0 ? ` [${count} merkintää]` : '';
+            return `<option value="${esc(t.key)}" ${t.key === currentMapTargetKey ? 'selected' : ''}>${esc(t.name)} — ${esc(t.address)}${countSuffix}</option>`;
+        }).join('');
+    }
+
+    function applyLayerCategoryStyle(layer, category) {
+        const cat = YARD_CATEGORIES[category] || YARD_CATEGORIES.machine;
+        layer._yardCategory = cat.key;
+        if (!layer.feature) {
+            layer.feature = { type: 'Feature', properties: {}, geometry: null };
+        }
+        layer.feature.properties = Object.assign({}, layer.feature.properties, {
+            category: cat.key,
+            label: cat.label
+        });
+
+        if (typeof layer.setStyle === 'function') {
+            layer.setStyle({
+                color: cat.color,
+                weight: cat.weight,
+                fillColor: cat.fillColor,
+                fillOpacity: cat.fillOpacity
+            });
+        } else if (typeof layer.setIcon === 'function') {
+            const ic = createSnowdumpIcon();
+            if (ic) layer.setIcon(ic);
+        }
+
+        if (typeof layer.bindTooltip === 'function') {
+            layer.unbindTooltip();
+            layer.bindTooltip(cat.label, { sticky: true, direction: 'top' });
+        }
+    }
+
+    function attachLayerEvents(layer) {
+        layer.on('click', e => {
+            if (L && L.DomEvent) L.DomEvent.stopPropagation(e);
+            selectMapLayer(layer);
+        });
+        layer.on('pm:edit', () => saveCurrentTargetGeoJSON());
+        layer.on('pm:dragend', () => saveCurrentTargetGeoJSON());
+        layer.on('pm:cut', () => saveCurrentTargetGeoJSON());
+        layer.on('pm:markerdragend', () => saveCurrentTargetGeoJSON());
+    }
+
+    function selectMapLayer(layer) {
+        if (selectedMapLayer && selectedMapLayer !== layer && typeof selectedMapLayer.setStyle === 'function') {
+            const prevCat = YARD_CATEGORIES[selectedMapLayer._yardCategory] || YARD_CATEGORIES.machine;
+            selectedMapLayer.setStyle({ weight: prevCat.weight, dashArray: null });
+        }
+        selectedMapLayer = layer;
+        if (layer) {
+            const cat = YARD_CATEGORIES[layer._yardCategory] || YARD_CATEGORIES.machine;
+            if (typeof layer.setStyle === 'function') {
+                layer.setStyle({ weight: 5, dashArray: '6, 4' });
+            }
+            setYardMapStatus(`Valittu: ${cat.label} — voit muokata kulmapisteitä tai painaa "🗑️ Poista valittu alue".`);
+        }
+    }
+
+    function saveCurrentTargetGeoJSON() {
+        if (!yardDrawnItems) return;
+        const features = [];
+        yardDrawnItems.eachLayer(layer => {
+            if (typeof layer.toGeoJSON === 'function') {
+                const gj = layer.toGeoJSON();
+                const catKey = layer._yardCategory || gj?.properties?.category || 'machine';
+                const cat = YARD_CATEGORIES[catKey] || YARD_CATEGORIES.machine;
+                gj.properties = Object.assign({}, gj.properties, {
+                    category: cat.key,
+                    label: cat.label,
+                    targetKey: currentMapTargetKey || 'default_yard',
+                    updatedAt: new Date().toISOString()
+                });
+                features.push(gj);
+            }
+        });
+
+        const fc = {
+            type: 'FeatureCollection',
+            features
+        };
+        persistGeoJSONForTarget(currentMapTargetKey || 'default_yard', fc);
+        refreshYardMapTargetSelect();
+    }
+
+    function renderTargetGeoJSONOnMap(key, centerMap = true) {
+        if (!yardMap || !yardDrawnItems) return;
+        selectedMapLayer = null;
+        yardDrawnItems.clearLayers();
+
+        const geoData = getSavedGeoJSONForTarget(key);
+        if (geoData && Array.isArray(geoData.features) && geoData.features.length > 0) {
+            const geoLayer = L.geoJSON(geoData, {
+                pointToLayer: (feature, latlng) => {
+                    return L.marker(latlng, { icon: createSnowdumpIcon() });
+                },
+                onEachFeature: (feature, layer) => {
+                    const catKey = feature?.properties?.category || (feature?.geometry?.type === 'Point' ? 'snowdump' : 'machine');
+                    applyLayerCategoryStyle(layer, catKey);
+                    attachLayerEvents(layer);
+                    yardDrawnItems.addLayer(layer);
+                }
+            });
+            setYardMapStatus(`Ladattu ${geoData.features.length} tallennettua aluetta/pistettä kohteelle.`);
+            if (centerMap) {
+                try {
+                    const b = yardDrawnItems.getBounds();
+                    if (b && b.isValid()) {
+                        yardMap.fitBounds(b, { maxZoom: 19, padding: [30, 30] });
+                        return;
+                    }
+                } catch (e) {}
+            }
+        } else {
+            setYardMapStatus('Ei vielä piirrettyjä alueita tälle kohteelle. Valitse alta Konealue, Käsityöalue tai Lumenkaatopaikka.');
+        }
+
+        if (centerMap) {
+            centerMapOnTarget(key);
+        }
+    }
+
+    async function centerMapOnTarget(key) {
+        if (!yardMap) return;
+        const target = resolveMapTargetObject(key);
+        if (!target) return;
+
+        if (target.lat && target.lon) {
+            yardMap.setView([target.lat, target.lon], 19);
+            return;
+        }
+        if (target.taskRef && target.taskRef.lat && target.taskRef.lon) {
+            yardMap.setView([target.taskRef.lat, target.taskRef.lon], 19);
+            return;
+        }
+
+        if (target.address) {
+            const c = await fetchCoordinates(target.address);
+            if (c && c.lat && c.lon) {
+                if (target.taskRef) {
+                    target.taskRef.lat = c.lat;
+                    target.taskRef.lon = c.lon;
+                    localStorage.setItem('pihatyot_tasks_v4', JSON.stringify(tasks));
+                }
+                if (target.custRef) {
+                    target.custRef.lat = c.lat;
+                    target.custRef.lon = c.lon;
+                    localStorage.setItem('pihatyot_customers_v1', JSON.stringify(customers));
+                }
+                if (currentMapTargetKey === target.key) {
+                    yardMap.setView([c.lat, c.lon], 19);
+                }
+            }
+        }
+    }
+
+    function selectYardMapTarget(key) {
+        currentMapTargetKey = key || 'default_yard';
+        localStorage.setItem(YARD_ACTIVE_TARGET_KEY, currentMapTargetKey);
+        const sel = document.getElementById('yardMapTargetSelect');
+        if (sel && sel.value !== currentMapTargetKey) sel.value = currentMapTargetKey;
+        renderTargetGeoJSONOnMap(currentMapTargetKey, true);
+    }
+
+    function openTaskOnYardMap(taskId) {
+        const t = tasks.find(x => String(x.id) === String(taskId));
+        if (!t) return;
+        const key = makeTargetGeoKey(t.name, t.address);
+        switchTab('routes');
+        refreshYardMapTargetSelect();
+        selectYardMapTarget(key);
+        const card = document.getElementById('yardMapCard');
+        if (card) {
+            setTimeout(() => {
+                if (yardMap) yardMap.invalidateSize();
+                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+        }
+    }
+
+    function openCustomerOnYardMap(custId) {
+        const c = customers.find(x => String(x.id) === String(custId));
+        if (!c) return;
+        const key = makeTargetGeoKey(c.name, c.address);
+        switchTab('routes');
+        refreshYardMapTargetSelect();
+        selectYardMapTarget(key);
+        const card = document.getElementById('yardMapCard');
+        if (card) {
+            setTimeout(() => {
+                if (yardMap) yardMap.invalidateSize();
+                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+        }
+    }
+
+    function startYardDraw(category) {
+        if (!yardMap || !yardMap.pm) return;
+        currentDrawCategory = category;
+        const cat = YARD_CATEGORIES[category] || YARD_CATEGORIES.machine;
+
+        ['btnDrawMachine', 'btnDrawManual', 'btnDrawSnowdump'].forEach(id => {
+            document.getElementById(id)?.classList.remove('active');
+        });
+        if (category === 'machine') document.getElementById('btnDrawMachine')?.classList.add('active');
+        if (category === 'manual') document.getElementById('btnDrawManual')?.classList.add('active');
+        if (category === 'snowdump') document.getElementById('btnDrawSnowdump')?.classList.add('active');
+
+        yardMap.pm.disableGlobalRemovalMode();
+        yardMap.pm.disableDraw();
+
+        if (category === 'snowdump') {
+            yardMap.pm.enableDraw('Marker', {
+                snappable: false,
+                markerStyle: {
+                    icon: createSnowdumpIcon()
+                }
+            });
+            setYardMapStatus('❄️ Klikkaa karttaa merkitäksesi lumenkaatopaikan.');
+        } else {
+            yardMap.pm.enableDraw('Polygon', {
+                snappable: true,
+                snapDistance: 15,
+                allowSelfIntersection: false,
+                templineStyle: { color: cat.color, weight: 3 },
+                hintlineStyle: { color: cat.color, dashArray: [5, 5] },
+                pathOptions: {
+                    color: cat.color,
+                    weight: cat.weight,
+                    fillColor: cat.fillColor,
+                    fillOpacity: cat.fillOpacity
+                }
+            });
+            setYardMapStatus(`${cat.label}: Klikkaa alueen kulmapisteet kartalle ja sulje alue klikkaamalla aloitus- tai viimeistä pistettä.`);
+        }
+    }
+
+    function deleteSelectedYardFeature() {
+        if (!yardMap || !yardDrawnItems) return;
+        if (selectedMapLayer && yardDrawnItems.hasLayer(selectedMapLayer)) {
+            yardDrawnItems.removeLayer(selectedMapLayer);
+            yardMap.removeLayer(selectedMapLayer);
+            selectedMapLayer = null;
+            saveCurrentTargetGeoJSON();
+            setYardMapStatus('Valittu alue/piste poistettu ja muutos tallennettu.');
+            return;
+        }
+        if (yardMap.pm) {
+            yardMap.pm.toggleGlobalRemovalMode();
+            const isRemoving = yardMap.pm.globalRemovalModeEnabled();
+            document.getElementById('btnDeleteSelectedArea')?.classList.toggle('active', isRemoving);
+            setYardMapStatus(isRemoving
+                ? '🗑️ Poistotila päällä: klikkaa kartalta aluetta tai lumenkaatopaikkaa poistaaksesi sen.'
+                : 'Poistotila suljettu.');
+        }
+    }
+
+    function clearCurrentTargetMap() {
+        if (!yardDrawnItems) return;
+        const count = yardDrawnItems.getLayers().length;
+        if (count === 0) {
+            setYardMapStatus('Kartalla ei ole poistettavia alueita.');
+            return;
+        }
+        if (!confirm('Haluatko varmasti tyhjentää kaikki tämän kohteen piirretyt alueet ja lumenkaatopaikat?')) {
+            return;
+        }
+        yardDrawnItems.clearLayers();
+        selectedMapLayer = null;
+        saveCurrentTargetGeoJSON();
+        setYardMapStatus('Kohteen kartta tyhjennetty.');
+    }
+
+    function initYardSatelliteMap() {
+        const mapEl = document.getElementById('yardSatelliteMap');
+        if (!mapEl || typeof L === 'undefined') return;
+
+        // Oletussijainti (Tampere tai varikon sijainti, jos tallennettu)
+        const initLat = (depot && depot.lat) ? depot.lat : 61.4978;
+        const initLon = (depot && depot.lon) ? depot.lon : 23.7610;
+
+        yardMap = L.map('yardSatelliteMap', {
+            center: [initLat, initLon],
+            zoom: 18,
+            maxZoom: 21
+        });
+
+        // 1. Ilmainen korkearesoluutioinen satelliittikarttapohja (ArcGIS World Imagery)
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            maxNativeZoom: 19,
+            maxZoom: 21,
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics'
+        }).addTo(yardMap);
+
+        yardDrawnItems = new L.FeatureGroup();
+        yardMap.addLayer(yardDrawnItems);
+
+        // Leaflet-Geoman asetukset
+        if (yardMap.pm) {
+            yardMap.pm.addControls({
+                position: 'topleft',
+                drawCircle: false,
+                drawCircleMarker: false,
+                drawRectangle: false,
+                drawPolyline: false,
+                drawText: false,
+                drawPolygon: true,
+                drawMarker: true,
+                editMode: true,
+                dragMode: true,
+                cutPolygon: false,
+                removalMode: true
+            });
+
+            yardMap.on('pm:create', e => {
+                const layer = e.layer;
+                let cat = currentDrawCategory || 'machine';
+                if (e.shape === 'Marker') cat = 'snowdump';
+                else if (cat === 'snowdump') cat = 'machine';
+
+                applyLayerCategoryStyle(layer, cat);
+                attachLayerEvents(layer);
+                yardDrawnItems.addLayer(layer);
+                selectMapLayer(layer);
+                saveCurrentTargetGeoJSON();
+
+                ['btnDrawMachine', 'btnDrawManual', 'btnDrawSnowdump'].forEach(id => {
+                    document.getElementById(id)?.classList.remove('active');
+                });
+            });
+
+            yardMap.on('pm:remove', e => {
+                if (yardDrawnItems.hasLayer(e.layer)) {
+                    yardDrawnItems.removeLayer(e.layer);
+                }
+                if (selectedMapLayer === e.layer) {
+                    selectedMapLayer = null;
+                }
+                saveCurrentTargetGeoJSON();
+                setYardMapStatus('Alue/piste poistettu ja tallennettu.');
+            });
+        }
+
+        yardMap.on('click', () => {
+            if (selectedMapLayer && typeof selectedMapLayer.setStyle === 'function') {
+                const prevCat = YARD_CATEGORIES[selectedMapLayer._yardCategory] || YARD_CATEGORIES.machine;
+                selectedMapLayer.setStyle({ weight: prevCat.weight, dashArray: null });
+            }
+            selectedMapLayer = null;
+        });
+
+        refreshYardMapTargetSelect();
+        renderTargetGeoJSONOnMap(currentMapTargetKey, true);
     }
 
     // Teeman alustus
@@ -4939,6 +5624,7 @@
     updateCustomerBadges();
     updateWorkLogBadges();
     updatePhotoCounts();
+    initYardSatelliteMap();
 
     // Osoite-ehdotukset: lisäyslomake, muokkausdialogi, asiakaslomakkeet, työloki ja varikko
     attachAutocomplete(document.getElementById('address'));
