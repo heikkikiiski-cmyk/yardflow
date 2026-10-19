@@ -1014,6 +1014,13 @@
 .dash-widget-card { transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease; }
 .dash-widget-card:hover { border-color: var(--border-hover); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); }
 
+/* Kuljettajan virtaviivainen dashboard: piilotetaan ylimääräiset laatikot ja pikalinkit */
+body.app-mode-field #dashboard-view #dash-widget-shortcuts,
+body.app-mode-field #dashboard-view #dash-widget-recent-logs,
+body.app-mode-field #dashboard-view #dash-widget-route-stats {
+    display: none !important;
+}
+
 /* Piilotetaan vanha nav-tabs yläpalkin alta */
 .nav-tabs { display: none !important; }
 
@@ -1241,13 +1248,13 @@
             </div>
 
             <!-- WIDGET 3: [Reitin pika-analyysi] (#dash-widget-route-stats) -->
-            <div id="dash-widget-route-stats" class="card dash-widget-card collapsible-card">
+            <div id="dash-widget-route-stats" class="card dash-widget-card collapsible-card admin-only">
                 <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
                     <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
                         <span>⚡</span> <span>Reitin pika-analyysi</span>
                     </h3>
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="font-size: 0.75rem; color: var(--muted);">35 km/h taajama</span>
+                        <span style="font-size: 0.75rem; color: var(--muted);">Tietä pitkin</span>
                         <span class="collapse-chevron">▾</span>
                     </div>
                 </div>
@@ -1262,8 +1269,8 @@
                             <div id="dashRouteDuration" style="font-size: 1.1rem; font-weight: 800; color: var(--fg); margin-top: 2px;">0 min</div>
                         </div>
                         <div style="background: var(--bg-card-secondary, rgba(255,255,255,0.03)); padding: 10px 6px; border-radius: var(--radius-md); border: 1px solid var(--border);">
-                            <div style="font-size: 0.74rem; color: var(--muted);">Polttoainekulu</div>
-                            <div id="dashRouteFuel" style="font-size: 1.1rem; font-weight: 800; color: #10b981; margin-top: 2px;">0,00 €</div>
+                            <div style="font-size: 0.74rem; color: var(--muted);">Kohteita</div>
+                            <div id="dashRouteStopsCountSmall" style="font-size: 1.1rem; font-weight: 800; color: #10b981; margin-top: 2px;">0 kpl</div>
                         </div>
                     </div>
                     <div style="margin-top: 12px; font-size: 0.78rem; color: var(--muted); display: flex; justify-content: space-between; align-items: center;">
@@ -1274,7 +1281,7 @@
             </div>
 
             <!-- WIDGET 4: [Pikalinkit] (#dash-widget-shortcuts) -->
-            <div id="dash-widget-shortcuts" class="card dash-widget-card collapsible-card">
+            <div id="dash-widget-shortcuts" class="card dash-widget-card collapsible-card admin-only">
                 <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
                     <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
                         <span>🚀</span> <span>Pikalinkit</span>
@@ -1297,7 +1304,7 @@
             </div>
 
             <!-- WIDGET 5: [Viimeisimmät kuittaukset] (#dash-widget-recent-logs) -->
-            <div id="dash-widget-recent-logs" class="card dash-widget-card collapsible-card" style="grid-column: 1 / -1;">
+            <div id="dash-widget-recent-logs" class="card dash-widget-card collapsible-card admin-only" style="grid-column: 1 / -1;">
                 <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
                     <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
                         <span>📋</span> <span>Viimeisimmät kuittaukset</span>
@@ -1632,6 +1639,12 @@
                     <button type="button" class="btn-driver-tool-outline" onclick="toggleBoundariesQuick()" title="Kytke tontin- ja kiinteistörajat">
                         📐 Rajat
                     </button>
+                    <button type="button" id="btn-toggle-geofence-layer" class="btn-driver-tool-outline" onclick="toggleDriverGeofenceLayer()" title="Piilota tai näytä geofencing-alueet kartalla">
+                        🚫 Piilota geofencing
+                    </button>
+                    <button type="button" id="btn-toggle-plow-areas" class="btn-driver-tool-outline" onclick="toggleDriverPlowAreasLayer()" title="Piilota tai näytä aurausalueet kartalla">
+                        🚜 Piilota aurausalueet
+                    </button>
                 </div>
 
                 <!-- Kuljettajan avattava/pelkistetty päivän työjono (#driver-queue-container) -->
@@ -1661,6 +1674,12 @@
                     <button type="button" id="quickMapBoundariesBtn" class="tiny-btn" onclick="toggleBoundariesQuick()" title="Kytke tontin- ja kiinteistörajat päälle tai pois">
                         📐 Rajat: Pois
                     </button>
+                    <button type="button" id="btn-toggle-geofence-quick" class="tiny-btn driver-only" onclick="toggleDriverGeofenceLayer()" title="Piilota tai näytä geofencing">
+                        🚫 Geofence
+                    </button>
+                    <button type="button" id="btn-toggle-plow-areas-quick" class="tiny-btn driver-only" onclick="toggleDriverPlowAreasLayer()" title="Piilota tai näytä aurausalueet">
+                        🚜 Alueet
+                    </button>
                     <button type="button" class="tiny-btn" onclick="openStreetViewCurrentMapTarget()" title="Avaa valittu kohde Google Street View -katunäkymässä">
                         🛣️ Street View
                     </button>
@@ -1672,30 +1691,6 @@
                 <select id="yardMapTargetSelect" onchange="selectYardMapTarget(this.value)" style="margin-bottom: 10px;">
                     <option value="">-- Valitse kohde listalta --</option>
                 </select>
-            </div>
-
-            <!-- Geofencing-säteen ja tyypin pikamääritys suoraan satelliittikartalla (piirtää L.circle-ympyrän kartalle) -->
-            <div class="geofence-settings-box admin-only" style="margin-top: 0; margin-bottom: 10px;">
-                <div class="geofence-settings-title">
-                    <span>📍 Kohteen Geofence-paikkatodennus</span>
-                    <label class="check-row" style="margin: 0; font-size: 0.8rem;">
-                        <input type="checkbox" id="yardMapGeofenceEnabled" checked onchange="updateCurrentMapTargetGeofence()">
-                        Vaadi paikkatodennus kohteessa
-                    </label>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 10px; align-items: center;">
-                    <div>
-                        <label for="yardMapGeofenceType" style="margin-bottom: 3px;">Tarkistustapa:</label>
-                        <select id="yardMapGeofenceType" style="margin-bottom: 0; padding: 7px 10px; font-size: 0.84rem;" onchange="updateCurrentMapTargetGeofence()">
-                            <option value="radius" selected>Ympyräsäde (Radius)</option>
-                            <option value="polygon">Piirretty alue (Polygon)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="yardMapGeofenceRadius" style="margin-bottom: 3px;">Geofence-säde: <strong><span id="yardMapGeofenceRadiusVal">80</span> m</strong> <span class="muted-text">(+50m GPS-toleranssi)</span></label>
-                        <input type="range" id="yardMapGeofenceRadius" min="30" max="300" step="5" value="80" style="margin-bottom: 0; padding: 4px 0;" oninput="updateCurrentMapTargetGeofence(true)">
-                    </div>
-                </div>
             </div>
 
             <!-- 3 piirtokategoriaa -->
@@ -2838,6 +2833,57 @@
         </form>
     </dialog>
 
+    <!-- ASIAKKAAN / KOHTEEN GEOFENCE-MÄÄRITYSDIALOGI (#customerGeofenceDialog) -->
+    <dialog id="customerGeofenceDialog" class="app-dialog modal-property">
+        <form method="dialog" class="dialog-content" style="max-width: 680px;" onsubmit="event.preventDefault(); saveCustomerGeofence();">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+                <h3 style="margin: 0; font-size: 1.15rem; display: flex; align-items: center; gap: 8px;">
+                    <span>📍</span>
+                    <span id="gfCustDialogTitle">Määritä geofence-alue</span>
+                </h3>
+                <button type="button" class="tiny-btn" onclick="closeCustomerGeofenceDialog()">✕ Sulje</button>
+            </div>
+            <input type="hidden" id="gfCustId" value="">
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                <label class="check-row" style="margin: 0; font-size: 0.9rem; font-weight: 700; cursor: pointer;">
+                    <input type="checkbox" id="gfCustEnabled" checked onchange="toggleGfCustFields()">
+                    Vaadi paikkatodennus kohteessa (Geofence)
+                </label>
+                <span id="gfCustStatusBadge" class="status-pill status-ready" style="font-size: 0.74rem;">Päällä</span>
+            </div>
+
+            <div id="gfCustFieldsBox">
+                <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 12px; align-items: center; margin-bottom: 12px;">
+                    <div>
+                        <label for="gfCustType" style="margin-bottom: 4px; font-weight: 600;">Tarkistustapa:</label>
+                        <select id="gfCustType" style="margin-bottom: 0;" onchange="onGfCustTypeChange()">
+                            <option value="radius" selected>Ympyräsäde (Radius)</option>
+                            <option value="polygon">Piirretty alue (Polygon)</option>
+                        </select>
+                    </div>
+                    <div id="gfCustRadiusGroup">
+                        <label for="gfCustRadius" style="margin-bottom: 4px; font-weight: 600;">Geofence-säde: <strong><span id="gfCustRadiusVal">80</span> m</strong> <span class="muted-text">(+50m GPS)</span></label>
+                        <input type="range" id="gfCustRadius" min="30" max="300" step="5" value="80" style="margin-bottom: 0; padding: 4px 0;" oninput="onGfCustRadiusInput(this.value)">
+                    </div>
+                </div>
+
+                <!-- Kohdistettu karttanäkymä vain tälle kiinteistölle -->
+                <div style="height: 300px; width: 100%; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border); margin-bottom: 8px; position: relative;">
+                    <div id="customerGeofenceMap" style="width: 100%; height: 100%;"></div>
+                </div>
+                <div style="font-size: 0.78rem; color: var(--muted); margin-bottom: 8px;">
+                    💡 Voit raahata ympyrän keskipistettä tai säätää säteen liukusäätimellä.
+                </div>
+            </div>
+
+            <div class="dialog-actions modal-action-buttons" style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 14px;">
+                <button type="button" class="btn-outline btn-form-cancel" style="min-width: 110px;" onclick="closeCustomerGeofenceDialog()">✕ Peruuta</button>
+                <button type="submit" class="btn-primary btn-form-save" style="min-width: 160px; padding: 10px 20px; font-weight: 700;">💾 Tallenna</button>
+            </div>
+        </form>
+    </dialog>
+
     <!-- Uuden reitin luonti ja kuskille osoitus (#modal-create-route) -->
     <dialog id="modal-create-route" class="app-dialog">
         <form method="dialog" class="dialog-content" style="max-width: 640px;" onsubmit="event.preventDefault(); saveNewCreatedRoute();">
@@ -2857,10 +2903,7 @@
             <label for="route-assigned-driver" style="font-weight: 700; color: var(--fg);">Kuljettajan valinta (Osoita reitti):</label>
             <div style="display: flex; gap: 8px; margin-bottom: 12px;">
                 <select id="route-assigned-driver" onchange="handleDriverSelectChange(this.value)" style="margin-bottom: 0; flex: 1;">
-                    <option value="Hessu">Hessu (Oletus)</option>
-                    <option value="Pekka">Kuski 1 (Pekka)</option>
-                    <option value="Matti">Kuski 2 (Matti)</option>
-                    <option value="Kalle">Kuski 3 (Kalle)</option>
+                    <option value="">-- Valitse kuljettaja --</option>
                     <option value="__custom__">+ Kirjoita muu kuljettaja...</option>
                 </select>
                 <input type="text" id="route-custom-driver-input" placeholder="Kirjoita kuljettajan nimi" style="display: none; margin-bottom: 0; flex: 1;">
@@ -3063,6 +3106,8 @@
 
         if (typeof renderTasks === 'function') renderTasks();
         if (typeof updateDrawerBadges === 'function') updateDrawerBadges();
+        if (typeof updateDriverLayerTogglesUi === 'function') updateDriverLayerTogglesUi();
+        if (typeof updateDashboardView === 'function') updateDashboardView();
 
         if (typeof yardMap !== 'undefined' && yardMap) {
             setTimeout(() => {
@@ -3206,10 +3251,55 @@
     }
 
     
-    // ---------- KARTAN REITTI-POLYLINE (LEAFLET) ----------
+    // ---------- KARTAN REITTI-POLYLINE JA OSRM-TIEVERKKOPOHJAISUUS (LEAFLET) ----------
     let routePolylineLayer = null;
+    let currentOsrmRouteData = null;
+    const osrmRouteCache = new Map();
 
-    function renderRoutePolyline() {
+    async function fetchOsrmRoute(pts) {
+        if (!pts || pts.length < 2) return null;
+        const coordString = pts.map(p => `${Number(p.lon).toFixed(5)},${Number(p.lat).toFixed(5)}`).join(';');
+        if (osrmRouteCache.has(coordString)) {
+            return osrmRouteCache.get(coordString);
+        }
+        try {
+            const url = `https://router.project-osrm.org/route/v1/driving/${coordString}?overview=full&geometries=geojson`;
+            const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+            const timeoutId = controller ? setTimeout(() => controller.abort(), 6000) : null;
+            const res = await fetch(url, controller ? { signal: controller.signal } : {});
+            if (timeoutId) clearTimeout(timeoutId);
+            if (!res.ok) throw new Error('OSRM status ' + res.status);
+            const data = await res.json();
+            if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
+                const r = data.routes[0];
+                const result = {
+                    coordinates: r.geometry.coordinates.map(c => [c[1], c[0]]),
+                    distanceKm: r.distance / 1000,
+                    durationMin: Math.round(r.duration / 60)
+                };
+                osrmRouteCache.set(coordString, result);
+                return result;
+            }
+        } catch (e) {
+            console.warn('OSRM-reitityshaku epäonnistui, käytetään varalaskentaa:', e.message);
+        }
+
+        // Vararatkaisu: suorat viivat ja arvioitu tiekorjauskerroin 1.25
+        let fbKm = 0;
+        for (let i = 1; i < pts.length; i++) {
+            if (typeof dist === 'function') fbKm += dist(pts[i - 1], pts[i]);
+        }
+        const estRoadKm = fbKm * 1.25;
+        const estDurationMin = Math.round((estRoadKm / 35) * 60);
+        return {
+            coordinates: pts.map(p => [p.lat, p.lon]),
+            distanceKm: estRoadKm,
+            durationMin: estDurationMin
+        };
+    }
+    window.fetchOsrmRoute = fetchOsrmRoute;
+
+    async function renderRoutePolyline() {
         if (typeof yardMap === 'undefined' || !yardMap) return;
 
         // Kerätään pisteet nykyisessä ajojärjestyksessä
@@ -3237,40 +3327,51 @@
             routePolylineLayer = null;
         }
 
-        if (pts.length >= 2) {
-            const latlngs = pts.map(p => [p.lat, p.lon]);
-            routePolylineLayer = L.polyline(latlngs, {
-                color: '#0284c7',
-                weight: 3.5,
-                dashArray: '6, 8',
-                opacity: 0.85,
-                lineJoin: 'round'
-            }).addTo(yardMap);
+        if (pts.length < 2) return;
 
-            if (typeof routePolylineLayer.bringToBack === 'function') {
-                routePolylineLayer.bringToBack();
+        // Piirretään aluksi luonnosviiva välittömästi kartalle
+        const initialLatLngs = pts.map(p => [p.lat, p.lon]);
+        routePolylineLayer = L.polyline(initialLatLngs, {
+            color: '#0284c7',
+            weight: 3.5,
+            dashArray: '6, 8',
+            opacity: 0.6,
+            lineJoin: 'round'
+        }).addTo(yardMap);
+
+        if (typeof routePolylineLayer.bringToBack === 'function') {
+            routePolylineLayer.bringToBack();
+        }
+
+        // Haetaan OSRM-ajoreitti teitä pitkin
+        try {
+            const osrmData = await fetchOsrmRoute(pts);
+            if (osrmData && osrmData.coordinates && osrmData.coordinates.length > 0) {
+                currentOsrmRouteData = osrmData;
+                if (routePolylineLayer && yardMap && yardMap.hasLayer(routePolylineLayer)) {
+                    routePolylineLayer.setLatLngs(osrmData.coordinates);
+                    routePolylineLayer.setStyle({
+                        color: '#2563eb',
+                        weight: 4.5,
+                        dashArray: null,
+                        opacity: 0.9
+                    });
+                    if (typeof routePolylineLayer.bringToBack === 'function') {
+                        routePolylineLayer.bringToBack();
+                    }
+                }
+                const sumEl = document.getElementById('summaryDistance');
+                if (sumEl) {
+                    sumEl.textContent = `~ ${osrmData.distanceKm.toFixed(1)} km tietä pitkin (~${osrmData.durationMin} min)`;
+                }
             }
+        } catch (err) {
+            console.warn('Reittiviivan päivitysvirhe:', err);
         }
     }
     window.renderRoutePolyline = renderRoutePolyline;
 
-    // ---------- SIIRTYMÄMATKAT & POLTTOAINEEN KULULASKENTA (#route-analytics-panel) ----------
-    let fuelConsumptionL100km = parseFloat(localStorage.getItem('yardflow_fuel_consumption')) || 15.0;
-    let fuelPricePerLitre = parseFloat(localStorage.getItem('yardflow_fuel_price')) || 1.95;
-
-    function updateFuelSettings(consumption, price) {
-        if (consumption != null && !isNaN(consumption)) {
-            fuelConsumptionL100km = parseFloat(consumption);
-            localStorage.setItem('yardflow_fuel_consumption', fuelConsumptionL100km);
-        }
-        if (price != null && !isNaN(price)) {
-            fuelPricePerLitre = parseFloat(price);
-            localStorage.setItem('yardflow_fuel_price', fuelPricePerLitre);
-        }
-        renderRouteAnalytics();
-    }
-    window.updateFuelSettings = updateFuelSettings;
-
+    // ---------- SIIRTYMÄMATKAT & AJOAIKA (#route-analytics-panel) ----------
     function renderRouteAnalytics() {
         const panel = document.getElementById('route-analytics-panel');
         if (!panel) return;
@@ -3299,12 +3400,12 @@
 
         if (pts.length < 2) {
             panel.innerHTML = '<div class="route-analytics-header card-header-clickable" onclick="toggleCardCollapse(this)">' +
-                '<div class="route-analytics-title">📊 Siirtymämatkat &amp; Kululaskenta</div>' +
+                '<div class="route-analytics-title">📊 Siirtymämatkat &amp; Ajoaika</div>' +
                 '<span class="collapse-chevron">▾</span>' +
                 '</div>' +
                 '<div class="card-collapsible-body">' +
                 '<div style="font-size: 0.8rem; color: var(--muted); padding: 4px 0;">' +
-                'Lisää reitille vähintään kaksi koordinaateilla varustettua kohdetta nähdäksesi siirtymämatkat ja kuluarvion.' +
+                'Lisää reitille vähintään kaksi koordinaateilla varustettua kohdetta nähdäksesi siirtymämatkat ja ajoaika-arvion.' +
                 '</div>' +
                 '</div>';
             return;
@@ -3313,29 +3414,31 @@
         let totalKm = 0;
         const legs = [];
         for (let i = 1; i < pts.length; i++) {
-            const legKm = dist(pts[i - 1], pts[i]);
-            totalKm += legKm;
-            const legMinutes = Math.max(1, Math.round((legKm / 35) * 60));
+            const straightKm = dist(pts[i - 1], pts[i]);
+            const legRoadKm = straightKm * 1.25; // katuverkkoarvio
+            totalKm += legRoadKm;
+            const legMinutes = Math.max(1, Math.round((legRoadKm / 35) * 60));
             legs.push({
                 from: pts[i - 1].name,
                 to: pts[i].name,
-                km: legKm,
+                km: legRoadKm,
                 minutes: legMinutes
             });
         }
 
-        const totalMinutes = Math.round((totalKm / 35) * 60);
+        if (currentOsrmRouteData && currentOsrmRouteData.distanceKm) {
+            totalKm = currentOsrmRouteData.distanceKm;
+        }
+
+        const totalMinutes = currentOsrmRouteData && currentOsrmRouteData.durationMin ? currentOsrmRouteData.durationMin : Math.round((totalKm / 35) * 60);
         const hours = Math.floor(totalMinutes / 60);
         const mins = totalMinutes % 60;
         const timeStr = hours > 0 ? (hours + ' h ' + mins + ' min') : (mins + ' min');
 
-        const fuelLitres = totalKm * (fuelConsumptionL100km / 100);
-        const fuelCost = fuelLitres * fuelPricePerLitre;
-
         panel.innerHTML = '<div class="route-analytics-header card-header-clickable" onclick="toggleCardCollapse(this)">' +
-            '<div class="route-analytics-title">📊 Siirtymämatkat &amp; Polttoainearvio</div>' +
+            '<div class="route-analytics-title">📊 Siirtymämatkat &amp; Ajoaika</div>' +
             '<div style="display: flex; align-items: center; gap: 8px;">' +
-                '<span class="status-pill status-ready" style="font-size: 0.72rem; padding: 2px 8px;">35 km/h taajama</span>' +
+                '<span class="status-pill status-ready" style="font-size: 0.72rem; padding: 2px 8px;">Tietä pitkin</span>' +
                 '<span class="collapse-chevron">▾</span>' +
             '</div>' +
             '</div>' +
@@ -3351,23 +3454,9 @@
                         '<div class="route-kpi-value">' + timeStr + '</div>' +
                     '</div>' +
                     '<div class="route-kpi-box">' +
-                        '<div class="route-kpi-label">Polttoainekulut</div>' +
-                        '<div class="route-kpi-value" style="color: #10b981;">' + fuelCost.toFixed(2) + ' €</div>' +
+                        '<div class="route-kpi-label">Siirtymien määrä</div>' +
+                        '<div class="route-kpi-value" style="color: #10b981;">' + legs.length + ' etappia</div>' +
                     '</div>' +
-                '</div>' +
-
-                '<div class="route-fuel-settings-row">' +
-                    '<div class="route-fuel-input-group">' +
-                        '<label for="routeFuelConsumption">Kulutus:</label>' +
-                        '<input type="number" id="routeFuelConsumption" step="0.5" min="1" max="100" value="' + fuelConsumptionL100km + '" onchange="updateFuelSettings(this.value, null)">' +
-                        '<span>l/100km</span>' +
-                    '</div>' +
-                    '<div class="route-fuel-input-group">' +
-                        '<label for="routeFuelPrice">Hinta:</label>' +
-                        '<input type="number" id="routeFuelPrice" step="0.01" min="0.5" max="10" value="' + fuelPricePerLitre.toFixed(2) + '" onchange="updateFuelSettings(null, this.value)">' +
-                        '<span>€/l</span>' +
-                    '</div>' +
-                    '<span style="color: var(--muted); font-size: 0.72rem; margin-left: auto;">(' + fuelLitres.toFixed(1) + ' litraa)</span>' +
                 '</div>' +
 
                 '<details class="route-legs-details" open>' +
@@ -4206,28 +4295,26 @@
             pts.push({ lat: depot.lat, lon: depot.lon });
         }
 
-        if (typeof dist === 'function') {
+        if (currentOsrmRouteData && currentOsrmRouteData.distanceKm) {
+            totalKm = currentOsrmRouteData.distanceKm;
+        } else if (typeof dist === 'function') {
             for (let i = 1; i < pts.length; i++) {
-                totalKm += dist(pts[i - 1], pts[i]);
+                totalKm += (dist(pts[i - 1], pts[i]) * 1.25);
             }
         }
-        const totalMinutes = Math.round((totalKm / 35) * 60);
+        const totalMinutes = (currentOsrmRouteData && currentOsrmRouteData.durationMin) ? currentOsrmRouteData.durationMin : Math.round((totalKm / 35) * 60);
         const hours = Math.floor(totalMinutes / 60);
         const mins = totalMinutes % 60;
         const timeStr = hours > 0 ? `${hours} h ${mins} min` : `${mins} min`;
 
-        const consumption = (typeof fuelConsumptionL100km !== 'undefined') ? fuelConsumptionL100km : 15;
-        const pricePerL = (typeof fuelPricePerLitre !== 'undefined') ? fuelPricePerLitre : 1.95;
-        const fuelCost = totalKm * (consumption / 100) * pricePerL;
-
         const elDist = document.getElementById('dashRouteDistance');
         const elDur = document.getElementById('dashRouteDuration');
-        const elFuel = document.getElementById('dashRouteFuel');
+        const elStopsSmall = document.getElementById('dashRouteStopsCountSmall');
         const elStops = document.getElementById('dashRouteStopsCount');
 
         if (elDist) elDist.textContent = `${totalKm.toFixed(1)} km`;
         if (elDur) elDur.textContent = timeStr;
-        if (elFuel) elFuel.textContent = `${fuelCost.toFixed(2).replace('.', ',')} €`;
+        if (elStopsSmall) elStopsSmall.textContent = `${taskList.length} kpl`;
         if (elStops) elStops.textContent = `${taskList.length} kohdetta reitillä`;
 
         // Widget 5: Viimeisimmät kuittaukset
@@ -5488,66 +5575,17 @@
     }
     window.updateWorkHistoryBadge = updateWorkHistoryBadge;
 
-    // Alustetaan esimerkkimerkinnät jos loki on tyhjä
+    // Puhdistetaan aiemmat esimerkkimerkinnät tarvittaessa
     function ensureInitialWorkLogs() {
         const current = getStoredWorkLogs();
-        if (current.length === 0) {
-            const now = new Date();
-            const todayIso = now.toISOString();
-            const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-            const yesterdayIso = yesterday.toISOString();
-
-            const seeds = [
-                {
-                    id: generateUUID(),
-                    propertyId: 1,
-                    propertyName: 'Asunto Oy Kissanmaankatu 3',
-                    customerId: 'sample_1',
-                    customerName: 'Asunto Oy Kissanmaankatu 3',
-                    address: 'Kissanmaankatu 3, Tampere',
-                    completedAt: todayIso,
-                    coordinates: { lat: 61.4981, lon: 23.8123 },
-                    method: 'Geofence',
-                    synced: true,
-                    workType: 'Auraus & Hiekoitus',
-                    overrideReason: null,
-                    price: 45.00
-                },
-                {
-                    id: generateUUID(),
-                    propertyId: 2,
-                    propertyName: 'Kiinteistö Oy Hatanpään Valtatie 24',
-                    customerId: 'sample_2',
-                    customerName: 'Kiinteistö Oy Hatanpään Valtatie 24',
-                    address: 'Hatanpään valtatie 24, Tampere',
-                    completedAt: todayIso,
-                    coordinates: { lat: 61.4875, lon: 23.7562 },
-                    method: 'Geofence',
-                    synced: true,
-                    workType: 'Auraus & Hiekoitus',
-                    overrideReason: null,
-                    price: 65.00
-                },
-                {
-                    id: generateUUID(),
-                    propertyId: 3,
-                    propertyName: 'Tampereen Logistiikkakeskus',
-                    customerId: 'sample_3',
-                    customerName: 'Tampereen Logistiikkakeskus',
-                    address: 'Sammon valtatie 15, Tampere',
-                    completedAt: yesterdayIso,
-                    coordinates: { lat: 61.4932, lon: 23.8341 },
-                    method: 'Manuaalinen',
-                    synced: true,
-                    workType: 'Auraus & Hiekoitus',
-                    overrideReason: 'Koneella ei päässyt puomin läpi ilman koodia',
-                    price: 85.00
-                }
-            ];
-            saveStoredWorkLogs(seeds);
+        const sampleIds = ['sample_1', 'sample_2', 'sample_3'];
+        const sampleProps = ['Asunto Oy Kissanmaankatu 3', 'Kiinteistö Oy Hatanpään Valtatie 24', 'Tampereen Logistiikkakeskus'];
+        const cleaned = current.filter(l => !sampleIds.includes(l.customerId) && !sampleProps.includes(l.propertyName));
+        if (cleaned.length !== current.length) {
+            saveStoredWorkLogs(cleaned);
             updateWorkHistoryBadge();
-        } else {
-            enrichWorkLogsWithCustomers(current);
+        } else if (cleaned.length > 0) {
+            enrichWorkLogsWithCustomers(cleaned);
         }
     }
     window.ensureInitialWorkLogs = ensureInitialWorkLogs;
@@ -6368,65 +6406,21 @@
     }
     window.exportBillingPDF = exportBillingPDF;
 
-    const DEFAULT_SAMPLE_TASKS = [
-        {
-            id: 1,
-            name: 'As Oy Hämeenkatu 14',
-            address: 'Hämeenkatu 14, Tampere',
-            lat: 61.4975,
-            lon: 23.7620,
-            type: 'Auraus & Hiekoitus',
-            notes: 'Auraus sisäpihalle, lumenkasaus itäkulmaan. Varo pyörätelineitä.',
-            phone: '040 123 4567',
-            email: 'isannointi@hameenkatu14.fi',
-            geofence_enabled: true,
-            geofence_type: 'radius',
-            geofence_radius: 80,
-            defaultPrice: 48.00,
-            done: false
-        },
-        {
-            id: 2,
-            name: 'Kiinteistö Oy Kauppakatu 10',
-            address: 'Kauppakatu 10, Tampere',
-            lat: 61.4982,
-            lon: 23.7585,
-            type: 'Auraus',
-            notes: 'Puomit aukeavat koodilla 1234. Jalankulkuväylä pidettävä avoimena.',
-            phone: '050 987 6543',
-            email: 'huolto@kauppakatu10.fi',
-            geofence_enabled: true,
-            geofence_type: 'radius',
-            geofence_radius: 80,
-            defaultPrice: 55.00,
-            done: false
-        },
-        {
-            id: 3,
-            name: 'As Oy Aleksanterinkatu 22',
-            address: 'Aleksanterinkatu 22, Tampere',
-            lat: 61.4960,
-            lon: 23.7680,
-            type: 'Hiekoitus',
-            notes: 'Sepeli porttikongin viereisestä laatikosta. Rappusten edustat käsin.',
-            phone: '045 222 3344',
-            email: 'hallitus@aleksanteri22.fi',
-            geofence_enabled: true,
-            geofence_type: 'radius',
-            geofence_radius: 75,
-            defaultPrice: 42.00,
-            done: false
-        }
+    // ---------- Tietojen lataus (Puhdas aloitus ilman kovakoodattuja esimerkkidatoja) ----------
+    const KNOWN_SAMPLE_NAMES = [
+        'As Oy Hämeenkatu 14',
+        'Kiinteistö Oy Kauppakatu 10',
+        'As Oy Aleksanterinkatu 22',
+        'Asunto Oy Kissanmaankatu 3',
+        'Kiinteistö Oy Hatanpään Valtatie 24',
+        'Tampereen Logistiikkakeskus'
     ];
 
-    // ---------- Tietojen lataus ----------
     let tasks = JSON.parse(localStorage.getItem('pihatyot_tasks_v4')) ||
                 JSON.parse(localStorage.getItem('pihatyot_tasks_v3')) ||
                 JSON.parse(localStorage.getItem('pihatyot_tasks')) || [];
-    if (tasks.length === 0) {
-        tasks = JSON.parse(JSON.stringify(DEFAULT_SAMPLE_TASKS));
-        try { localStorage.setItem('pihatyot_tasks_v4', JSON.stringify(tasks)); } catch(e) {}
-    }
+    // Suodatetaan mahdolliset aiemmat esimerkkidatat pois
+    tasks = tasks.filter(t => !KNOWN_SAMPLE_NAMES.includes(t.name));
     window.tasks = tasks;
 
     function normalizeGeofenceFields(obj) {
@@ -6445,34 +6439,8 @@
 
     // ---------- Asiakasrekisteri ----------
     let customers = JSON.parse(localStorage.getItem('pihatyot_customers_v1')) || [];
-    // Siemennetään aiemmin syötetyistä kohteista, jos asiakasrekisteri on vielä tyhjä
-    if (customers.length === 0 && tasks.length > 0) {
-        const seen = new Set();
-        tasks.forEach(t => {
-            const key = (t.name || '').toLowerCase() + '|' + (t.address || '').toLowerCase();
-            if (!seen.has(key) && (t.name || t.address)) {
-                seen.add(key);
-                customers.push(normalizeGeofenceFields({
-                    id: newId(),
-                    name: t.name || '',
-                    address: t.address || '',
-                    phone: t.phone || '',
-                    email: t.email || '',
-                    paymentMethod: t.paymentMethod || 'Laskutus',
-                    contractType: t.contractType || 'Kuukausi + käynnit',
-                    defaultType: t.type || 'Auraus & Hiekoitus',
-                    notes: t.notes || '',
-                    geofence_enabled: t.geofence_enabled !== undefined ? !!t.geofence_enabled : true,
-                    geofence_type: t.geofence_type || 'radius',
-                    geofence_radius: Number(t.geofence_radius) || 80,
-                    created: new Date().toISOString()
-                }));
-            }
-        });
-        if (customers.length > 0) {
-            localStorage.setItem('pihatyot_customers_v1', JSON.stringify(customers));
-        }
-    }
+    // Suodatetaan mahdolliset aiemmat esimerkkidatat pois
+    customers = customers.filter(c => !KNOWN_SAMPLE_NAMES.includes(c.name));
     customers.forEach(c => normalizeGeofenceFields(c));
 
     function persistCustomers() {
@@ -6953,6 +6921,7 @@
                             🚜 Lisää ajolistalle
                         </button>
                         <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                            <button class="tiny-btn" type="button" onclick="openGeofenceEditorForCustomer(${c.id})" title="Määritä tai muokkaa tämän asiakkaan geofence-aluetta">📍 Määritä / muokkaa geofence-aluetta</button>
                             <button class="tiny-btn" type="button" onclick="editCustomer(${c.id})" title="Muokkaa asiakkaan tietoja">✏️ Muokkaa tietoja</button>
                             <button class="tiny-btn btn-customer-pdf" type="button" id="btn-customer-pdf" onclick="exportCustomerCardPDF(${c.id})" title="Luo ja lataa tulostuskelpoinen A4-asiakaskortti PDF">📄 Asiakaskortti / PDF</button>
                             <button class="tiny-btn" type="button" onclick="openCustomerOnYardMap(${c.id})" title="Avaa kohteen satelliittikartta">🛰️ Pihakartta</button>
@@ -8474,22 +8443,18 @@
     // ============================================================
     // 🚜 KULJETTAJAT -DATA JA HALLINTA (DRIVERS CRUD & STATE)
     // ============================================================
-    const DEFAULT_DRIVERS = [
-        { id: 'drv_1', name: 'Hessu', phone: '040 123 4567', email: 'hessu@yardflow.fi', vehicle: 'Valtra N174 + lumiaura' },
-        { id: 'drv_2', name: 'Pekka', phone: '050 987 6543', email: 'pekka@yardflow.fi', vehicle: 'Wille 465 pyöräkuormaaja' },
-        { id: 'drv_3', name: 'Matti', phone: '045 555 1234', email: 'matti@yardflow.fi', vehicle: 'Polaris Sportsman 570 -mönkijä' },
-        { id: 'drv_4', name: 'Kalle', phone: '040 777 8899', email: 'kalle@yardflow.fi', vehicle: 'John Deere 6120M' }
-    ];
-
     function getStoredDrivers() {
         try {
             const raw = localStorage.getItem('yardflow_drivers_v1');
             if (raw) {
                 const arr = JSON.parse(raw);
-                if (Array.isArray(arr) && arr.length > 0) return arr;
+                if (Array.isArray(arr)) {
+                    const sampleDriverIds = ['drv_1', 'drv_2', 'drv_3', 'drv_4'];
+                    return arr.filter(d => !sampleDriverIds.includes(d.id));
+                }
             }
         } catch (e) {}
-        return [...DEFAULT_DRIVERS];
+        return [];
     }
 
     function persistDrivers(driversList) {
@@ -9370,8 +9335,6 @@
             yardflow_work_logs: getStoredWorkLogs(),
             yardflow_dashboard_prefs: typeof getDashboardPrefs === 'function' ? getDashboardPrefs() : null,
             yardflow_home_widgets: typeof getHomeWidgetConfig === 'function' ? getHomeWidgetConfig() : null,
-            yardflow_fuel_consumption: fuelConsumptionL100km,
-            yardflow_fuel_price: fuelPricePerLitre,
             yard_polygons_v1: typeof getAllSavedYardGeoJSON === 'function' ? getAllSavedYardGeoJSON() : null
         };
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -10944,8 +10907,314 @@
     }
     window.syncYardMapGeofenceControls = syncYardMapGeofenceControls;
 
+    // ============================================================
+    // 🚫🚜 KUSKIN KARTTATASOJEN PIKAPIILOTUS (GEOFENCE & ALUEET)
+    // ============================================================
+    let driverShowGeofence = (function() {
+        try {
+            const v = localStorage.getItem('yardflow_driver_show_geofence');
+            return v !== null ? v === 'true' : true;
+        } catch (e) {
+            return true;
+        }
+    })();
+
+    let driverShowPlowAreas = (function() {
+        try {
+            const v = localStorage.getItem('yardflow_driver_show_plow_areas');
+            return v !== null ? v === 'true' : true;
+        } catch (e) {
+            return true;
+        }
+    })();
+
+    function updateDriverLayerTogglesUi() {
+        const gfBtn = document.getElementById('btn-toggle-geofence-layer');
+        const gfQuickBtn = document.getElementById('btn-toggle-geofence-quick');
+        if (gfBtn) {
+            gfBtn.textContent = driverShowGeofence ? '🚫 Piilota geofencing' : '📍 Näytä geofencing';
+            gfBtn.classList.toggle('active', !driverShowGeofence);
+        }
+        if (gfQuickBtn) {
+            gfQuickBtn.textContent = driverShowGeofence ? '🚫 Geofence: Päällä' : '📍 Geofence: Pois';
+            gfQuickBtn.classList.toggle('active', !driverShowGeofence);
+        }
+
+        const plowBtn = document.getElementById('btn-toggle-plow-areas');
+        const plowQuickBtn = document.getElementById('btn-toggle-plow-areas-quick');
+        if (plowBtn) {
+            plowBtn.textContent = driverShowPlowAreas ? '🚜 Piilota aurausalueet' : '🚜 Näytä aurausalueet';
+            plowBtn.classList.toggle('active', !driverShowPlowAreas);
+        }
+        if (plowQuickBtn) {
+            plowQuickBtn.textContent = driverShowPlowAreas ? '🚜 Alueet: Päällä' : '🚜 Alueet: Pois';
+            plowQuickBtn.classList.toggle('active', !driverShowPlowAreas);
+        }
+
+        if (yardMap && typeof yardGeofenceCircle !== 'undefined' && yardGeofenceCircle) {
+            if (!driverShowGeofence && currentAppMode === 'field') {
+                if (yardMap.hasLayer(yardGeofenceCircle)) yardMap.removeLayer(yardGeofenceCircle);
+            } else {
+                if (!yardMap.hasLayer(yardGeofenceCircle)) yardMap.addLayer(yardGeofenceCircle);
+            }
+        }
+
+        if (yardMap && typeof yardDrawnItems !== 'undefined' && yardDrawnItems) {
+            if (!driverShowPlowAreas && currentAppMode === 'field') {
+                if (yardMap.hasLayer(yardDrawnItems)) yardMap.removeLayer(yardDrawnItems);
+                if (typeof yardNeighborItems !== 'undefined' && yardNeighborItems && yardMap.hasLayer(yardNeighborItems)) {
+                    yardMap.removeLayer(yardNeighborItems);
+                }
+            } else {
+                if (!yardMap.hasLayer(yardDrawnItems)) yardMap.addLayer(yardDrawnItems);
+                if (typeof yardNeighborItems !== 'undefined' && yardNeighborItems && !yardMap.hasLayer(yardNeighborItems)) {
+                    yardMap.addLayer(yardNeighborItems);
+                }
+            }
+        }
+    }
+    window.updateDriverLayerTogglesUi = updateDriverLayerTogglesUi;
+
+    function toggleDriverGeofenceLayer() {
+        driverShowGeofence = !driverShowGeofence;
+        try {
+            localStorage.setItem('yardflow_driver_show_geofence', String(driverShowGeofence));
+        } catch (e) {}
+        updateDriverLayerTogglesUi();
+        if (driverShowGeofence) {
+            renderYardGeofenceCircle();
+        }
+        showStatus(driverShowGeofence ? 'Geofencing-alueet kytketty päälle.' : 'Geofencing-alueet piilotettu kartalta.', 'info');
+    }
+    window.toggleDriverGeofenceLayer = toggleDriverGeofenceLayer;
+
+    function toggleDriverPlowAreasLayer() {
+        driverShowPlowAreas = !driverShowPlowAreas;
+        try {
+            localStorage.setItem('yardflow_driver_show_plow_areas', String(driverShowPlowAreas));
+        } catch (e) {}
+        updateDriverLayerTogglesUi();
+        if (driverShowPlowAreas) {
+            renderTargetGeoJSONOnMap(currentMapTargetKey, false);
+        }
+        showStatus(driverShowPlowAreas ? 'Aurausalueet kytketty päälle.' : 'Aurausalueet piilotettu kartalta.', 'info');
+    }
+    window.toggleDriverPlowAreasLayer = toggleDriverPlowAreasLayer;
+
+    // ============================================================
+    // 📍 ASIAKASKOHTAINEN GEOFENCE-EDITORIDIALOGI
+    // ============================================================
+    let custGfMap = null;
+    let custGfCircle = null;
+    let custGfMarker = null;
+    let activeGfCustomer = null;
+
+    function openGeofenceEditorForCustomer(customerId) {
+        const c = customers.find(x => String(x.id) === String(customerId));
+        if (!c) {
+            alert('Asiakasta ei löytynyt.');
+            return;
+        }
+        activeGfCustomer = c;
+        normalizeGeofenceFields(c);
+
+        const dlg = document.getElementById('customerGeofenceDialog');
+        if (!dlg) return;
+
+        document.getElementById('gfCustId').value = c.id;
+        document.getElementById('gfCustDialogTitle').textContent = `Määritä geofence: ${c.name || 'Kohde'}`;
+        const enabledCheck = document.getElementById('gfCustEnabled');
+        if (enabledCheck) enabledCheck.checked = c.geofence_enabled !== false;
+
+        const typeSelect = document.getElementById('gfCustType');
+        if (typeSelect) typeSelect.value = c.geofence_type || 'radius';
+
+        const radiusInput = document.getElementById('gfCustRadius');
+        const radiusVal = document.getElementById('gfCustRadiusVal');
+        const curRad = Number(c.geofence_radius) || 80;
+        if (radiusInput) radiusInput.value = curRad;
+        if (radiusVal) radiusVal.textContent = curRad;
+
+        toggleGfCustFields();
+
+        if (typeof dlg.showModal === 'function') {
+            dlg.showModal();
+        } else {
+            dlg.style.display = 'block';
+        }
+
+        setTimeout(() => {
+            initCustomerGeofenceMap(c);
+        }, 120);
+    }
+    window.openGeofenceEditorForCustomer = openGeofenceEditorForCustomer;
+
+    function toggleGfCustFields() {
+        const enabled = document.getElementById('gfCustEnabled')?.checked;
+        const box = document.getElementById('gfCustFieldsBox');
+        const badge = document.getElementById('gfCustStatusBadge');
+        if (box) box.style.opacity = enabled ? '1' : '0.45';
+        if (badge) {
+            badge.textContent = enabled ? 'Päällä' : 'Pois';
+            badge.className = enabled ? 'status-pill status-ready' : 'status-pill';
+        }
+    }
+    window.toggleGfCustFields = toggleGfCustFields;
+
+    function onGfCustTypeChange() {
+        const type = document.getElementById('gfCustType')?.value;
+        const radiusGroup = document.getElementById('gfCustRadiusGroup');
+        if (radiusGroup) radiusGroup.style.display = (type === 'radius') ? 'block' : 'none';
+        if (custGfCircle && custGfMap) {
+            if (type === 'radius') {
+                if (!custGfMap.hasLayer(custGfCircle)) custGfMap.addLayer(custGfCircle);
+            } else {
+                if (custGfMap.hasLayer(custGfCircle)) custGfMap.removeLayer(custGfCircle);
+            }
+        }
+    }
+    window.onGfCustTypeChange = onGfCustTypeChange;
+
+    function onGfCustRadiusInput(val) {
+        const r = Number(val) || 80;
+        const radVal = document.getElementById('gfCustRadiusVal');
+        if (radVal) radVal.textContent = r;
+        if (custGfCircle) {
+            custGfCircle.setRadius(r);
+        }
+    }
+    window.onGfCustRadiusInput = onGfCustRadiusInput;
+
+    function initCustomerGeofenceMap(customer) {
+        const mapEl = document.getElementById('customerGeofenceMap');
+        if (!mapEl || typeof L === 'undefined') return;
+
+        let lat = customer.lat;
+        let lon = customer.lon;
+        if (!lat || !lon) {
+            const matchTask = tasks.find(t => (t.name === customer.name || t.address === customer.address) && t.lat && t.lon);
+            if (matchTask) {
+                lat = matchTask.lat;
+                lon = matchTask.lon;
+            } else if (depot && depot.lat && depot.lon) {
+                lat = depot.lat;
+                lon = depot.lon;
+            } else {
+                lat = 61.4978;
+                lon = 23.7610;
+            }
+        }
+
+        if (!custGfMap) {
+            custGfMap = L.map('customerGeofenceMap', {
+                center: [lat, lon],
+                zoom: 18,
+                maxZoom: 21
+            });
+            const layers = getBaseLayers();
+            const base = (layers && layers[currentMapBase]) ? layers[currentMapBase] : L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 21 });
+            base.addTo(custGfMap);
+        } else {
+            custGfMap.setView([lat, lon], 18);
+            custGfMap.invalidateSize();
+        }
+
+        if (custGfMarker && custGfMap.hasLayer(custGfMarker)) custGfMap.removeLayer(custGfMarker);
+        if (custGfCircle && custGfMap.hasLayer(custGfCircle)) custGfMap.removeLayer(custGfCircle);
+
+        const rad = Number(customer.geofence_radius) || 80;
+        custGfMarker = L.marker([lat, lon], {
+            draggable: true,
+            icon: L.divIcon({
+                className: 'custom-map-pin',
+                html: '<div style="background:#0284c7; color:#fff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,0.3); font-size:14px;">📍</div>',
+                iconSize: [28, 28],
+                iconAnchor: [14, 28]
+            })
+        }).addTo(custGfMap);
+
+        custGfCircle = L.circle([lat, lon], {
+            radius: rad,
+            color: '#38bdf8',
+            fillColor: '#38bdf8',
+            fillOpacity: 0.25,
+            weight: 2
+        }).addTo(custGfMap);
+
+        custGfMarker.on('drag', e => {
+            const pos = e.target.getLatLng();
+            if (custGfCircle) custGfCircle.setLatLng(pos);
+            customer._tempLat = pos.lat;
+            customer._tempLon = pos.lng;
+        });
+
+        onGfCustTypeChange();
+    }
+
+    function closeCustomerGeofenceDialog() {
+        const dlg = document.getElementById('customerGeofenceDialog');
+        if (!dlg) return;
+        if (activeGfCustomer) {
+            delete activeGfCustomer._tempLat;
+            delete activeGfCustomer._tempLon;
+        }
+        activeGfCustomer = null;
+        if (typeof dlg.close === 'function') {
+            dlg.close('cancel');
+        } else {
+            dlg.style.display = 'none';
+        }
+    }
+    window.closeCustomerGeofenceDialog = closeCustomerGeofenceDialog;
+
+    function saveCustomerGeofence() {
+        if (!activeGfCustomer) return;
+        const enabled = document.getElementById('gfCustEnabled')?.checked;
+        const gType = document.getElementById('gfCustType')?.value || 'radius';
+        const radius = Number(document.getElementById('gfCustRadius')?.value) || 80;
+
+        activeGfCustomer.geofence_enabled = !!enabled;
+        activeGfCustomer.geofence_type = gType;
+        activeGfCustomer.geofence_radius = radius;
+        if (activeGfCustomer._tempLat && activeGfCustomer._tempLon) {
+            activeGfCustomer.lat = activeGfCustomer._tempLat;
+            activeGfCustomer.lon = activeGfCustomer._tempLon;
+            delete activeGfCustomer._tempLat;
+            delete activeGfCustomer._tempLon;
+        }
+
+        // Päivitetään myös aktiivisessa tasks-listassa jos löytyy sama kohde
+        tasks.forEach(t => {
+            if (t.customerId === activeGfCustomer.id || (t.name === activeGfCustomer.name && t.address === activeGfCustomer.address)) {
+                t.geofence_enabled = activeGfCustomer.geofence_enabled;
+                t.geofence_type = activeGfCustomer.geofence_type;
+                t.geofence_radius = activeGfCustomer.geofence_radius;
+                if (activeGfCustomer.lat && activeGfCustomer.lon) {
+                    t.lat = activeGfCustomer.lat;
+                    t.lon = activeGfCustomer.lon;
+                }
+            }
+        });
+        localStorage.setItem('pihatyot_tasks_v4', JSON.stringify(tasks));
+
+        persistCustomers();
+        renderCustomers();
+        renderTasks();
+
+        closeCustomerGeofenceDialog();
+        showStatus(`Geofence-alue tallennettu kohteelle "${activeGfCustomer.name}"!`, 'success');
+    }
+    window.saveCustomerGeofence = saveCustomerGeofence;
+
     function renderYardGeofenceCircle(customRadiusOverride = null, customTargetKey = null) {
         if (!yardMap || typeof L === 'undefined') return;
+        if (currentAppMode === 'field' && !driverShowGeofence) {
+            if (yardGeofenceCircle && yardMap.hasLayer(yardGeofenceCircle)) {
+                yardMap.removeLayer(yardGeofenceCircle);
+            }
+            yardGeofenceCircle = null;
+            return;
+        }
         const activeKey = customTargetKey || currentMapTargetKey || 'default_yard';
         const target = resolveMapTargetObject(activeKey);
         const ref = target?.taskRef || target?.custRef || null;
@@ -11158,6 +11427,10 @@
                     yardDrawnItems.addLayer(layer);
                 }
             });
+
+            if (currentAppMode === 'field' && !driverShowPlowAreas && yardMap.hasLayer(yardDrawnItems)) {
+                yardMap.removeLayer(yardDrawnItems);
+            }
 
             renderYardGeofenceCircle(null, activeKey);
             setYardMapStatus(`Ladattu ${geoData.features.length} tallennettua aluetta kohteelle.`);
