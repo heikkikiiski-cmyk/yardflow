@@ -1556,6 +1556,12 @@
                     <button type="button" id="btn-toggle-driver-queue" class="btn-driver-tool-outline" onclick="toggleDriverQueue()" title="Näytä tai piilota päivän ajojärjestys">
                         📋 Työjono (<span id="driverQueueCountBadge">0</span>)
                     </button>
+                    <button type="button" class="btn-driver-tool-outline" onclick="toggleMapBaseQuick()" title="Vaihda karttapohjaa (Satelliitti / Selkeä peruskartta)">
+                        🗺️ Karttataso
+                    </button>
+                    <button type="button" class="btn-driver-tool-outline" onclick="toggleBoundariesQuick()" title="Kytke tontin- ja kiinteistörajat">
+                        📐 Rajat
+                    </button>
                 </div>
 
                 <!-- Kuljettajan avattava/pelkistetty päivän työjono (#driver-queue-container) -->
@@ -1569,10 +1575,18 @@
             </div>
 
             <h3>
-                <span>🛰️ Satelliittikartta &amp; Alueiden piirto</span>
-                <button type="button" class="tiny-btn" onclick="openStreetViewCurrentMapTarget()" title="Avaa valittu kohde Google Street View -katunäkymässä">
-                    🛣️ Avaa Street View
-                </button>
+                <span id="yardMapTitleText">🗺️ Kartta &amp; Alueiden piirto</span>
+                <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                    <button type="button" id="quickMapBaseToggleBtn" class="tiny-btn" onclick="toggleMapBaseQuick()" title="Vaihda karttapohjaa (Satelliitti / Selkeä peruskartta)">
+                        🛰️ Satelliitti
+                    </button>
+                    <button type="button" id="quickMapBoundariesBtn" class="tiny-btn" onclick="toggleBoundariesQuick()" title="Kytke tontinrajat päälle tai pois">
+                        📐 Rajat: Pois
+                    </button>
+                    <button type="button" class="tiny-btn" onclick="openStreetViewCurrentMapTarget()" title="Avaa valittu kohde Google Street View -katunäkymässä">
+                        🛣️ Street View
+                    </button>
+                </div>
             </h3>
 
             <div class="admin-only">
@@ -2191,6 +2205,47 @@
                         <input type="checkbox" id="toggle-widget-shortcuts" checked onchange="handleDashboardPrefToggle('shortcuts', this.checked)">
                         <span><strong>Näytä pikalinkit toimintoihin</strong></span>
                     </label>
+                </div>
+            </div>
+
+            <!-- Kartta-asetukset (#map-settings-card) -->
+            <div id="map-settings-card" style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 18px;">
+                <h4 style="margin-top: 0; margin-bottom: 6px;">🗺️ Kartta-asetukset</h4>
+                <p style="font-size: 0.84rem; color: var(--muted); margin-bottom: 14px;">
+                    Valitse karttapohja ja kytke tontin- sekä kiinteistörajat näkyviin:
+                </p>
+
+                <!-- Karttapohja -->
+                <div style="margin-bottom: 16px;">
+                    <label style="font-size: 0.86rem; font-weight: 700; color: var(--fg); margin-bottom: 8px; display: block;">
+                        🗺️ Karttapohja (Base Layer):
+                    </label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <button type="button" id="btnMapBaseSatellite" class="btn-primary" onclick="setMapBaseLayer('satellite')" style="min-height: 44px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <span>🛰️</span> <span>Satelliitti / Ilmakuva</span>
+                        </button>
+                        <button type="button" id="btnMapBaseStreet" class="btn-outline" onclick="setMapBaseLayer('street')" style="min-height: 44px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <span>🗺️</span> <span>Selkeä peruskartta</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tontinrajat / Kiinteistörajat -->
+                <div style="padding-top: 12px; border-top: 1px dashed var(--border);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+                        <div>
+                            <div style="font-size: 0.9rem; font-weight: 700; color: var(--fg); display: flex; align-items: center; gap: 6px;">
+                                <span>📐</span> <span>Näytä kiinteistö- ja tontinrajat</span>
+                            </div>
+                            <div style="font-size: 0.78rem; color: var(--muted); margin-top: 2px;">
+                                Läpinäkyvä kiinteistöjaotustaso (MML kiinteistöjaotus &amp; kohteiden rajat)
+                            </div>
+                        </div>
+                        <label class="check-row" style="margin: 0; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" id="toggle-map-boundaries" onchange="toggleBoundariesLayer(this.checked)" style="width: 20px; height: 20px; cursor: pointer;">
+                            <span id="boundariesToggleStatus" style="font-weight: 700; color: var(--muted);">Pois</span>
+                        </label>
+                    </div>
                 </div>
             </div>
 
@@ -4192,7 +4247,7 @@
         if (tab === 'customers') renderCustomers();
         if (tab === 'history') { populateCustomerFilterSelects(); renderWorkHistory(); }
         if (tab === 'billing') { populateCustomerFilterSelects(); renderBillingSummary(); }
-        if (tab === 'settings') { applyDashboardPrefs(); if (typeof applyHomeWidgetVisibility === 'function') applyHomeWidgetVisibility(); }
+        if (tab === 'settings') { applyDashboardPrefs(); if (typeof applyHomeWidgetVisibility === 'function') applyHomeWidgetVisibility(); if (typeof updateMapSettingsUi === 'function') updateMapSettingsUi(); }
 
         if (tab === 'routes') {
             if (typeof currentAppMode !== 'undefined' && currentAppMode === 'field' && typeof updateDriverHud === 'function') {
@@ -11147,6 +11202,166 @@
         setYardMapStatus('Kohteen kartta tyhjennetty.');
     }
 
+    // ============================================================
+    // 🗺️ KARTTAPOHJAT (Base Layers) JA TONTINRAJATASO (Boundaries)
+    // ============================================================
+    let currentMapBase = (function() {
+        try {
+            return localStorage.getItem('yardflow_map_base') || 'satellite';
+        } catch (e) {
+            return 'satellite';
+        }
+    })();
+
+    let showBoundaries = (function() {
+        try {
+            return localStorage.getItem('yardflow_show_boundaries') === 'true';
+        } catch (e) {
+            return false;
+        }
+    })();
+
+    let baseLayers = null;
+    let boundaryLayer = null;
+    let currentBaseLayer = null;
+
+    function getBaseLayers() {
+        if (!baseLayers && typeof L !== 'undefined') {
+            baseLayers = {
+                satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                    maxNativeZoom: 19,
+                    maxZoom: 21,
+                    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics'
+                }),
+                street: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 20,
+                    attribution: '&copy; OpenStreetMap'
+                })
+            };
+        }
+        return baseLayers;
+    }
+    window.getBaseLayers = getBaseLayers;
+
+    function getBoundaryLayer() {
+        if (!boundaryLayer && typeof L !== 'undefined') {
+            const apiKey = window.MML_API_KEY || '';
+            const mmlUrl = apiKey
+                ? `https://avoin-karttakuva.maanmittauslaitos.fi/avoin/wmts/1.0.0/kiinteistojaotus/default/WGS84/{z}/{y}/{x}.png?api-key=${encodeURIComponent(apiKey)}`
+                : 'https://avoin-karttakuva.maanmittauslaitos.fi/avoin/wmts/1.0.0/kiinteistojaotus/default/WGS84/{z}/{y}/{x}.png';
+            boundaryLayer = L.tileLayer(mmlUrl, {
+                transparent: true,
+                opacity: 0.85,
+                maxZoom: 19,
+                minZoom: 14,
+                zIndex: 350,
+                attribution: '&copy; Maanmittauslaitos kiinteistöjaotus'
+            });
+        }
+        return boundaryLayer;
+    }
+    window.getBoundaryLayer = getBoundaryLayer;
+
+    function setMapBaseLayer(layerName) {
+        if (!layerName || (layerName !== 'satellite' && layerName !== 'street')) {
+            layerName = 'satellite';
+        }
+        currentMapBase = layerName;
+        try {
+            localStorage.setItem('yardflow_map_base', layerName);
+        } catch (e) {}
+
+        const layers = getBaseLayers();
+        if (yardMap && layers) {
+            if (currentBaseLayer && yardMap.hasLayer(currentBaseLayer)) {
+                yardMap.removeLayer(currentBaseLayer);
+            }
+            currentBaseLayer = layers[layerName];
+            if (currentBaseLayer) {
+                currentBaseLayer.addTo(yardMap);
+                if (typeof currentBaseLayer.bringToBack === 'function') {
+                    currentBaseLayer.bringToBack();
+                }
+            }
+        }
+
+        updateMapSettingsUi();
+        const baseNameFi = layerName === 'street' ? 'Peruskartta' : 'Satelliitti';
+        showStatus(`Karttapohjaksi vaihdettu: ${baseNameFi}.`, 'info');
+    }
+    window.setMapBaseLayer = setMapBaseLayer;
+
+    function toggleBoundariesLayer(enable) {
+        showBoundaries = !!enable;
+        try {
+            localStorage.setItem('yardflow_show_boundaries', String(showBoundaries));
+        } catch (e) {}
+
+        const layer = getBoundaryLayer();
+        if (yardMap && layer) {
+            if (showBoundaries) {
+                if (!yardMap.hasLayer(layer)) {
+                    layer.addTo(yardMap);
+                }
+            } else {
+                if (yardMap.hasLayer(layer)) {
+                    yardMap.removeLayer(layer);
+                }
+            }
+        }
+
+        updateMapSettingsUi();
+        showStatus(showBoundaries ? 'Kiinteistö- ja tontinrajataso kytketty päälle.' : 'Kiinteistö- ja tontinrajataso poistettu kartalta.', 'info');
+    }
+    window.toggleBoundariesLayer = toggleBoundariesLayer;
+
+    function toggleMapBaseQuick() {
+        const nextBase = currentMapBase === 'street' ? 'satellite' : 'street';
+        setMapBaseLayer(nextBase);
+    }
+    window.toggleMapBaseQuick = toggleMapBaseQuick;
+
+    function toggleBoundariesQuick() {
+        toggleBoundariesLayer(!showBoundaries);
+    }
+    window.toggleBoundariesQuick = toggleBoundariesQuick;
+
+    function updateMapSettingsUi() {
+        const btnSat = document.getElementById('btnMapBaseSatellite');
+        const btnStreet = document.getElementById('btnMapBaseStreet');
+        if (btnSat && btnStreet) {
+            if (currentMapBase === 'street') {
+                btnStreet.className = 'btn-primary';
+                btnSat.className = 'btn-outline';
+            } else {
+                btnSat.className = 'btn-primary';
+                btnStreet.className = 'btn-outline';
+            }
+        }
+
+        const toggleBoundaries = document.getElementById('toggle-map-boundaries');
+        const boundariesStatus = document.getElementById('boundariesToggleStatus');
+        if (toggleBoundaries) {
+            toggleBoundaries.checked = !!showBoundaries;
+        }
+        if (boundariesStatus) {
+            boundariesStatus.textContent = showBoundaries ? 'Päällä ✓' : 'Pois';
+            boundariesStatus.style.color = showBoundaries ? '#10b981' : 'var(--muted)';
+        }
+
+        const quickToggleBtn = document.getElementById('quickMapBaseToggleBtn');
+        if (quickToggleBtn) {
+            quickToggleBtn.textContent = currentMapBase === 'street' ? '🗺️ Peruskartta' : '🛰️ Satelliitti';
+        }
+        const quickBoundariesBtn = document.getElementById('quickMapBoundariesBtn');
+        if (quickBoundariesBtn) {
+            quickBoundariesBtn.textContent = showBoundaries ? '📐 Rajat: Päällä' : '📐 Rajat: Pois';
+            quickBoundariesBtn.style.borderColor = showBoundaries ? '#10b981' : 'var(--border)';
+            quickBoundariesBtn.style.color = showBoundaries ? '#10b981' : 'var(--fg)';
+        }
+    }
+    window.updateMapSettingsUi = updateMapSettingsUi;
+
     function initYardSatelliteMap() {
         const mapEl = document.getElementById('yardSatelliteMap');
         if (!mapEl || typeof L === 'undefined') return;
@@ -11162,11 +11377,23 @@
         window.map = yardMap;
         window.yardMap = yardMap;
 
-        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            maxNativeZoom: 19,
-            maxZoom: 21,
-            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics'
-        }).addTo(yardMap);
+        // Karttapohja tallennetun valinnan mukaan (satellite tai street)
+        const layers = getBaseLayers();
+        currentBaseLayer = layers[currentMapBase] || layers.satellite;
+        if (currentBaseLayer) {
+            currentBaseLayer.addTo(yardMap);
+            if (typeof currentBaseLayer.bringToBack === 'function') {
+                currentBaseLayer.bringToBack();
+            }
+        }
+
+        // Tontinrajataso jos kytketty päälle
+        if (showBoundaries) {
+            const bLayer = getBoundaryLayer();
+            if (bLayer) bLayer.addTo(yardMap);
+        }
+
+        updateMapSettingsUi();
 
         yardNeighborItems = new L.FeatureGroup();
         yardMap.addLayer(yardNeighborItems);
@@ -11325,6 +11552,7 @@
         populateSyncQueueFromPendingLogs();
         if (navigator.onLine) syncPendingLogs();
         restorePanelCollapseStates();
+        if (typeof updateMapSettingsUi === 'function') updateMapSettingsUi();
     });
 </script>
 </body>
