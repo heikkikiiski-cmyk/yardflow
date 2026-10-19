@@ -2515,18 +2515,298 @@
             }
         }
 
-    </style>
+    
+/* ============================================================ */
+/* 📱 SIVUSTA LIUKUVA HAMPURILAISVALIKKO (#app-drawer)          */
+/* ============================================================ */
+.btn-menu-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--fg);
+    padding: 7px 14px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    min-height: 40px;
+    user-select: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.btn-menu-toggle:hover {
+    background: var(--bg-card-hover, rgba(255, 255, 255, 0.06));
+    border-color: var(--accent);
+    transform: translateY(-1px);
+}
+.btn-menu-toggle:active {
+    transform: translateY(0);
+}
+.btn-menu-toggle .menu-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+}
+.btn-menu-toggle .menu-text {
+    font-weight: 700;
+}
+
+.drawer-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 9998;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.drawer-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.app-drawer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 300px;
+    max-width: 86vw;
+    background: var(--bg-card);
+    border-right: 1px solid var(--border);
+    box-shadow: 4px 0 28px rgba(0, 0, 0, 0.4);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    user-select: none;
+    overflow-y: auto;
+}
+.app-drawer.open {
+    transform: translateX(0);
+}
+
+.drawer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-card-secondary, rgba(255, 255, 255, 0.02));
+}
+.drawer-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+.drawer-close-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.3rem;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    line-height: 1;
+    transition: all 0.15s ease;
+}
+.drawer-close-btn:hover {
+    color: var(--fg);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.drawer-user-info {
+    padding: 10px 18px;
+    background: var(--bg-secondary, rgba(0, 0, 0, 0.12));
+    border-bottom: 1px solid var(--border);
+    font-size: 0.8rem;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.drawer-mode-indicator {
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.drawer-nav {
+    display: flex;
+    flex-direction: column;
+    padding: 14px 12px;
+    gap: 5px;
+    flex: 1;
+}
+.drawer-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--fg);
+    font-size: 0.93rem;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    width: 100%;
+}
+.drawer-nav-item:hover {
+    background: var(--bg-card-hover, rgba(255, 255, 255, 0.05));
+    border-color: var(--border);
+    color: var(--accent);
+    transform: translateX(3px);
+}
+.drawer-nav-item.active {
+    background: var(--accent) !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+}
+.drawer-nav-item.active .nav-badge {
+    background: rgba(255, 255, 255, 0.28);
+    color: #ffffff;
+    border-color: transparent;
+}
+.drawer-nav-item .nav-item-icon {
+    font-size: 1.2rem;
+    width: 24px;
+    text-align: center;
+    flex-shrink: 0;
+}
+.drawer-nav-item .nav-item-label {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.drawer-nav-item .nav-badge {
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    background: var(--bg-secondary);
+    color: var(--muted);
+    border: 1px solid var(--border);
+}
+.drawer-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 8px 6px;
+}
+.drawer-footer {
+    padding: 14px 18px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+}
+
+/* ============================================================ */
+/* 🏠 KOTIVALIKKO / DASHBOARD (#dashboard-view)                 */
+/* ============================================================ */
+.dashboard-view {
+    max-width: 1160px;
+    margin: 0 auto;
+    padding-bottom: 28px;
+}
+.dash-widget-card {
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.dash-widget-card:hover {
+    border-color: var(--border-hover);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+/* Piilotetaan vanha nav-tabs yläpalkin alta */
+.nav-tabs {
+    display: none !important;
+}
+
+</style>
 </head>
 <body>
 
-<header class="app-header navbar header" id="top-bar">
-    <div class="logo">
-        <div class="logo-mark">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-            </svg>
+<!-- VASEN YLÄVALIKKO & DRAWER (#app-drawer / .side-menu) -->
+<div id="drawer-backdrop" class="drawer-backdrop" onclick="closeAppDrawer()" aria-hidden="true"></div>
+
+<aside id="app-drawer" class="app-drawer side-menu" aria-label="Päävalikko">
+    <div class="drawer-header">
+        <div class="drawer-brand" onclick="navToTab('dashboard')" title="Siirry Dashboardiin">
+            <div class="logo-mark">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
+            </div>
+            <div class="logo-title">Yard<span>Flow</span></div>
         </div>
-        <div class="logo-title">Yard<span>Flow</span></div>
+        <button type="button" class="drawer-close-btn" onclick="closeAppDrawer()" aria-label="Sulje valikko" title="Sulje valikko">✕</button>
+    </div>
+
+    <div class="drawer-user-info">
+        <span class="drawer-mode-indicator" id="drawerModeText">🚜 Kenttätila aktiivinen</span>
+    </div>
+
+    <nav class="drawer-nav">
+        <button type="button" class="drawer-nav-item active" id="nav-home" onclick="navToTab('dashboard')">
+            <span class="nav-item-icon">🏠</span>
+            <span class="nav-item-label">Koti / Dashboard</span>
+        </button>
+        <button type="button" class="drawer-nav-item" id="nav-map" onclick="navToTab('routes')">
+            <span class="nav-item-icon">🗺️</span>
+            <span class="nav-item-label">Kartta &amp; Reitinsuunnittelu</span>
+        </button>
+        <button type="button" class="drawer-nav-item" id="nav-customers" onclick="navToTab('customers')">
+            <span class="nav-item-icon">👥</span>
+            <span class="nav-item-label">Asiakkaat</span>
+            <span class="nav-badge" id="drawerCustomerBadge">0</span>
+        </button>
+        <button type="button" class="drawer-nav-item" id="nav-history" onclick="navToTab('history')">
+            <span class="nav-item-icon">📋</span>
+            <span class="nav-item-label">Tehdyt työt &amp; Raportit</span>
+            <span class="nav-badge" id="drawerHistoryBadge">0</span>
+        </button>
+        <button type="button" class="drawer-nav-item" id="nav-billing" onclick="navToTab('billing')">
+            <span class="nav-item-icon">💶</span>
+            <span class="nav-item-label">Laskutus</span>
+        </button>
+        <div class="drawer-divider"></div>
+        <button type="button" class="drawer-nav-item" id="nav-field-mode" onclick="toggleFieldModeFromDrawer()">
+            <span class="nav-item-icon">🚜</span>
+            <span class="nav-item-label">Kuskitila / Field Mode</span>
+        </button>
+        <button type="button" class="drawer-nav-item" id="nav-settings" onclick="navToTab('settings')">
+            <span class="nav-item-icon">⚙️</span>
+            <span class="nav-item-label">Asetukset</span>
+        </button>
+    </nav>
+
+    <div class="drawer-footer">
+        <span style="font-size: 0.76rem; color: var(--muted);">YardFlow v2.4 • Suomen Talvityöt</span>
+    </div>
+</aside>
+
+<header class="app-header navbar header" id="top-bar">
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <button type="button" id="btn-open-menu" class="btn-menu-toggle" onclick="toggleAppDrawer()" aria-label="Valikko" title="Avaa valikko">
+            <span class="menu-icon">☰</span>
+            <span class="menu-text">Valikko</span>
+        </button>
+        <div class="logo" onclick="switchTab('dashboard')" style="cursor: pointer;" title="YardFlow Dashboard">
+            <div class="logo-mark">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
+            </div>
+            <div class="logo-title">Yard<span>Flow</span></div>
+        </div>
     </div>
     <div class="header-actions">
         <!-- Käyttötilan valinta (Kenttä vs. Hallinta) -->
@@ -2555,6 +2835,138 @@
         <button class="nav-tab" id="tab-billing" onclick="switchTab('billing')" title="Laskutuksen erittely ja koosteet">💶 Laskutus</button>
         <button class="nav-tab" id="tab-customers" onclick="switchTab('customers')" title="Asiakashallinta">👥 Asiakkaat (<span id="customerCountBadge">0</span>)</button>
         <button class="nav-tab" id="tabBtnSettings" onclick="switchTab('settings')" title="Järjestelmäasetukset">⚙️ Asetukset</button>
+    </div>
+
+    
+    <!-- NÄKYMÄ 0: KOTIVALIKKO / DASHBOARD (#dashboard-view) -->
+    <div id="dashboard-view" class="dashboard-view" style="display: none;">
+        <!-- Yläbanneri -->
+        <div class="dashboard-hero card" style="margin-bottom: 16px; padding: 20px; background: linear-gradient(135deg, rgba(37,99,235,0.12) 0%, rgba(16,185,129,0.08) 100%); border: 1px solid var(--border);">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                <div>
+                    <h2 style="margin: 0; font-size: 1.45rem; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                        <span>🏠</span> <span>YardFlow Dashboard</span>
+                    </h2>
+                    <div style="font-size: 0.86rem; color: var(--muted); margin-top: 4px;">
+                        Päivän ajoreitin tilannekatsaus, kohteet ja pikatoiminnot
+                    </div>
+                </div>
+                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                    <span class="badge" id="dashTodayDateBadge" style="font-size: 0.82rem; padding: 6px 12px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); font-weight: 600;">
+                        📅 Tänään
+                    </span>
+                    <button type="button" class="btn-primary" onclick="switchTab('routes')" style="display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 16px; font-weight: 600;">
+                        🗺️ Avaa karttanäkymä
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Widget-grid -->
+        <div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px;">
+            
+            <!-- WIDGET 1: [Päivän tilanne] (#dash-widget-progress) -->
+            <div id="dash-widget-progress" class="card dash-widget-card">
+                <div class="dash-widget-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+                        <span>📊</span> <span>Päivän tilanne</span>
+                    </h3>
+                    <span id="dashProgressPercent" style="font-weight: 800; font-size: 1.1rem; color: #10b981;">0%</span>
+                </div>
+                <div class="progress-bar-track" style="height: 12px; border-radius: 6px; background: var(--bg-secondary); overflow: hidden; margin-bottom: 12px;">
+                    <div id="dashProgressBarFill" class="progress-bar-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #10b981, #059669); transition: width 0.4s ease;"></div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center;">
+                    <div style="background: var(--bg-card-secondary, rgba(255,255,255,0.03)); padding: 10px 6px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                        <div style="font-size: 0.74rem; color: var(--muted); text-transform: uppercase;">Kuitatut</div>
+                        <div id="dashDoneCount" style="font-size: 1.25rem; font-weight: 800; color: #10b981; margin-top: 2px;">0</div>
+                    </div>
+                    <div style="background: var(--bg-card-secondary, rgba(255,255,255,0.03)); padding: 10px 6px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                        <div style="font-size: 0.74rem; color: var(--muted); text-transform: uppercase;">Jäljellä</div>
+                        <div id="dashRemainingCount" style="font-size: 1.25rem; font-weight: 800; color: var(--accent-amber, #f59e0b); margin-top: 2px;">0</div>
+                    </div>
+                    <div style="background: var(--bg-card-secondary, rgba(255,255,255,0.03)); padding: 10px 6px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                        <div style="font-size: 0.74rem; color: var(--muted); text-transform: uppercase;">Yhteensä</div>
+                        <div id="dashTotalCount" style="font-size: 1.25rem; font-weight: 800; color: var(--fg); margin-top: 2px;">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WIDGET 2: [Seuraava kohde] (#dash-widget-next-stop) -->
+            <div id="dash-widget-next-stop" class="card dash-widget-card">
+                <div class="dash-widget-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+                        <span>📍</span> <span>Seuraava kohde</span>
+                    </h3>
+                    <span class="status-pill status-ready" id="dashNextStopOrder" style="font-size: 0.74rem;">Seuraava #1</span>
+                </div>
+                <div id="dashNextStopContent">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <!-- WIDGET 3: [Reitin pika-analyysi] (#dash-widget-route-stats) -->
+            <div id="dash-widget-route-stats" class="card dash-widget-card">
+                <div class="dash-widget-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+                        <span>⚡</span> <span>Reitin pika-analyysi</span>
+                    </h3>
+                    <span style="font-size: 0.75rem; color: var(--muted);">35 km/h taajama</span>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center;">
+                    <div style="background: var(--bg-card-secondary, rgba(255,255,255,0.03)); padding: 10px 6px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                        <div style="font-size: 0.74rem; color: var(--muted);">Siirtymät</div>
+                        <div id="dashRouteDistance" style="font-size: 1.1rem; font-weight: 800; color: var(--fg); margin-top: 2px;">0.0 km</div>
+                    </div>
+                    <div style="background: var(--bg-card-secondary, rgba(255,255,255,0.03)); padding: 10px 6px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                        <div style="font-size: 0.74rem; color: var(--muted);">Ajoaika</div>
+                        <div id="dashRouteDuration" style="font-size: 1.1rem; font-weight: 800; color: var(--fg); margin-top: 2px;">0 min</div>
+                    </div>
+                    <div style="background: var(--bg-card-secondary, rgba(255,255,255,0.03)); padding: 10px 6px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                        <div style="font-size: 0.74rem; color: var(--muted);">Polttoainekulu</div>
+                        <div id="dashRouteFuel" style="font-size: 1.1rem; font-weight: 800; color: #10b981; margin-top: 2px;">0,00 €</div>
+                    </div>
+                </div>
+                <div style="margin-top: 12px; font-size: 0.78rem; color: var(--muted); display: flex; justify-content: space-between; align-items: center;">
+                    <span id="dashRouteStopsCount">0 kohdetta reitillä</span>
+                    <button type="button" class="btn-outline" style="padding: 4px 10px; font-size: 0.78rem;" onclick="switchTab('routes'); setTimeout(optimizeRouteOrder, 150);">⚡ Optimoi reitti</button>
+                </div>
+            </div>
+
+            <!-- WIDGET 4: [Pikalinkit] (#dash-widget-shortcuts) -->
+            <div id="dash-widget-shortcuts" class="card dash-widget-card">
+                <div class="dash-widget-header" style="margin-bottom: 12px;">
+                    <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+                        <span>🚀</span> <span>Pikalinkit</span>
+                    </h3>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <button type="button" class="btn-primary" style="display: flex; align-items: center; gap: 8px; justify-content: center; min-height: 42px; font-weight: 600;" onclick="startTourShortcut()">
+                        <span>🚜</span> <span>Aloita kierros (Kenttätila)</span>
+                    </button>
+                    <button type="button" class="btn-secondary" style="display: flex; align-items: center; gap: 8px; justify-content: center; min-height: 42px;" onclick="switchTab('history'); setTimeout(exportWorkHistoryPDF, 150);">
+                        <span>📄</span> <span>Lataa työraportti (PDF)</span>
+                    </button>
+                    <button type="button" class="btn-outline" style="display: flex; align-items: center; gap: 8px; justify-content: center; min-height: 42px;" onclick="switchTab('customers'); setTimeout(() => { const d = document.getElementById('addCustomerDrawer'); if (d) d.style.display = 'block'; }, 150);">
+                        <span>➕</span> <span>Uusi asiakas</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- WIDGET 5: [Viimeisimmät kuittaukset] (#dash-widget-recent-logs) -->
+            <div id="dash-widget-recent-logs" class="card dash-widget-card" style="grid-column: 1 / -1;">
+                <div class="dash-widget-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+                        <span>📋</span> <span>Viimeisimmät kuittaukset</span>
+                    </h3>
+                    <button type="button" class="btn-outline" style="padding: 4px 10px; font-size: 0.78rem;" onclick="switchTab('history')">Näytä kaikki työt →</button>
+                </div>
+                <div id="dashRecentLogsList">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+        </div>
     </div>
 
     <!-- NÄKYMÄ 1: AJO & REITIT (Ajolista heti ensimmäisenä!) -->
@@ -3334,28 +3746,32 @@
                 </div>
             </div>
 
-            <!-- Kotinäkymän mukautus (Dashboard Widgets) -->
-            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 18px;">
-                <h4 style="margin-top: 0; margin-bottom: 6px;">📱 Kotinäkymän mukautus (Dashboard Widgets)</h4>
+            <!-- Kotivalikon (Dashboard) mukautus (#dashboard-customization-settings) -->
+            <div id="dashboard-customization-settings" style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 18px;">
+                <h4 style="margin-top: 0; margin-bottom: 6px;">🏠 Kotivalikon (Dashboard) mukautus</h4>
                 <p style="font-size: 0.84rem; color: var(--muted); margin-bottom: 14px;">
-                    Valitse mitkä osiot näytetään ajolistan yläpuolella:
+                    Valitse mitkä widgetit näytetään Dashboard-päänäkymässä:
                 </p>
                 <div style="display: flex; flex-direction: column; gap: 12px;">
-                    <label class="check-row" style="font-size: 0.9rem; cursor: pointer; margin: 0;">
-                        <input type="checkbox" id="show-widget-progress" checked onchange="handleHomeWidgetToggle('progress', this.checked)">
-                        <span><strong>Päivän edistymismittari (Kuitatut / Jäljellä)</strong></span>
+                    <label class="check-row" style="font-size: 0.9rem; cursor: pointer; margin: 0; display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" id="toggle-widget-progress" checked onchange="handleDashboardPrefToggle('progress', this.checked)">
+                        <span><strong>Näytä päivän eteneminen &amp; kuittaustilanne</strong></span>
                     </label>
-                    <label class="check-row" style="font-size: 0.9rem; cursor: pointer; margin: 0;">
-                        <input type="checkbox" id="show-widget-next-yard" checked onchange="handleHomeWidgetToggle('nextYard', this.checked)">
-                        <span><strong>Seuraava ajokohde -pikaopas</strong></span>
+                    <label class="check-row" style="font-size: 0.9rem; cursor: pointer; margin: 0; display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" id="toggle-widget-next-stop" checked onchange="handleDashboardPrefToggle('nextStop', this.checked)">
+                        <span><strong>Näytä seuraavan kohteen pikaohjaus</strong></span>
                     </label>
-                    <label class="check-row" style="font-size: 0.9rem; cursor: pointer; margin: 0;">
-                        <input type="checkbox" id="show-widget-tickets" checked onchange="handleHomeWidgetToggle('tickets', this.checked)">
-                        <span><strong>Päivän työkeikat / huoltotilaukset</strong></span>
+                    <label class="check-row" style="font-size: 0.9rem; cursor: pointer; margin: 0; display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" id="toggle-widget-route-stats" checked onchange="handleDashboardPrefToggle('routeStats', this.checked)">
+                        <span><strong>Näytä reitin kilometrit &amp; kululaskuri</strong></span>
                     </label>
-                    <label class="check-row" style="font-size: 0.9rem; cursor: pointer; margin: 0;">
-                        <input type="checkbox" id="show-widget-search" checked onchange="handleHomeWidgetToggle('search', this.checked)">
-                        <span><strong>Pikahaku sivupalkissa</strong></span>
+                    <label class="check-row" style="font-size: 0.9rem; cursor: pointer; margin: 0; display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" id="toggle-widget-recent-logs" checked onchange="handleDashboardPrefToggle('recentLogs', this.checked)">
+                        <span><strong>Näytä viimeisimmät kuittaukset</strong></span>
+                    </label>
+                    <label class="check-row" style="font-size: 0.9rem; cursor: pointer; margin: 0; display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" id="toggle-widget-shortcuts" checked onchange="handleDashboardPrefToggle('shortcuts', this.checked)">
+                        <span><strong>Näytä pikalinkit toimintoihin</strong></span>
                     </label>
                 </div>
             </div>
@@ -3919,6 +4335,8 @@
 
     function setAppMode(mode) {
         currentAppMode = (mode === 'admin') ? 'admin' : 'field';
+        window.currentAppMode = currentAppMode;
+        if (typeof updateDrawerBadges === 'function') updateDrawerBadges();
         try {
             localStorage.setItem('yardflow_app_mode', currentAppMode);
         } catch (e) {}
@@ -4614,26 +5032,333 @@
     window.completeNextYard = completeNextYard;
 
     // ---------- Välilehtien vaihto ----------
+    
+    // =========================================================================
+    // 📱 HAMPURILAISVALIKKO & DASHBOARD -MOOTTORI
+    // =========================================================================
+
+    // Drawer state and methods
+    function toggleAppDrawer() {
+        const drawer = document.getElementById('app-drawer');
+        const backdrop = document.getElementById('drawer-backdrop');
+        if (!drawer || !backdrop) return;
+        const isOpen = drawer.classList.contains('open');
+        if (isOpen) {
+            closeAppDrawer();
+        } else {
+            openAppDrawer();
+        }
+    }
+    window.toggleAppDrawer = toggleAppDrawer;
+
+    function openAppDrawer() {
+        const drawer = document.getElementById('app-drawer');
+        const backdrop = document.getElementById('drawer-backdrop');
+        if (drawer) drawer.classList.add('open');
+        if (backdrop) backdrop.classList.add('open');
+        updateDrawerBadges();
+    }
+    window.openAppDrawer = openAppDrawer;
+
+    function closeAppDrawer() {
+        const drawer = document.getElementById('app-drawer');
+        const backdrop = document.getElementById('drawer-backdrop');
+        if (drawer) drawer.classList.remove('open');
+        if (backdrop) backdrop.classList.remove('open');
+    }
+    window.closeAppDrawer = closeAppDrawer;
+
+    function navToTab(tab) {
+        closeAppDrawer();
+        switchTab(tab);
+    }
+    window.navToTab = navToTab;
+
+    function toggleFieldModeFromDrawer() {
+        closeAppDrawer();
+        setAppMode('field');
+        switchTab('routes');
+    }
+    window.toggleFieldModeFromDrawer = toggleFieldModeFromDrawer;
+
+    function startTourShortcut() {
+        setAppMode('field');
+        switchTab('routes');
+    }
+    window.startTourShortcut = startTourShortcut;
+
+    function updateDrawerBadges() {
+        const custBadge = document.getElementById('drawerCustomerBadge');
+        if (custBadge && typeof customers !== 'undefined' && Array.isArray(customers)) {
+            custBadge.textContent = customers.length;
+        }
+        const histBadge = document.getElementById('drawerHistoryBadge');
+        if (histBadge && typeof getStoredWorkLogs === 'function') {
+            histBadge.textContent = getStoredWorkLogs().length;
+        }
+        const modeText = document.getElementById('drawerModeText');
+        if (modeText) {
+            modeText.textContent = (typeof currentAppMode !== 'undefined' && currentAppMode === 'field')
+                ? '🚜 Kenttätila aktiivinen'
+                : '🛠️ Hallintatila aktiivinen';
+        }
+    }
+    window.updateDrawerBadges = updateDrawerBadges;
+
+    // Dashboard preferences
+    const DEFAULT_DASHBOARD_PREFS = {
+        progress: true,
+        nextStop: true,
+        routeStats: true,
+        recentLogs: true,
+        shortcuts: true
+    };
+
+    function getDashboardPrefs() {
+        try {
+            const raw = localStorage.getItem('yardflow_dashboard_prefs');
+            if (raw) return { ...DEFAULT_DASHBOARD_PREFS, ...JSON.parse(raw) };
+        } catch (e) {}
+        return { ...DEFAULT_DASHBOARD_PREFS };
+    }
+    window.getDashboardPrefs = getDashboardPrefs;
+
+    function saveDashboardPrefs(prefs) {
+        try {
+            localStorage.setItem('yardflow_dashboard_prefs', JSON.stringify(prefs));
+        } catch (e) {}
+    }
+    window.saveDashboardPrefs = saveDashboardPrefs;
+
+    function handleDashboardPrefToggle(key, isEnabled) {
+        const prefs = getDashboardPrefs();
+        prefs[key] = !!isEnabled;
+        saveDashboardPrefs(prefs);
+        applyDashboardPrefs();
+    }
+    window.handleDashboardPrefToggle = handleDashboardPrefToggle;
+
+    function applyDashboardPrefs() {
+        const prefs = getDashboardPrefs();
+
+        const wProgress = document.getElementById('dash-widget-progress');
+        const wNextStop = document.getElementById('dash-widget-next-stop');
+        const wRouteStats = document.getElementById('dash-widget-route-stats');
+        const wRecentLogs = document.getElementById('dash-widget-recent-logs');
+        const wShortcuts = document.getElementById('dash-widget-shortcuts');
+
+        if (wProgress) wProgress.style.display = prefs.progress ? '' : 'none';
+        if (wNextStop) wNextStop.style.display = prefs.nextStop ? '' : 'none';
+        if (wRouteStats) wRouteStats.style.display = prefs.routeStats ? '' : 'none';
+        if (wRecentLogs) wRecentLogs.style.display = prefs.recentLogs ? '' : 'none';
+        if (wShortcuts) wShortcuts.style.display = prefs.shortcuts ? '' : 'none';
+
+        const cbProgress = document.getElementById('toggle-widget-progress');
+        const cbNextStop = document.getElementById('toggle-widget-next-stop');
+        const cbRouteStats = document.getElementById('toggle-widget-route-stats');
+        const cbRecentLogs = document.getElementById('toggle-widget-recent-logs');
+        const cbShortcuts = document.getElementById('toggle-widget-shortcuts');
+
+        if (cbProgress) cbProgress.checked = !!prefs.progress;
+        if (cbNextStop) cbNextStop.checked = !!prefs.nextStop;
+        if (cbRouteStats) cbRouteStats.checked = !!prefs.routeStats;
+        if (cbRecentLogs) cbRecentLogs.checked = !!prefs.recentLogs;
+        if (cbShortcuts) cbShortcuts.checked = !!prefs.shortcuts;
+    }
+    window.applyDashboardPrefs = applyDashboardPrefs;
+
+    // Render Dashboard View
+    function renderDashboardView() {
+        applyDashboardPrefs();
+
+        const dateBadge = document.getElementById('dashTodayDateBadge');
+        if (dateBadge) {
+            const today = new Date();
+            const options = { weekday: 'short', day: 'numeric', month: 'numeric', year: 'numeric' };
+            dateBadge.textContent = '📅 ' + today.toLocaleDateString('fi-FI', options);
+        }
+
+        const taskList = (typeof window !== 'undefined' && Array.isArray(window.tasks)) ? window.tasks : ((typeof tasks !== 'undefined' && Array.isArray(tasks)) ? tasks : []);
+        const total = taskList.length;
+        const doneCount = taskList.filter(t => t.done).length;
+        const remainingCount = total - doneCount;
+        const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
+
+        // Widget 1: Päivän tilanne
+        const elPct = document.getElementById('dashProgressPercent');
+        const elFill = document.getElementById('dashProgressBarFill');
+        const elDone = document.getElementById('dashDoneCount');
+        const elRemaining = document.getElementById('dashRemainingCount');
+        const elTotal = document.getElementById('dashTotalCount');
+
+        if (elPct) elPct.textContent = `${pct}%`;
+        if (elFill) elFill.style.width = `${pct}%`;
+        if (elDone) elDone.textContent = `${doneCount}`;
+        if (elRemaining) elRemaining.textContent = `${remainingCount}`;
+        if (elTotal) elTotal.textContent = `${total}`;
+
+        // Widget 2: Seuraava kohde
+        const nextStopContent = document.getElementById('dashNextStopContent');
+        const nextStopOrder = document.getElementById('dashNextStopOrder');
+        const nextTask = taskList.find(t => !t.done && !t.blocked);
+
+        if (nextStopContent) {
+            if (!nextTask) {
+                if (nextStopOrder) nextStopOrder.style.display = 'none';
+                nextStopContent.innerHTML = `
+                    <div style="text-align: center; padding: 20px 10px; color: var(--muted);">
+                        <div style="font-size: 2rem; margin-bottom: 6px;">🎉</div>
+                        <div style="font-weight: 700; color: var(--fg); font-size: 0.95rem;">
+                            ${total === 0 ? 'Ei kohteita ajolistalla' : 'Kaikki päivän kohteet kuitattu!'}
+                        </div>
+                        <div style="font-size: 0.8rem; margin-top: 4px;">Voit suunnitella uutta reittiä tai tarkastella tehtyjä töitä.</div>
+                    </div>
+                `;
+            } else {
+                const nextIdx = taskList.indexOf(nextTask) + 1;
+                if (nextStopOrder) {
+                    nextStopOrder.style.display = '';
+                    nextStopOrder.textContent = `Kohde #${nextIdx}`;
+                }
+                nextStopContent.innerHTML = `
+                    <div style="background: var(--bg-card-secondary, rgba(255,255,255,0.03)); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px; margin-bottom: 12px;">
+                        <div style="font-weight: 800; font-size: 1.05rem; color: var(--fg);">${esc(nextTask.name)}</div>
+                        <div style="font-size: 0.82rem; color: var(--muted); margin-top: 3px;">📍 ${esc(nextTask.address || 'Ei osoitetta')}</div>
+                        ${nextTask.notes ? `<div style="font-size: 0.8rem; color: var(--accent); margin-top: 6px; background: rgba(37,99,235,0.08); padding: 4px 8px; border-radius: 4px;">💬 ${esc(nextTask.notes)}</div>` : ''}
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button type="button" class="btn-primary" style="flex: 1; min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600;" onclick="openYardOnMapFromDashboard(${nextTask.id})">
+                            <span>🗺️</span> <span>Avaa kartta</span>
+                        </button>
+                        <button type="button" class="btn-outline" style="min-height: 40px; padding: 0 12px;" onclick="navigateToNextYard()" title="Navigoi Google Mapsissa">
+                            <span>🧭</span>
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Widget 3: Reitin pika-analyysi
+        let totalKm = 0;
+        const pts = [];
+        if (typeof depot !== 'undefined' && depot && depot.lat && depot.lon && typeof hasDepot === 'function' && hasDepot()) {
+            pts.push({ lat: depot.lat, lon: depot.lon });
+        }
+        taskList.forEach(t => {
+            if (t.lat && t.lon) pts.push({ lat: t.lat, lon: t.lon });
+        });
+        if (typeof depot !== 'undefined' && depot && depot.lat && depot.lon && typeof hasDepot === 'function' && hasDepot() && typeof returnCheckbox !== 'undefined' && returnCheckbox && returnCheckbox.checked && pts.length > 1) {
+            pts.push({ lat: depot.lat, lon: depot.lon });
+        }
+
+        if (typeof dist === 'function') {
+            for (let i = 1; i < pts.length; i++) {
+                totalKm += dist(pts[i - 1], pts[i]);
+            }
+        }
+        const totalMinutes = Math.round((totalKm / 35) * 60);
+        const hours = Math.floor(totalMinutes / 60);
+        const mins = totalMinutes % 60;
+        const timeStr = hours > 0 ? `${hours} h ${mins} min` : `${mins} min`;
+
+        const consumption = (typeof fuelConsumptionL100km !== 'undefined') ? fuelConsumptionL100km : 15;
+        const pricePerL = (typeof fuelPricePerLitre !== 'undefined') ? fuelPricePerLitre : 1.95;
+        const fuelCost = totalKm * (consumption / 100) * pricePerL;
+
+        const elDist = document.getElementById('dashRouteDistance');
+        const elDur = document.getElementById('dashRouteDuration');
+        const elFuel = document.getElementById('dashRouteFuel');
+        const elStops = document.getElementById('dashRouteStopsCount');
+
+        if (elDist) elDist.textContent = `${totalKm.toFixed(1)} km`;
+        if (elDur) elDur.textContent = timeStr;
+        if (elFuel) elFuel.textContent = `${fuelCost.toFixed(2).replace('.', ',')} €`;
+        if (elStops) elStops.textContent = `${taskList.length} kohdetta reitillä`;
+
+        // Widget 5: Viimeisimmät kuittaukset
+        const recentLogsList = document.getElementById('dashRecentLogsList');
+        if (recentLogsList) {
+            const storedLogs = (typeof getStoredWorkLogs === 'function') ? getStoredWorkLogs() : [];
+            const top3 = storedLogs.slice(0, 3);
+            if (top3.length === 0) {
+                recentLogsList.innerHTML = '<div style="color: var(--muted); font-size: 0.85rem; padding: 10px 0;">Ei vielä kuitattuja töitä. Kuittaa kohteita valmiiksi kenttätilassa tai kartalla.</div>';
+            } else {
+                recentLogsList.innerHTML = top3.map(l => {
+                    const dateStr = (typeof fmtDateTime === 'function') ? fmtDateTime(l.completedAt) : (new Date(l.completedAt).toLocaleString('fi-FI'));
+                    const isGeofence = l.method === 'Geofence';
+                    const badgeClass = isGeofence ? 'geofence' : 'manual';
+                    const badgeIcon = isGeofence ? '🛰️' : '⚠️';
+                    const badgeText = isGeofence ? 'Geofence' : 'Manuaali';
+                    const priceNum = Number(l.price) || 0;
+                    return `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: var(--bg-card-secondary, rgba(255,255,255,0.02)); border: 1px solid var(--border); border-radius: var(--radius-md); margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+                            <div style="min-width: 0; flex: 1;">
+                                <div style="font-weight: 700; color: var(--fg); font-size: 0.92rem;">${esc(l.propertyName)}</div>
+                                <div style="font-size: 0.78rem; color: var(--muted);">${esc(l.address)}</div>
+                                <div style="font-size: 0.74rem; color: var(--accent); margin-top: 2px;">🕒 ${esc(dateStr)} • ${esc(l.workType || 'Auraus')}</div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span class="method-badge ${badgeClass}" style="font-size: 0.76rem; padding: 3px 8px;">
+                                    ${badgeIcon} ${badgeText}
+                                </span>
+                                <span style="font-weight: 700; font-size: 0.9rem; color: var(--fg); white-space: nowrap;">
+                                    ${priceNum.toFixed(2).replace('.', ',')} €
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+    }
+    window.renderDashboardView = renderDashboardView;
+
+    function openYardOnMapFromDashboard(taskId) {
+        switchTab('routes');
+        if (typeof centerOnTask === 'function') {
+            centerOnTask(taskId);
+        }
+    }
+    window.openYardOnMapFromDashboard = openYardOnMapFromDashboard;
+
     function switchTab(tab) {
         if (tab === 'map') tab = 'routes';
+        if (tab === 'home') tab = 'dashboard';
 
+        const dashView = document.getElementById('dashboard-view');
         const routesView = document.getElementById('viewRoutes');
         const custView = document.getElementById('customers-view') || document.getElementById('viewCustomers');
         const historyView = document.getElementById('work-history-view');
         const billingView = document.getElementById('billing-view');
         const settingsView = document.getElementById('viewSettings');
 
-        const tabBtnRoutes = document.getElementById('tab-map') || document.getElementById('tabBtnRoutes');
-        const tabBtnCust = document.getElementById('tab-customers') || document.getElementById('tabBtnCustomers');
-        const tabBtnHistory = document.getElementById('tab-history');
-        const tabBtnBilling = document.getElementById('tab-billing');
-        const tabBtnSettings = document.getElementById('tabBtnSettings');
-
+        if (dashView) dashView.style.display = tab === 'dashboard' ? 'block' : 'none';
         if (routesView) routesView.style.display = tab === 'routes' ? '' : 'none';
         if (custView) custView.style.display = tab === 'customers' ? '' : 'none';
         if (historyView) historyView.style.display = tab === 'history' ? '' : 'none';
         if (billingView) billingView.style.display = tab === 'billing' ? '' : 'none';
         if (settingsView) settingsView.style.display = tab === 'settings' ? '' : 'none';
+
+        // Päivitetään sivupalkkivalikon aktiivinen linkki
+        const navItems = [
+            { id: 'nav-home', active: tab === 'dashboard' },
+            { id: 'nav-map', active: tab === 'routes' },
+            { id: 'nav-customers', active: tab === 'customers' },
+            { id: 'nav-history', active: tab === 'history' },
+            { id: 'nav-billing', active: tab === 'billing' },
+            { id: 'nav-settings', active: tab === 'settings' }
+        ];
+        navItems.forEach(item => {
+            const el = document.getElementById(item.id);
+            if (el) el.classList.toggle('active', item.active);
+        });
+
+        // Vanhat ylävälilehdet yhteensopivuutta varten
+        const tabBtnRoutes = document.getElementById('tab-map') || document.getElementById('tabBtnRoutes');
+        const tabBtnCust = document.getElementById('tab-customers') || document.getElementById('tabBtnCustomers');
+        const tabBtnHistory = document.getElementById('tab-history');
+        const tabBtnBilling = document.getElementById('tab-billing');
+        const tabBtnSettings = document.getElementById('tabBtnSettings');
 
         if (tabBtnRoutes) tabBtnRoutes.classList.toggle('active', tab === 'routes');
         if (tabBtnCust) tabBtnCust.classList.toggle('active', tab === 'customers');
@@ -4641,13 +5366,16 @@
         if (tabBtnBilling) tabBtnBilling.classList.toggle('active', tab === 'billing');
         if (tabBtnSettings) tabBtnSettings.classList.toggle('active', tab === 'settings');
 
+        if (tab === 'dashboard') renderDashboardView();
         if (tab === 'customers') renderCustomers();
         if (tab === 'history') { populateCustomerFilterSelects(); renderWorkHistory(); }
         if (tab === 'billing') { populateCustomerFilterSelects(); renderBillingSummary(); }
-        if (tab === 'settings') applyHomeWidgetVisibility();
+        if (tab === 'settings') { applyDashboardPrefs(); if (typeof applyHomeWidgetVisibility === 'function') applyHomeWidgetVisibility(); }
 
         if (tab === 'routes') {
-            if (currentAppMode === 'field') updateDriverHud();
+            if (typeof currentAppMode !== 'undefined' && currentAppMode === 'field' && typeof updateDriverHud === 'function') {
+                updateDriverHud();
+            }
             if (typeof yardMap !== 'undefined' && yardMap) {
                 setTimeout(() => yardMap.invalidateSize(), 50);
                 setTimeout(() => yardMap.invalidateSize(), 250);
@@ -5521,6 +6249,8 @@
         saveStoredWorkLogs(logs);
         updateWorkHistoryBadge();
         populateCustomerFilterSelects();
+        if (typeof renderDashboardView === 'function') renderDashboardView();
+        if (typeof updateDrawerBadges === 'function') updateDrawerBadges();
 
         const historyView = document.getElementById('work-history-view');
         if (historyView && historyView.style.display !== 'none') {
@@ -10721,6 +11451,10 @@
         setWorkHistoryPeriod('month');
         setBillingPeriod('month');
     }, 50);
+
+    // Dashboard & Drawer alustus
+    applyDashboardPrefs();
+    updateDrawerBadges();
 </script>
 </body>
 </html>
