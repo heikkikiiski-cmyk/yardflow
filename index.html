@@ -303,6 +303,57 @@
                 </div>
             </div>
 
+            <!-- AVATTAVA PANEELI 3: Kohteen muokkauslomake sivupalkissa -->
+            <div id="property-edit-form" class="drawer-panel" style="display: none; background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 14px; margin-bottom: 14px;">
+                <div class="drawer-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #334155; padding-bottom: 8px;">
+                    <h4 style="margin: 0; font-size: 1rem; color: #f8fafc; font-weight: 700;">✏️ Muokkaa kohdetta</h4>
+                    <button type="button" class="tiny-btn" onclick="cancelPropertyEdit()">✕ Sulje</button>
+                </div>
+
+                <input type="hidden" id="editPropertyId">
+
+                <label for="editPropertyName" style="font-size: 0.8rem; font-weight: 600; color: #cbd5e1; display: block; margin-bottom: 4px;">Kohteen nimi:</label>
+                <input type="text" id="editPropertyName" placeholder="esim. Asunto Oy Esimerkki" style="width: 100%; margin-bottom: 10px;">
+
+                <label for="editPropertyAddress" style="font-size: 0.8rem; font-weight: 600; color: #cbd5e1; display: block; margin-bottom: 4px;">Katuosoite ja kaupunki:</label>
+                <div style="display: flex; gap: 6px; align-items: center; margin-bottom: 10px;">
+                    <input type="text" id="editPropertyAddress" placeholder="esim. Kauppakatu 10, Tampere" style="margin-bottom: 0; flex: 1;">
+                    <button type="button" class="btn-outline" style="white-space: nowrap; padding: 0 10px; min-height: 40px; font-size: 0.78rem;" onclick="enableMapPinDropMode('editTask')" title="Valitse uusi sijainti kartalta klikkaamalla">📍 Kartalta</button>
+                </div>
+
+                <div class="geofence-settings-box" style="margin: 10px 0; padding: 10px; background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; border-radius: 6px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label for="editPropertyGeofenceRadius" style="font-size: 0.8rem; font-weight: 600; color: #cbd5e1; margin: 0;">Geofence-säde: <strong id="editPropertyGeofenceRadiusVal" style="color: #38bdf8;">80</strong> m</label>
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="range" id="editPropertyGeofenceRadius" min="20" max="300" step="5" value="80" style="flex: 1; margin: 0; padding: 4px 0;" oninput="document.getElementById('editPropertyGeofenceRadiusVal').textContent = this.value; document.getElementById('editPropertyGeofenceRadiusNumber').value = this.value;">
+                        <input type="number" id="editPropertyGeofenceRadiusNumber" min="20" max="500" value="80" style="width: 75px; margin: 0; padding: 4px 8px; font-size: 0.85rem;" oninput="document.getElementById('editPropertyGeofenceRadiusVal').textContent = this.value; document.getElementById('editPropertyGeofenceRadius').value = this.value;">
+                    </div>
+                    <label class="check-row" style="margin-top: 8px; margin-bottom: 0; font-size: 0.78rem;">
+                        <input type="checkbox" id="editPropertyGeofenceEnabled" checked>
+                        Vaadi paikkatodennus kohteessa
+                    </label>
+                </div>
+
+                <label for="editPropertyNotes" style="font-size: 0.8rem; font-weight: 600; color: #cbd5e1; display: block; margin-bottom: 4px;">Pihan lisäohjeet / huomiot kuskille:</label>
+                <textarea id="editPropertyNotes" rows="2" placeholder="esim. Varo kaivonkantta, auraus vain sisäpihalle" style="width: 100%; margin-bottom: 12px; font-size: 0.85rem;"></textarea>
+
+                <div style="margin-bottom: 14px;">
+                    <button type="button" class="btn-outline" style="width: 100%; min-height: 40px; font-size: 0.82rem; border-color: #0284c7; color: #38bdf8;" onclick="activatePropertySatelliteBoundariesEdit()" title="Keskittää kartan kohteeseen ja avaa satelliittirajojen muokkauskahvat">
+                        🛰️ Muokkaa pihan satelliittirajoja
+                    </button>
+                </div>
+
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" id="btn-save-property" class="btn-primary" style="flex: 1.5; min-height: 44px; background: #10b981; border-color: #059669; font-weight: 700;" onclick="savePropertyEditForm()">
+                        💾 Tallenna muutokset
+                    </button>
+                    <button type="button" class="btn-secondary" style="flex: 1; min-height: 44px;" onclick="cancelPropertyEdit()">
+                        ✕ Peruuta
+                    </button>
+                </div>
+            </div>
+
             <!-- Suodattimet ja itse kohdelista -->
             <div class="filter-bar">
                 <button class="filter-btn active" onclick="setFilter('all', this)">Kaikki</button>
@@ -676,9 +727,14 @@
     <!-- NÄKYMÄ 5: ASETUKSET & KUSTOMOINTI -->
     <div id="viewSettings" style="display: none;">
         <div class="card" style="max-width: 800px; margin: 0 auto;">
-            <h3 style="margin-bottom: 14px;">
-                <span>⚙️ Järjestelmä- ja näkymäasetukset</span>
-            </h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                <button type="button" id="btn-back-to-home" class="btn-outline" style="min-height: 42px; padding: 6px 16px; font-weight: 600; font-size: 0.9rem;" onclick="switchTab('routes')">
+                    ← Takaisin kotiin
+                </button>
+                <h3 style="margin: 0;">
+                    <span>⚙️ Järjestelmä- ja näkymäasetukset</span>
+                </h3>
+            </div>
 
             <!-- Käyttötilan valinta (Kenttä vs. Hallinta) -->
             <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 18px;">

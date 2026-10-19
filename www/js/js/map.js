@@ -148,6 +148,8 @@ async function applyPinDropCoordinates(lat, lng, shouldReverseGeocode = true) {
             if (pinDropTargetContext === 'editTask') {
                 const editAddrEl = document.getElementById('editAddress');
                 if (editAddrEl) editAddrEl.value = revAddr;
+                const editPropAddrEl = document.getElementById('editPropertyAddress');
+                if (editPropAddrEl) editPropAddrEl.value = revAddr;
                 if (target) target.address = revAddr;
             }
             setYardMapStatus(`📍 Sijainti asetettu: ${revAddr} (${lat.toFixed(5)}, ${lng.toFixed(5)})`);

@@ -2758,32 +2758,158 @@ document.getElementById('editType').innerHTML = document.getElementById('type').
 function editTask(id) {
     const t = tasks.find(x => x.id === id);
     if (!t) return;
+    openPropertyEditForm(id);
+}
+window.editTask = editTask;
+
+// Sivupalkin kohteen muokkauslomake (#property-edit-form)
+function openPropertyEditForm(id) {
+    const t = tasks.find(x => x.id === id);
+    if (!t) return;
     normalizeGeofenceFields(t);
     editingId = id;
-    document.getElementById('editName').value = t.name;
-    editAddress.value = t.address;
-    const phoneEl = document.getElementById('editTaskPhone');
-    if (phoneEl) phoneEl.value = t.phone || '';
-    const emailEl = document.getElementById('editTaskEmail');
-    if (emailEl) emailEl.value = t.email || '';
-    ['lat', 'lon', 'geo', 'addr'].forEach(k => delete editAddress.dataset[k]);
-    const typeSel = document.getElementById('editType');
-    if (![...typeSel.options].some(o => o.value === t.type)) typeSel.add(new Option(t.type, t.type));
-    typeSel.value = t.type;
-    document.getElementById('editNotes').value = t.notes || '';
 
-    const gfEn = document.getElementById('editTaskGeofenceEnabled');
-    const gfType = document.getElementById('editTaskGeofenceType');
-    const gfRad = document.getElementById('editTaskGeofenceRadius');
-    const gfRadVal = document.getElementById('editTaskGeofenceRadiusVal');
+    const formEl = document.getElementById('property-edit-form');
+    if (!formEl) return;
+
+    // Suljetaan muut avoimet paneelit
+    const addTaskDrawer = document.getElementById('addTaskDrawer');
+    const routeConfigDrawer = document.getElementById('routeConfigDrawer');
+    if (addTaskDrawer) addTaskDrawer.style.display = 'none';
+    if (routeConfigDrawer) routeConfigDrawer.style.display = 'none';
+    document.getElementById('btnToggleAddTask')?.classList.remove('active');
+    document.getElementById('btnToggleRouteConfig')?.classList.remove('active');
+
+    document.getElementById('editPropertyId').value = t.id;
+    document.getElementById('editPropertyName').value = t.name || '';
+    const addrInput = document.getElementById('editPropertyAddress');
+    if (addrInput) {
+        addrInput.value = t.address || '';
+        ['lat', 'lon', 'geo', 'addr'].forEach(k => delete addrInput.dataset[k]);
+    }
+    const notesInput = document.getElementById('editPropertyNotes');
+    if (notesInput) notesInput.value = t.notes || '';
+
+    const gfEn = document.getElementById('editPropertyGeofenceEnabled');
+    const gfRad = document.getElementById('editPropertyGeofenceRadius');
+    const gfRadNum = document.getElementById('editPropertyGeofenceRadiusNumber');
+    const gfRadVal = document.getElementById('editPropertyGeofenceRadiusVal');
+    const rad = t.geofence_radius || 80;
     if (gfEn) gfEn.checked = t.geofence_enabled !== false;
-    if (gfType) gfType.value = t.geofence_type || 'radius';
-    if (gfRad) gfRad.value = t.geofence_radius || 80;
-    if (gfRadVal) gfRadVal.textContent = t.geofence_radius || 80;
+    if (gfRad) gfRad.value = rad;
+    if (gfRadNum) gfRadNum.value = rad;
+    if (gfRadVal) gfRadVal.textContent = rad;
 
-    editDlg.returnValue = '';
-    editDlg.showModal();
+    formEl.style.display = 'block';
+    selectActiveProperty(id, true);
+    formEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
+window.openPropertyEditForm = openPropertyEditForm;
+
+function cancelPropertyEdit() {
+    editingId = null;
+    const formEl = document.getElementById('property-edit-form');
+    if (formEl) formEl.style.display = 'none';
+}
+window.cancelPropertyEdit = cancelPropertyEdit;
+
+function savePropertyEditForm() {
+    const id = editingId || parseInt(document.getElementById('editPropertyId').value, 10);
+    if (!id) return;
+    const t = tasks.find(x => x.id === id);
+    if (!t) return;
+
+    const nameInput = document.getElementById('editPropertyName');
+    const addrInput = document.getElementById('editPropertyAddress');
+    const notesInput = document.getElementById('editPropertyNotes');
+    const gfEn = document.getElementById('editPropertyGeofenceEnabled');
+    const gfRad = document.getElementById('editPropertyGeofenceRadius');
+
+    const newName = nameInput ? nameInput.value.trim() : '';
+    const newAddress = addrInput ? addrInput.value.trim() : '';
+    if (!newName || !newAddress) {
+        alert('Täytä vähintään kohteen nimi ja osoite!');
+        return;
+    }
+
+    const changedAddress = newAddress !== t.address;
+    t.name = newName;
+    if (notesInput) t.notes = notesInput.value.trim();
+
+    const radVal = gfRad ? Number(gfRad.value) || 80 : 80;
+    t.geofence_enabled = gfEn ? gfEn.checked : true;
+    t.geofence_radius = radVal;
+
+    // Synkronoidaan asiakasrekisteriin jos sama asiakas löytyy
+    const cust = customers.find(c =>
+        (t.customerId && String(c.id) === String(t.customerId)) ||
+        (c.name && c.name.toLowerCase() === t.name.toLowerCase())
+    );
+    if (cust) {
+        cust.name = t.name;
+        cust.notes = t.notes;
+        cust.geofence_enabled = t.geofence_enabled;
+        cust.geofence_radius = t.geofence_radius;
+        if (changedAddress) cust.address = newAddress;
+        persistCustomers();
+    }
+
+    if (changedAddress) {
+        t.address = newAddress;
+        t.gps = false;
+        if (addrInput && addrInput.dataset.addr === newAddress && addrInput.dataset.lat) {
+            t.lat = parseFloat(addrInput.dataset.lat);
+            t.lon = parseFloat(addrInput.dataset.lon);
+            t.geoName = addrInput.dataset.geo || '';
+        } else {
+            t.lat = null;
+            t.lon = null;
+            t.geoName = '';
+            geocodeTask(t.id);
+        }
+    }
+
+    cancelPropertyEdit();
+    saveAndRender();
+    if (typeof syncYardMapGeofenceControls === 'function') syncYardMapGeofenceControls();
+    if (typeof renderYardGeofenceCircle === 'function') renderYardGeofenceCircle();
+    showStatus('Tiedot tallennettu!', 'success');
+}
+window.savePropertyEditForm = savePropertyEditForm;
+
+function activatePropertySatelliteBoundariesEdit() {
+    const id = editingId || parseInt(document.getElementById('editPropertyId').value, 10);
+    if (!id) return;
+    const t = tasks.find(x => x.id === id);
+    if (!t) return;
+
+    // Varmistetaan että hallintatila on kytketty päälle
+    if (typeof setAppMode === 'function') setAppMode('admin');
+
+    // Valitaan ja keskitetään kartta
+    const key = makeTargetGeoKey(t.name, t.address);
+    if (typeof selectYardMapTarget === 'function') selectYardMapTarget(key);
+    if (typeof centerMapOnTarget === 'function') centerMapOnTarget(key);
+
+    // Jos kartalla on piirrettyjä alueita, valitaan ensimmäinen muokkauskahvoineen
+    if (yardDrawnItems) {
+        let firstLayer = null;
+        yardDrawnItems.eachLayer(l => { if (!firstLayer) firstLayer = l; });
+        if (firstLayer && typeof selectMapLayer === 'function') {
+            selectMapLayer(firstLayer);
+        }
+    }
+
+    const card = document.getElementById('yardMapCard');
+    if (card) {
+        setTimeout(() => {
+            if (yardMap) yardMap.invalidateSize();
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
+    }
+    showStatus('Voit nyt muokata pihan satelliittirajoja kartan kahvoista tai piirtää uuden alueen.', 'info');
+}
+window.activatePropertySatelliteBoundariesEdit = activatePropertySatelliteBoundariesEdit;
 
 editDlg.addEventListener('close', () => {
     const id = editingId;
@@ -3367,6 +3493,7 @@ function initYardFlowApp() {
     // Osoite-ehdotukset: lisäyslomake, muokkausdialogi, asiakaslomakkeet, työloki ja varikko
     attachAutocomplete(document.getElementById('address'));
     attachAutocomplete(document.getElementById('editAddress'));
+    attachAutocomplete(document.getElementById('editPropertyAddress'));
     attachAutocomplete(document.getElementById('custAddress'));
     attachAutocomplete(document.getElementById('editCustAddress'));
     attachAutocomplete(document.getElementById('manualLogAddress'));
