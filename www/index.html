@@ -8086,13 +8086,24 @@
     }
 
     // ---------- Tallennetut reitit ----------
-    let routes = JSON.parse(localStorage.getItem('pihatyot_routes_v1')) || [];
-    let currentRouteId = localStorage.getItem('pihatyot_current_route') || null;
+    let routes = JSON.parse(localStorage.getItem('yardflow_routes') || localStorage.getItem('pihatyot_routes_v1') || '[]');
+    let currentRouteId = localStorage.getItem('yardflow_active_route_id') || localStorage.getItem('pihatyot_current_route') || null;
 
     function persistRoutes() {
-        localStorage.setItem('pihatyot_routes_v1', JSON.stringify(routes));
-        if (currentRouteId) localStorage.setItem('pihatyot_current_route', String(currentRouteId));
-        else localStorage.removeItem('pihatyot_current_route');
+        try {
+            const json = JSON.stringify(routes);
+            localStorage.setItem('yardflow_routes', json);
+            localStorage.setItem('pihatyot_routes_v1', json);
+            if (currentRouteId) {
+                localStorage.setItem('yardflow_active_route_id', String(currentRouteId));
+                localStorage.setItem('pihatyot_current_route', String(currentRouteId));
+            } else {
+                localStorage.removeItem('yardflow_active_route_id');
+                localStorage.removeItem('pihatyot_current_route');
+            }
+        } catch (e) {
+            console.warn('Virhe reittien tallennuksessa:', e);
+        }
     }
 
     const getCurrentRoute = () => routes.find(r => String(r.id) === String(currentRouteId));
@@ -8215,15 +8226,67 @@
         renderActiveRoute();
     }
 
-    function deleteRoute(id) {
+    function deleteRoute(id, event = null) {
+        if (event && typeof event.stopPropagation === 'function') {
+            event.stopPropagation();
+            if (typeof event.preventDefault === 'function') event.preventDefault();
+        }
+
         const r = routes.find(x => String(x.id) === String(id));
-        if (!r || !confirm(`Poistetaanko reitti "${r.name}"? Tätä ei voi perua.`)) return;
-        routes = routes.filter(x => x !== r);
-        if (String(currentRouteId) === String(id)) currentRouteId = null;
+        const routeName = r ? r.name : 'tämä reitti';
+        if (!confirm(`Haluatko varmasti poistaa tämän reitin ("${routeName}")?`)) return;
+
+        // 1. Suodatetaan poistettava reitti pois (huomioidaan String / Number vertailu)
+        routes = routes.filter(x => String(x.id) !== String(id));
+
+        // 2. Jos reitti oli aktiivinen/valittu reitti, nollataan se
+        if (String(currentRouteId) === String(id)) {
+            currentRouteId = null;
+            try {
+                localStorage.removeItem('yardflow_active_route_id');
+                localStorage.removeItem('pihatyot_current_route');
+            } catch (e) {}
+        }
+
+        // 3. Tallennetaan päivitetty lista
         persistRoutes();
-        renderRoutes();
-        renderActiveRoute();
+
+        // 4. Päivitetään heti näkymät ja listaus
+        if (typeof renderRoutesManagementView === 'function') {
+            renderRoutesManagementView();
+        }
+        if (typeof renderRoutesList === 'function') {
+            renderRoutesList();
+        }
+        if (typeof renderRoutes === 'function') {
+            renderRoutes();
+        }
+        if (typeof renderActiveRoute === 'function') {
+            renderActiveRoute();
+        }
+        if (typeof updateDriverHud === 'function') {
+            updateDriverHud();
+        }
+        if (typeof renderDashboardView === 'function') {
+            renderDashboardView();
+        }
+        if (typeof updateDashboard === 'function') {
+            updateDashboard();
+        }
+        if (typeof updateDrawerBadges === 'function') {
+            updateDrawerBadges();
+        }
+
+        if (typeof showNotification === 'function') {
+            showNotification('Reitti poistettu onnistuneesti', 'success');
+        } else if (typeof showStatus === 'function') {
+            showStatus('Reitti poistettu onnistuneesti', 'success');
+        }
     }
+    window.deleteRoute = deleteRoute;
+    window.renderRoutesList = renderRoutesManagementView;
+    window.updateDashboard = renderDashboardView;
+    window.showNotification = showStatus;
 
     function newEmptyRoute() {
         if (tasks.length && !confirm('Aloitetaanko uusi tyhjä reitti? Nykyinen lista tyhjennetään (tallennetut reitit säilyvät).')) return;
@@ -8251,9 +8314,9 @@
                     <div class="route-meta">${r.tasks ? r.tasks.length : 0} kohdetta · päivitetty ${esc(fmtDate(r.updated || r.created))}</div>
                 </div>
                 <div class="route-actions">
-                    <button class="tiny-btn" onclick="loadRoute(${r.id})">▶ Lataa</button>
-                    <button class="tiny-btn" onclick="renameRoute(${r.id})">✎ Nimeä</button>
-                    <button class="tiny-btn danger" onclick="deleteRoute(${r.id})">✕</button>
+                    <button type="button" class="tiny-btn" onclick="event.stopPropagation(); loadRoute('${r.id}')">▶ Lataa</button>
+                    <button type="button" class="tiny-btn" onclick="event.stopPropagation(); renameRoute('${r.id}')">✎ Nimeä</button>
+                    <button type="button" class="tiny-btn danger btn-delete-route" data-route-id="${r.id}" onclick="event.stopPropagation(); deleteRoute('${r.id}', event);" title="Poista reitti">✕</button>
                 </div>
             </div>`;
         }).join('');
@@ -8606,16 +8669,16 @@
 
                 <div style="display: flex; flex-direction: column; gap: 8px; border-top: 1px dashed var(--border); padding-top: 10px;">
                     <div style="display: flex; gap: 6px;">
-                        <button type="button" class="btn-primary" style="flex: 1; min-height: 36px; padding: 4px 10px; font-size: 0.84rem; font-weight: 700;" onclick="loadAndOpenRoute('${r.id}')">
+                        <button type="button" class="btn-primary" style="flex: 1; min-height: 36px; padding: 4px 10px; font-size: 0.84rem; font-weight: 700;" onclick="event.stopPropagation(); loadAndOpenRoute('${r.id}')">
                             ▶ ${isActive ? 'Aktiivinen reitti' : 'Ota ajoon'}
                         </button>
-                        <button type="button" class="btn-outline" style="min-height: 36px; padding: 4px 10px; font-size: 0.84rem;" onclick="reassignRouteDriver('${r.id}')" title="Määritä toiselle kuljettajalle">
+                        <button type="button" class="btn-outline" style="min-height: 36px; padding: 4px 10px; font-size: 0.84rem;" onclick="event.stopPropagation(); reassignRouteDriver('${r.id}')" title="Määritä toiselle kuljettajalle">
                             🔄 Kuski
                         </button>
                     </div>
                     <div style="display: flex; gap: 6px; justify-content: flex-end;">
-                        <button type="button" class="tiny-btn" onclick="openCreateRouteModal('${r.id}')">✏️ Muokkaa</button>
-                        <button type="button" class="tiny-btn danger" onclick="deleteRoute('${r.id}')">🗑️ Poista</button>
+                        <button type="button" class="tiny-btn" onclick="event.stopPropagation(); openCreateRouteModal('${r.id}')">✏️ Muokkaa</button>
+                        <button type="button" class="tiny-btn danger btn-delete-route" data-route-id="${r.id}" onclick="event.stopPropagation(); deleteRoute('${r.id}', event);" title="Poista reitti">🗑️ Poista</button>
                     </div>
                 </div>
             </div>`;
@@ -11553,6 +11616,18 @@
         if (navigator.onLine) syncPendingLogs();
         restorePanelCollapseStates();
         if (typeof updateMapSettingsUi === 'function') updateMapSettingsUi();
+
+        // Varmistetaan reitin poistonapin tapahtumankäsittely ja stopPropagation delegoituna
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('.btn-delete-route');
+            if (btn) {
+                e.stopPropagation();
+                const rId = btn.getAttribute('data-route-id');
+                if (rId && typeof deleteRoute === 'function') {
+                    deleteRoute(rId, e);
+                }
+            }
+        });
     });
 </script>
 </body>
