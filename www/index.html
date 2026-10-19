@@ -3082,6 +3082,46 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                d.toLocaleTimeString('fi-FI', { hour: '2-digit', minute: '2-digit' });
     }
 
+    function disableLayerTransformsAndEdit(layer) {
+        if (!layer) return;
+        if (layer.transform && layer.transform._enabled) {
+            layer.transform.disable();
+        }
+        if (layer.pm && typeof layer.pm.enabled === 'function' && layer.pm.enabled()) {
+            layer.pm.disable();
+        }
+    }
+    window.disableLayerTransformsAndEdit = disableLayerTransformsAndEdit;
+
+    function findCustomerForTask(t) {
+        if (!t || typeof customers === 'undefined' || !Array.isArray(customers)) return null;
+        return customers.find(c =>
+            (t.customerId && String(c.id) === String(t.customerId)) ||
+            (c.name && t.name && c.name.toLowerCase() === t.name.toLowerCase())
+        ) || null;
+    }
+    window.findCustomerForTask = findCustomerForTask;
+
+    function renderAndSavePdf(element, filename, successMessage = 'PDF ladattu onnistuneesti! ✓') {
+        if (typeof html2pdf === 'undefined') {
+            alert('PDF-kirjasto latautuu, yritä hetken kuluttua uudelleen.');
+            return Promise.reject(new Error('html2pdf missing'));
+        }
+        return html2pdf().set({
+            margin: 10,
+            filename: filename,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        }).from(element).save().then(() => {
+            if (successMessage) showStatus(successMessage, 'success');
+        }).catch(err => {
+            console.error('PDF-virhe:', err);
+            alert('PDF:n luonti epäonnistui: ' + (err?.message || err));
+        });
+    }
+    window.renderAndSavePdf = renderAndSavePdf;
+
     // ---------- Teeman hallinta (Apple Light / Dark) ----------
     function toggleTheme() {
         const current = document.documentElement.getAttribute('data-theme') || 'dark';
@@ -3175,12 +3215,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                 if (typeof yardMap.pm.disableGlobalRotateMode === 'function') yardMap.pm.disableGlobalRotateMode();
             }
             if (selectedMapLayer) {
-                if (selectedMapLayer.transform && selectedMapLayer.transform._enabled) {
-                    selectedMapLayer.transform.disable();
-                }
-                if (selectedMapLayer.pm && typeof selectedMapLayer.pm.enabled === 'function' && selectedMapLayer.pm.enabled()) {
-                    selectedMapLayer.pm.disable();
-                }
+                disableLayerTransformsAndEdit(selectedMapLayer);
                 selectedMapLayer = null;
             }
             if (typeof isPinDropModeActive !== 'undefined' && isPinDropModeActive) disableMapPinDropMode();
@@ -4014,10 +4049,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         t.manager_alert = false;
 
         // 2. Päivitetään asiakasrekisterin kortti jos linkitetty
-        const cust = customers.find(c =>
-            (t.customerId && String(c.id) === String(t.customerId)) ||
-            (c.name && t.name && c.name.toLowerCase() === t.name.toLowerCase())
-        );
+        const cust = findCustomerForTask(t);
         if (cust) {
             cust.completed_at = null;
             cust.manager_alert = false;
@@ -6897,18 +6929,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
 
         const filename = 'Tyoraportti_' + meta.safeCustomer + '_' + meta.safeDateRange + '.pdf';
 
-        html2pdf().set({
-            margin: 10,
-            filename: filename,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        }).from(printEl).save().then(() => {
-            showStatus('Työraportti ladattu PDF-tiedostona! ✓', 'success');
-        }).catch(err => {
-            console.error('PDF-virhe:', err);
-            alert('PDF:n luonti epäonnistui: ' + err.message);
-        });
+        renderAndSavePdf(printEl, filename, 'Työraportti ladattu PDF-tiedostona! ✓');
     }
     window.exportWorkHistoryPDF = exportWorkHistoryPDF;
 
@@ -6991,18 +7012,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
 
         const filename = 'Laskuerittely_' + meta.safeCustomer + '_' + meta.safeDateRange + '.pdf';
 
-        html2pdf().set({
-            margin: 10,
-            filename: filename,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        }).from(printEl).save().then(() => {
-            showStatus('Laskuerittely ladattu PDF-tiedostona! ✓', 'success');
-        }).catch(err => {
-            console.error('PDF-virhe:', err);
-            alert('PDF:n luonti epäonnistui: ' + err.message);
-        });
+        renderAndSavePdf(printEl, filename, 'Laskuerittely ladattu PDF-tiedostona! ✓');
     }
     window.exportBillingPDF = exportBillingPDF;
 
@@ -7709,18 +7719,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
 
         const filename = 'YardFlow_asiakaskortti_' + (c.name || 'asiakas').replace(/[^a-zA-Z0-9åäöÅÄÖ]/g, '_') + '.pdf';
 
-        html2pdf().set({
-            margin: 10,
-            filename: filename,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        }).from(printEl).save().then(function() {
-            showStatus('Asiakaskortti ladattu onnistuneesti!', 'success');
-        }).catch(function(err) {
-            console.error('PDF error:', err);
-            alert('PDF:n luonti epäonnistui: ' + err.message);
-        });
+        renderAndSavePdf(printEl, filename, 'Asiakaskortti ladattu onnistuneesti! ✓');
     }
     window.exportCustomerCardPDF = exportCustomerCardPDF;
 
@@ -8404,10 +8403,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         t.manager_alert = true;
 
         // Synkronoidaan esimieshuomio myös asiakasrekisterin kortille
-        const cust = customers.find(c =>
-            (t.customerId && String(c.id) === String(t.customerId)) ||
-            (c.name && t.name && c.name.toLowerCase() === t.name.toLowerCase())
-        );
+        const cust = findCustomerForTask(t);
         if (cust) {
             cust.manual_override = true;
             cust.override_reason = finalReason;
@@ -8576,10 +8572,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         t.blocked_distance_meters = null;
         t.manager_alert = false;
 
-        const cust = customers.find(c =>
-            (t.customerId && String(c.id) === String(t.customerId)) ||
-            (c.name && t.name && c.name.toLowerCase() === t.name.toLowerCase())
-        );
+        const cust = findCustomerForTask(t);
         if (cust) {
             cust.manager_alert = false;
             persistCustomers();
@@ -8669,10 +8662,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         t.done = false;
 
         // Synkronoidaan asiakastietoihin
-        const cust = customers.find(c =>
-            (t.customerId && String(c.id) === String(t.customerId)) ||
-            (c.name && t.name && c.name.toLowerCase() === t.name.toLowerCase())
-        );
+        const cust = findCustomerForTask(t);
         if (cust) {
             cust.manager_alert = true;
             cust.last_blocked_reason = finalReason;
@@ -11530,12 +11520,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         if (currentAppMode !== 'admin') return;
 
         if (selectedMapLayer && selectedMapLayer !== layer) {
-            if (selectedMapLayer.transform && selectedMapLayer.transform._enabled) {
-                selectedMapLayer.transform.disable();
-            }
-            if (selectedMapLayer.pm && typeof selectedMapLayer.pm.enabled === 'function' && selectedMapLayer.pm.enabled()) {
-                selectedMapLayer.pm.disable();
-            }
+            disableLayerTransformsAndEdit(selectedMapLayer);
             if (typeof selectedMapLayer.setStyle === 'function') {
                 const prevCat = YARD_CATEGORIES[selectedMapLayer._yardCategory] || YARD_CATEGORIES.machine;
                 selectedMapLayer.setStyle({ weight: prevCat.weight, dashArray: null });
@@ -12729,12 +12714,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         }
         if (isPinDropModeActive) disableMapPinDropMode();
         if (selectedMapLayer && yardDrawnItems.hasLayer(selectedMapLayer)) {
-            if (selectedMapLayer.transform && selectedMapLayer.transform._enabled) {
-                selectedMapLayer.transform.disable();
-            }
-            if (selectedMapLayer.pm && typeof selectedMapLayer.pm.enabled === 'function' && selectedMapLayer.pm.enabled()) {
-                selectedMapLayer.pm.disable();
-            }
+            disableLayerTransformsAndEdit(selectedMapLayer);
             yardDrawnItems.removeLayer(selectedMapLayer);
             yardMap.removeLayer(selectedMapLayer);
             selectedMapLayer = null;
@@ -12771,12 +12751,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             return;
         }
         if (selectedMapLayer) {
-            if (selectedMapLayer.transform && selectedMapLayer.transform._enabled) {
-                selectedMapLayer.transform.disable();
-            }
-            if (selectedMapLayer.pm && typeof selectedMapLayer.pm.enabled === 'function' && selectedMapLayer.pm.enabled()) {
-                selectedMapLayer.pm.disable();
-            }
+            disableLayerTransformsAndEdit(selectedMapLayer);
         }
         yardDrawnItems.clearLayers();
         selectedMapLayer = null;
@@ -13096,12 +13071,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                 return;
             }
             if (selectedMapLayer) {
-                if (selectedMapLayer.transform && selectedMapLayer.transform._enabled) {
-                    selectedMapLayer.transform.disable();
-                }
-                if (selectedMapLayer.pm && typeof selectedMapLayer.pm.enabled === 'function' && selectedMapLayer.pm.enabled()) {
-                    selectedMapLayer.pm.disable();
-                }
+                disableLayerTransformsAndEdit(selectedMapLayer);
                 if (typeof selectedMapLayer.setStyle === 'function') {
                     const prevCat = YARD_CATEGORIES[selectedMapLayer._yardCategory] || YARD_CATEGORIES.machine;
                     selectedMapLayer.setStyle({ weight: prevCat.weight, dashArray: null });
