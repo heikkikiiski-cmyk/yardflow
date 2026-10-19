@@ -1113,7 +1113,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     </div>
 
     <!-- Käyttäjäroolin valitsin hampurilaisvalikon sisällä (Admin vs. Kuski) -->
-    <div class="drawer-mode-section">
+    <div class="drawer-mode-section" id="drawerModeSection">
         <div class="drawer-mode-label">
             <span>Käyttäjärooli</span>
             <span style="font-weight: 500; font-size: 0.72rem; text-transform: none; color: var(--muted);">Valitse rooli:</span>
@@ -1123,7 +1123,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                 <span>🚜</span> <span>Kuljettaja</span>
             </button>
             <button type="button" class="drawer-mode-btn admin-mode-active" id="drawerBtnModeAdmin" onclick="selectAppModeFromDrawer('admin')" title="Siirry työnjohdon hallintatilaan">
-                <span>🛠️</span> <span>Työnjohto (Admin)</span>
+                <span>🛠️</span> <span id="drawerBtnModeAdminLabel">Työnjohto</span>
             </button>
         </div>
     </div>
@@ -1176,7 +1176,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             <span class="nav-item-label">Laskutus</span>
         </button>
 
-        <div class="drawer-divider admin-only"></div>
+        <div class="drawer-divider admin-only" id="drawerDividerAdmin"></div>
 
         <!-- ⚙️ Asetukset (Vain Admin) -->
         <button type="button" class="drawer-nav-item admin-only" id="nav-settings" onclick="navToTab('settings')">
@@ -1345,7 +1345,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                     </div>
                     <div style="margin-top: 12px; font-size: 0.78rem; color: var(--muted); display: flex; justify-content: space-between; align-items: center;">
                         <span id="dashRouteStopsCount">0 kohdetta reitillä</span>
-                        <button type="button" class="btn-outline" style="padding: 4px 10px; font-size: 0.78rem;" onclick="setAppMode('admin'); switchTab('routes'); setTimeout(autoOptimizeRoute, 150);">⚡ Optimoi reitti</button>
+                        <button type="button" class="btn-outline admin-only" style="padding: 4px 10px; font-size: 0.78rem;" onclick="setAppMode('admin'); switchTab('routes'); setTimeout(autoOptimizeRoute, 150);">⚡ Optimoi reitti</button>
                     </div>
                 </div>
             </div>
@@ -1892,8 +1892,8 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                         <span>👥</span>
                         <span>Käyttäjien &amp; kuljettajien hallinta (<span id="driversCountBadge">0</span>)</span>
                     </h3>
-                    <div style="font-size: 0.82rem; color: var(--muted); margin-top: 3px;">
-                        Modulaarinen roolinhallinta: Admin, Työnjohto, Kuljettajat ja Tuuraajat oikeusmatriiseineen
+                    <div style="font-size: 0.82rem; color: var(--muted); margin-top: 3px;" id="driversViewSubtitle">
+                        Modulaarinen roolinhallinta: Työnjohto, Kuljettajat ja Tuuraajat oikeusmatriiseineen
                     </div>
                 </div>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
@@ -1973,7 +1973,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                 <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 14px; margin-bottom: 14px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                         <span style="font-weight: 700; font-size: 0.88rem; color: var(--fg);">📋 Modulaarinen oikeusmatriisi:</span>
-                        <span style="font-size: 0.75rem; color: var(--muted);">Admin voi räätälöidä yksittäisiä oikeuksia</span>
+                        <span id="permMatrixHelpText" style="font-size: 0.75rem; color: var(--muted);">Voit räätälöidä yksittäisiä oikeuksia</span>
                     </div>
                     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px;">
                         <label class="check-row" style="margin: 0; font-size: 0.85rem; cursor: pointer;">
@@ -2445,7 +2445,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                         🚜 Kytke Kenttätila (Kuljettaja)
                     </button>
                     <button type="button" class="btn-secondary" id="btnSettingsModeAdmin" onclick="setAppMode('admin')" style="flex: 1; min-height: 46px;">
-                        🛠️ Kytke Hallintatila (Työnjohto)
+                        <span id="btnSettingsModeAdminLabel">🛠️ Kytke Hallintatila (Työnjohto)</span>
                     </button>
                 </div>
             </div>
@@ -3339,15 +3339,26 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             btnSettingsAdmin.className = currentAppMode === 'admin' ? 'btn-primary' : 'btn-outline';
         }
 
+        const userRole = (typeof getUserRole === 'function') ? getUserRole() : (currentAppMode === 'admin' ? 'admin' : 'driver');
+
         if (badge) {
             if (currentAppMode === 'field') {
                 badge.className = 'mode-status-badge mode-badge-field';
-                badge.textContent = '🚜 Kuljettaja';
+                badge.style.cssText = '';
+                badge.textContent = userRole === 'temporary' ? '⏱️ Tuuraaja' : '🚜 Kuljettaja';
                 badge.title = 'Kuljettajatila aktiivinen: häiriötön työpäivänäkymä, reittikartta ja nopea kuittaus.';
             } else {
-                badge.className = 'mode-status-badge mode-badge-admin';
-                badge.textContent = '🛠️ Työnjohto (Admin)';
-                badge.title = 'Hallintatila aktiivinen: reitit, kuljettajat, piirtotyökalut, asiakkaat ja laskutus.';
+                if (userRole === 'supervisor') {
+                    badge.className = 'mode-status-badge mode-badge-admin';
+                    badge.style.cssText = 'background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.35);';
+                    badge.textContent = '👔 Työnjohto';
+                    badge.title = 'Työnjohtotila aktiivinen: reitit, kuljettajat ja seuranta.';
+                } else {
+                    badge.className = 'mode-status-badge mode-badge-admin';
+                    badge.style.cssText = '';
+                    badge.textContent = '👑 Järjestelmänvalvoja (Admin)';
+                    badge.title = 'Hallintatila aktiivinen: reitit, kuljettajat, piirtotyökalut, asiakkaat ja laskutus.';
+                }
             }
         }
 
@@ -3355,10 +3366,20 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         const navHomeLabel = document.getElementById('navHomeLabel');
         const navMapLabel = document.getElementById('navMapLabel');
         if (navHomeLabel) {
-            navHomeLabel.textContent = currentAppMode === 'field' ? 'Koti (Työpäivä)' : 'Koti (Dashboard)';
+            if (userRole === 'driver' || userRole === 'temporary' || currentAppMode === 'field') {
+                navHomeLabel.textContent = 'Koti (Ajojono / Työpäivä)';
+            } else if (userRole === 'supervisor') {
+                navHomeLabel.textContent = 'Koti (Työnohjaus)';
+            } else {
+                navHomeLabel.textContent = 'Koti (Dashboard)';
+            }
         }
         if (navMapLabel) {
-            navMapLabel.textContent = currentAppMode === 'field' ? 'Reittikartta' : 'Kartta & Reitinsuunnittelu';
+            if (userRole === 'driver' || userRole === 'temporary' || currentAppMode === 'field') {
+                navMapLabel.textContent = 'Kartta';
+            } else {
+                navMapLabel.textContent = 'Kartta & Reitinsuunnittelu';
+            }
         }
 
         // Jos poistutaan hallintatilasta kuljettajatilaan, suljetaan avoimet piirto- ja muokkaustoiminnot
@@ -4349,6 +4370,11 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
 
     function selectAppModeFromDrawer(mode) {
         closeAppDrawer();
+        const role = (typeof getUserRole === 'function') ? getUserRole() : 'driver';
+        if (mode === 'admin' && (role === 'driver' || role === 'temporary')) {
+            if (typeof showStatus === 'function') showStatus('Ei käyttöoikeutta työnjohdon hallintatilaan.', 'warning');
+            return;
+        }
         setAppMode(mode);
         if (mode === 'field') {
             switchTab('dashboard');
@@ -4429,9 +4455,14 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         }
         const modeText = document.getElementById('drawerModeText');
         if (modeText) {
-            modeText.textContent = (typeof currentAppMode !== 'undefined' && currentAppMode === 'field')
-                ? '🚜 Kuljettajan työnäkymä'
-                : '🛠️ Työnjohto aktiivinen';
+            const role = (typeof getUserRole === 'function') ? getUserRole() : (currentAppMode === 'admin' ? 'admin' : 'driver');
+            if (currentAppMode === 'field' || role === 'driver' || role === 'temporary') {
+                modeText.textContent = '🚜 Kenttätila aktiivinen';
+            } else if (role === 'supervisor') {
+                modeText.textContent = '👔 Työnjohto aktiivinen';
+            } else {
+                modeText.textContent = '👑 Pääkäyttäjä aktiivinen';
+            }
         }
     }
     window.updateDrawerBadges = updateDrawerBadges;
@@ -4684,6 +4715,17 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         // Kuljettajalla sallitut näkymät ovat 'dashboard' (koti) ja 'routes' (kartta) jos ei muita oikeuksia
         if (currentAppMode === 'field' && tab !== 'dashboard' && tab !== 'routes') {
             tab = 'routes';
+        }
+
+        if (typeof getUserRole === 'function') {
+            const r = getUserRole();
+            if (r === 'supervisor' && (tab === 'billing' || tab === 'settings')) {
+                if (typeof showStatus === 'function') showStatus('Ei käyttöoikeutta kyseiseen osioon.', 'warning');
+                tab = 'dashboard';
+            }
+            if ((r === 'driver' || r === 'temporary') && tab !== 'dashboard' && tab !== 'routes') {
+                tab = 'routes';
+            }
         }
 
         window.currentTabName = tab;
@@ -9467,9 +9509,32 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                 if (found) return found;
             }
         } catch (e) {}
+        try {
+            const authRaw = localStorage.getItem('yardflow_auth_session');
+            if (authRaw) {
+                const s = JSON.parse(authRaw);
+                if (s && s.user) {
+                    if (s.user.id === 'admin_master') {
+                        return s.user;
+                    }
+                    const drivers = getStoredDrivers();
+                    const found = drivers.find(d => String(d.id) === String(s.user.id) || (s.user.email && d.email && d.email.toLowerCase() === s.user.email.toLowerCase()));
+                    if (found) return found;
+                    return s.user;
+                }
+            }
+        } catch (e) {}
         return null;
     }
     window.getActiveUser = getActiveUser;
+
+    function getUserRole() {
+        const user = getActiveUser();
+        if (user && user.role) return user.role;
+        if (typeof currentAppMode !== 'undefined' && currentAppMode === 'admin') return 'admin';
+        return 'driver';
+    }
+    window.getUserRole = getUserRole;
 
     function setActiveUser(driverId) {
         if (!driverId) {
@@ -9534,40 +9599,150 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
 
     function applyPermissionsToUi() {
         const user = getActiveUser();
+        const role = (typeof getUserRole === 'function') ? getUserRole() : ((user && user.role) ? user.role : (currentAppMode === 'admin' ? 'admin' : 'driver'));
+        const isPureDriver = (role === 'driver' || role === 'temporary');
+        const isSupervisor = (role === 'supervisor');
+        const isAdmin = (role === 'admin' || (!user && currentAppMode === 'admin'));
+
         const canRoutes = hasPermission('can_edit_routes');
         const canDrivers = hasPermission('can_edit_drivers');
         const canCustomers = hasPermission('can_view_customers') || hasPermission('can_edit_customers');
         const canReports = hasPermission('can_view_reports');
 
         const navHome = document.getElementById('nav-home');
+        const navHomeLabel = document.getElementById('navHomeLabel');
         const navMap = document.getElementById('nav-map');
+        const navMapLabel = document.getElementById('navMapLabel');
         const navRoutesMgmt = document.getElementById('nav-routes-mgmt');
         const navDrivers = document.getElementById('nav-drivers');
         const navCust = document.getElementById('nav-customers');
         const navHistory = document.getElementById('nav-history');
         const navBilling = document.getElementById('nav-billing');
         const navSettings = document.getElementById('nav-settings');
+        const drawerDividerAdmin = document.getElementById('drawerDividerAdmin') || document.querySelector('.drawer-divider.admin-only');
+        const drawerModeSection = document.getElementById('drawerModeSection') || document.querySelector('.drawer-mode-section');
+        const drawerBtnModeAdminLabel = document.getElementById('drawerBtnModeAdminLabel');
+        const drawerModeText = document.getElementById('drawerModeText');
+        const appModeBadge = document.getElementById('appModeBadge');
+        const btnSettingsModeAdminLabel = document.getElementById('btnSettingsModeAdminLabel');
+        const driversViewSubtitle = document.getElementById('driversViewSubtitle');
+        const permMatrixHelpText = document.getElementById('permMatrixHelpText');
+        const btnLogout = document.getElementById('btn-logout');
 
-        if (navHome) navHome.style.display = 'flex';
-        if (navMap) navMap.style.display = 'flex';
+        if (btnLogout) btnLogout.style.setProperty('display', 'flex', 'important');
 
-        if (navRoutesMgmt) {
-            navRoutesMgmt.style.setProperty('display', canRoutes ? 'flex' : 'none', 'important');
-        }
-        if (navDrivers) {
-            navDrivers.style.setProperty('display', (canDrivers || (currentAppMode === 'admin' && !user)) ? 'flex' : 'none', 'important');
-        }
-        if (navCust) {
-            navCust.style.setProperty('display', canCustomers ? 'flex' : 'none', 'important');
-        }
-        if (navHistory) {
-            navHistory.style.setProperty('display', canReports ? 'flex' : 'none', 'important');
-        }
-        if (navBilling) {
-            navBilling.style.setProperty('display', canReports ? 'flex' : 'none', 'important');
-        }
-        if (navSettings) {
-            navSettings.style.setProperty('display', (canDrivers || (currentAppMode === 'admin' && !user)) ? 'flex' : 'none', 'important');
+        if (isPureDriver) {
+            // 1. KULJETTAJAN VALIKKO (Driver / Temporary):
+            // Kuskille näkyvät AINOASTAAN:
+            // - 🏠 Koti (Ajojono / Työpäivä)
+            // - 🗺️ Kartta
+            // - 🚪 Kirjaudu ulos
+            if (drawerModeSection) drawerModeSection.style.setProperty('display', 'none', 'important');
+
+            if (navHome) {
+                navHome.style.setProperty('display', 'flex', 'important');
+                if (navHomeLabel) navHomeLabel.textContent = 'Koti (Ajojono / Työpäivä)';
+            }
+            if (navMap) {
+                navMap.style.setProperty('display', 'flex', 'important');
+                if (navMapLabel) navMapLabel.textContent = 'Kartta';
+            }
+
+            if (navRoutesMgmt) navRoutesMgmt.style.setProperty('display', 'none', 'important');
+            if (navDrivers) navDrivers.style.setProperty('display', 'none', 'important');
+            if (navCust) navCust.style.setProperty('display', 'none', 'important');
+            if (navHistory) navHistory.style.setProperty('display', 'none', 'important');
+            if (navBilling) navBilling.style.setProperty('display', 'none', 'important');
+            if (navSettings) navSettings.style.setProperty('display', 'none', 'important');
+            if (drawerDividerAdmin) drawerDividerAdmin.style.setProperty('display', 'none', 'important');
+
+            if (drawerModeText) drawerModeText.textContent = '🚜 Kenttätila aktiivinen';
+            if (appModeBadge) {
+                appModeBadge.className = 'mode-status-badge mode-badge-field';
+                appModeBadge.style.cssText = '';
+                appModeBadge.textContent = role === 'temporary' ? '⏱️ Tuuraaja' : '🚜 Kuljettaja';
+            }
+        } else if (isSupervisor) {
+            // 2. TYÖNJOHTAJAN VALIKKO JA TEKSTIT (Supervisor):
+            // Poistetaan sana "Admin" kaikista työnjohtajalle näkyvistä otsikoista, valikkokohdista ja profiilikortista.
+            if (drawerModeSection) drawerModeSection.style.setProperty('display', 'block', 'important');
+            if (drawerBtnModeAdminLabel) drawerBtnModeAdminLabel.textContent = 'Työnjohto';
+
+            if (navHome) {
+                navHome.style.setProperty('display', 'flex', 'important');
+                if (navHomeLabel) navHomeLabel.textContent = (currentAppMode === 'field') ? 'Koti (Ajojono / Työpäivä)' : 'Koti (Työnohjaus)';
+            }
+            if (navMap) {
+                navMap.style.setProperty('display', 'flex', 'important');
+                if (navMapLabel) navMapLabel.textContent = (currentAppMode === 'field') ? 'Kartta' : 'Kartta & Reitinsuunnittelu';
+            }
+
+            if (navRoutesMgmt) navRoutesMgmt.style.setProperty('display', canRoutes ? 'flex' : 'none', 'important');
+            if (navDrivers) navDrivers.style.setProperty('display', canDrivers ? 'flex' : 'none', 'important');
+            if (navCust) navCust.style.setProperty('display', canCustomers ? 'flex' : 'none', 'important');
+            if (navHistory) navHistory.style.setProperty('display', canReports ? 'flex' : 'none', 'important');
+
+            // Laskutus ja Asetukset eivät kuulu Työnjohdolle
+            if (navBilling) navBilling.style.setProperty('display', 'none', 'important');
+            if (navSettings) navSettings.style.setProperty('display', 'none', 'important');
+            if (drawerDividerAdmin) drawerDividerAdmin.style.setProperty('display', 'none', 'important');
+
+            if (drawerModeText) {
+                drawerModeText.textContent = (currentAppMode === 'field') ? '🚜 Kenttätila aktiivinen' : '👔 Työnjohto aktiivinen';
+            }
+            if (appModeBadge) {
+                if (currentAppMode === 'field') {
+                    appModeBadge.className = 'mode-status-badge mode-badge-field';
+                    appModeBadge.style.cssText = '';
+                    appModeBadge.textContent = '🚜 Kuljettaja';
+                } else {
+                    appModeBadge.className = 'mode-status-badge mode-badge-admin';
+                    appModeBadge.style.cssText = 'background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.35);';
+                    appModeBadge.textContent = '👔 Työnjohto';
+                }
+            }
+            if (btnSettingsModeAdminLabel) btnSettingsModeAdminLabel.textContent = '🛠️ Kytke Hallintatila (Työnjohto)';
+            if (driversViewSubtitle) driversViewSubtitle.textContent = 'Modulaarinen roolinhallinta: Työnjohto, Kuljettajat ja Tuuraajat oikeusmatriiseineen';
+            if (permMatrixHelpText) permMatrixHelpText.textContent = 'Voit räätälöidä yksittäisiä oikeuksia';
+        } else {
+            // 3. PÄÄKÄYTTÄJÄN VALIKKO (Admin):
+            if (drawerModeSection) drawerModeSection.style.setProperty('display', 'block', 'important');
+            if (drawerBtnModeAdminLabel) drawerBtnModeAdminLabel.textContent = 'Järjestelmänvalvoja (Admin)';
+
+            if (navHome) {
+                navHome.style.setProperty('display', 'flex', 'important');
+                if (navHomeLabel) navHomeLabel.textContent = (currentAppMode === 'field') ? 'Koti (Ajojono / Työpäivä)' : 'Koti / Dashboard';
+            }
+            if (navMap) {
+                navMap.style.setProperty('display', 'flex', 'important');
+                if (navMapLabel) navMapLabel.textContent = (currentAppMode === 'field') ? 'Kartta' : 'Kartta & Reitinsuunnittelu';
+            }
+
+            if (navRoutesMgmt) navRoutesMgmt.style.setProperty('display', canRoutes ? 'flex' : 'none', 'important');
+            if (navDrivers) navDrivers.style.setProperty('display', (canDrivers || (currentAppMode === 'admin' && !user)) ? 'flex' : 'none', 'important');
+            if (navCust) navCust.style.setProperty('display', canCustomers ? 'flex' : 'none', 'important');
+            if (navHistory) navHistory.style.setProperty('display', canReports ? 'flex' : 'none', 'important');
+            if (navBilling) navBilling.style.setProperty('display', canReports ? 'flex' : 'none', 'important');
+            if (navSettings) navSettings.style.setProperty('display', (canDrivers || (currentAppMode === 'admin' && !user)) ? 'flex' : 'none', 'important');
+            if (drawerDividerAdmin) drawerDividerAdmin.style.setProperty('display', 'block', 'important');
+
+            if (drawerModeText) {
+                drawerModeText.textContent = (currentAppMode === 'field') ? '🚜 Kenttätila aktiivinen' : '👑 Pääkäyttäjä aktiivinen';
+            }
+            if (appModeBadge) {
+                if (currentAppMode === 'field') {
+                    appModeBadge.className = 'mode-status-badge mode-badge-field';
+                    appModeBadge.style.cssText = '';
+                    appModeBadge.textContent = '🚜 Kuljettaja';
+                } else {
+                    appModeBadge.className = 'mode-status-badge mode-badge-admin';
+                    appModeBadge.style.cssText = '';
+                    appModeBadge.textContent = '👑 Järjestelmänvalvoja (Admin)';
+                }
+            }
+            if (btnSettingsModeAdminLabel) btnSettingsModeAdminLabel.textContent = '🛠️ Kytke Hallintatila (Admin)';
+            if (driversViewSubtitle) driversViewSubtitle.textContent = 'Modulaarinen roolinhallinta: Admin, Työnjohto, Kuljettajat ja Tuuraajat oikeusmatriiseineen';
+            if (permMatrixHelpText) permMatrixHelpText.textContent = 'Admin voi räätälöidä yksittäisiä oikeuksia';
         }
 
         let banner = document.getElementById('userExpiredBanner');
@@ -9629,6 +9804,20 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         const roleSelect = document.getElementById('driverRoleSelect');
         const expiresInput = document.getElementById('driverInputExpiresAt');
 
+        const currentRole = (typeof getUserRole === 'function') ? getUserRole() : 'admin';
+        if (roleSelect) {
+            const adminOpt = roleSelect.querySelector('option[value="admin"]');
+            if (adminOpt) {
+                if (currentRole === 'supervisor') {
+                    adminOpt.style.display = 'none';
+                    adminOpt.disabled = true;
+                } else {
+                    adminOpt.style.display = '';
+                    adminOpt.disabled = false;
+                }
+            }
+        }
+
         if (driverId) {
             const drivers = getStoredDrivers();
             const d = drivers.find(x => String(x.id) === String(driverId));
@@ -9641,7 +9830,9 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                 if (passwordInput) passwordInput.value = d.password || '';
                 if (vehicleInput) vehicleInput.value = d.vehicle || '';
                 const role = d.role || 'driver';
-                if (roleSelect) roleSelect.value = role;
+                if (roleSelect) {
+                    roleSelect.value = (currentRole === 'supervisor' && role === 'admin') ? 'driver' : role;
+                }
                 if (expiresInput) expiresInput.value = d.expires_at || '';
 
                 const preset = ROLE_PRESETS[role] || ROLE_PRESETS.driver;
@@ -9689,6 +9880,16 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         const vehicle = document.getElementById('driverInputVehicle')?.value.trim();
         const role = document.getElementById('driverRoleSelect')?.value || 'driver';
         const expiresAt = document.getElementById('driverInputExpiresAt')?.value || null;
+
+        const currentRole = (typeof getUserRole === 'function') ? getUserRole() : 'admin';
+        if (currentRole === 'supervisor' && role === 'admin') {
+            if (typeof showStatus === 'function') {
+                showStatus('Työnjohtaja ei voi luoda tai asettaa pääkäyttäjäoikeuksia (Admin).', 'error');
+            } else {
+                alert('Työnjohtaja ei voi luoda tai asettaa pääkäyttäjäoikeuksia (Admin).');
+            }
+            return;
+        }
 
         if (!name || !phone) {
             alert('Täytä vähintään kuljettajan nimi ja puhelinnumero!');
@@ -9822,6 +10023,17 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         const drivers = getStoredDrivers();
         const d = drivers.find(x => String(x.id) === String(driverId));
         if (!d) return;
+
+        const currentRole = (typeof getUserRole === 'function') ? getUserRole() : 'admin';
+        if (d.role === 'admin' && currentRole === 'supervisor') {
+            if (typeof showStatus === 'function') {
+                showStatus('Vain järjestelmänvalvoja (Admin) voi poistaa pääkäyttäjätilin.', 'error');
+            } else {
+                alert('Vain järjestelmänvalvoja (Admin) voi poistaa pääkäyttäjätilin.');
+            }
+            return;
+        }
+
         if (!confirm(`Haluatko varmasti poistaa käyttäjän "${d.name}"?`)) return;
 
         const updated = drivers.filter(x => String(x.id) !== String(driverId));
@@ -9853,12 +10065,31 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
 
         const activeUserId = localStorage.getItem('yardflow_active_user_id');
         const allRoutes = (typeof routes !== 'undefined' && Array.isArray(routes)) ? routes : [];
+        const currentRole = (typeof getUserRole === 'function') ? getUserRole() : 'admin';
 
         container.innerHTML = drivers.map(d => {
             const roleKey = d.role && ROLE_PRESETS[d.role] ? d.role : 'driver';
             const preset = ROLE_PRESETS[roleKey] || ROLE_PRESETS.driver;
             const isActiveUser = String(d.id) === String(activeUserId);
             const expired = isUserExpired(d);
+            const isTargetAdmin = (d.role === 'admin');
+            const isRestrictedForSupervisor = (currentRole === 'supervisor' && isTargetAdmin);
+
+            let actionButtonsHtml = '';
+            if (isRestrictedForSupervisor) {
+                actionButtonsHtml = `<div style="display: flex; gap: 6px; align-items: center;"><span class="badge" style="background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: var(--radius-pill);">🔒 Pääkäyttäjätili</span></div>`;
+            } else {
+                actionButtonsHtml = `
+                    <div style="display: flex; gap: 6px;">
+                        <button type="button" class="tiny-btn" onclick="openAddDriverDrawer('${d.id}')" title="Muokkaa käyttäjää">✏️</button>
+                        <button type="button" class="tiny-btn danger" onclick="deleteDriver('${d.id}')" title="Poista käyttäjä">🗑️</button>
+                    </div>`;
+            }
+
+            let roleBadgeLabel = preset.badge;
+            if (isTargetAdmin && currentRole === 'supervisor') {
+                roleBadgeLabel = '👑 Järjestelmänvalvoja';
+            }
 
             // Haetaan kuskille kuuluvat reitit
             const assignedRoutes = allRoutes.filter(r => r.driver && r.driver.toLowerCase() === d.name.toLowerCase());
@@ -9893,7 +10124,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                     <div>
                         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px;">
                             <span class="badge" style="background: ${preset.color}22; color: ${preset.color}; border: 1px solid ${preset.color}66; font-size: 0.78rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-pill);">
-                                ${preset.badge}
+                                ${roleBadgeLabel}
                             </span>
                             ${isActiveUser ? `<span class="badge" style="background: rgba(16,185,129,0.2); color: #10b981; border: 1px solid rgba(16,185,129,0.4); font-size: 0.78rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-pill);">⭐ Aktiivinen profiili</span>` : ''}
                             ${d.password ? `<span class="badge" style="background: rgba(14,165,233,0.18); color: #38bdf8; border: 1px solid rgba(14,165,233,0.35); font-size: 0.74rem; font-weight: 700; padding: 2px 7px; border-radius: var(--radius-pill);">🔑 Salasana asetettu</span>` : ''}
@@ -9906,18 +10137,16 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                             ${esc(d.vehicle || 'Kalusto ei määritelty')}
                         </div>
                     </div>
-                    <div style="display: flex; gap: 6px;">
-                        <button type="button" class="tiny-btn" onclick="openAddDriverDrawer('${d.id}')" title="Muokkaa käyttäjää">✏️</button>
-                        <button type="button" class="tiny-btn danger" onclick="deleteDriver('${d.id}')" title="Poista käyttäjä">🗑️</button>
-                    </div>
+                    ${actionButtonsHtml}
                 </div>
 
                 <!-- Yhteystiedot -->
                 <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 10px 12px; font-size: 0.85rem; display: flex; flex-direction: column; gap: 6px;">
+                    ${d.phone ? `
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <span>📞</span>
-                        <a href="tel:${esc(d.phone.replace(/[^0-9+]/g, ''))}" style="color: var(--accent); font-weight: 700; text-decoration: none;">${esc(d.phone)}</a>
-                    </div>
+                        <a href="tel:${esc((d.phone || '').replace(/[^0-9+]/g, ''))}" style="color: var(--accent); font-weight: 700; text-decoration: none;">${esc(d.phone)}</a>
+                    </div>` : ''}
                     ${d.email ? `
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <span>✉️</span>
