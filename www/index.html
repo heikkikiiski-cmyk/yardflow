@@ -1422,12 +1422,123 @@
             transform: scale(0.98);
         }
         .btn-complete-main.is-done {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--accent-green);
+            border: 1.5px solid rgba(16, 185, 129, 0.5);
+            box-shadow: none;
+            min-height: 44px;
+            font-size: 0.92rem;
+            font-weight: 700;
+        }
+        .btn-complete-main.is-manual-override {
+            background: rgba(245, 158, 11, 0.22);
+            color: var(--accent-amber);
+            border: 1.5px solid rgba(245, 158, 11, 0.6);
+            box-shadow: 0 2px 10px rgba(245, 158, 11, 0.15);
+            min-height: 44px;
+            font-size: 0.92rem;
+            font-weight: 700;
+        }
+        .btn-complete-main.is-checking {
+            background: rgba(14, 165, 233, 0.25);
+            color: var(--text-main);
+            border: 1px dashed var(--accent-blue);
+            cursor: wait;
+        }
+        .task-item.done.manual-override-card {
+            border-left-color: var(--accent-amber);
+            background: rgba(245, 158, 11, 0.1);
+        }
+        .manager-alert-banner {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            background: rgba(245, 158, 11, 0.16);
+            border: 1px solid rgba(245, 158, 11, 0.45);
+            border-left: 4px solid var(--accent-amber);
+            color: var(--warning-text);
+            padding: 9px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 0.82rem;
+            line-height: 1.35;
+            margin-top: 4px;
+        }
+        .manager-alert-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--accent-amber);
+            border: 1px solid rgba(245, 158, 11, 0.5);
+            padding: 3px 9px;
+            border-radius: var(--radius-pill);
+            font-size: 0.72rem;
+            font-weight: 700;
+            cursor: help;
+        }
+        .geofence-verified-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
             background: rgba(16, 185, 129, 0.16);
             color: var(--accent-green);
-            border: 1px solid rgba(16, 185, 129, 0.35);
-            box-shadow: none;
-            min-height: 40px;
-            font-size: 0.86rem;
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            padding: 3px 9px;
+            border-radius: var(--radius-pill);
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+        .geofence-settings-box {
+            background: var(--secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 12px 14px;
+            margin: 10px 0 14px 0;
+        }
+        .geofence-settings-title {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+        }
+        .override-reason-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin: 12px 0;
+        }
+        .override-reason-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 14px;
+            border-radius: var(--radius-md);
+            background: var(--card);
+            border: 1px solid var(--border);
+            color: var(--fg);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            margin: 0;
+        }
+        .override-reason-option:hover {
+            border-color: var(--accent-amber);
+        }
+        .override-reason-option input[type="radio"] {
+            width: auto;
+            margin: 0;
+            accent-color: var(--accent-amber);
+        }
+        .override-reason-option:has(input:checked) {
+            background: rgba(245, 158, 11, 0.15);
+            border-color: var(--accent-amber);
+            color: var(--accent-amber);
+            font-weight: 600;
         }
         #yardSatelliteMap {
             width: 100%;
@@ -1604,6 +1715,29 @@
                 <label for="notes">Kuljettajan lisätiedot / huomiot:</label>
                 <textarea id="notes" rows="2" placeholder="esim. Varo kaivonkantta nurkassa, portin koodi 1234"></textarea>
 
+                <div class="geofence-settings-box">
+                    <div class="geofence-settings-title">
+                        <span>🛰️ Paikkatodennus (Geofence / Proof of Presence)</span>
+                    </div>
+                    <label class="check-row" style="margin-bottom: 10px;">
+                        <input type="checkbox" id="taskGeofenceEnabled" checked>
+                        Vaadi paikkatodennus kohteessa
+                    </label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div>
+                            <label for="taskGeofenceType">Aluetyyppi:</label>
+                            <select id="taskGeofenceType" style="margin-bottom: 0;">
+                                <option value="radius" selected>Ympyräsäde (Radius)</option>
+                                <option value="polygon">Piirretty satelliittiraja (Polygon)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="taskGeofenceRadius">Säde: <span id="taskGeofenceRadiusVal">80</span> m (+50 m GPS-tol.):</label>
+                            <input type="range" id="taskGeofenceRadius" min="30" max="300" step="5" value="80" style="margin-bottom: 0; padding: 6px 0;" oninput="document.getElementById('taskGeofenceRadiusVal').textContent = this.value">
+                        </div>
+                    </div>
+                </div>
+
                 <button class="btn-primary" onclick="addTask()">💾 Tallenna kohde listaan</button>
             </div>
 
@@ -1684,6 +1818,30 @@
             <select id="yardMapTargetSelect" onchange="selectYardMapTarget(this.value)" style="margin-bottom: 10px;">
                 <option value="">-- Valitse kohde listalta --</option>
             </select>
+
+            <!-- Geofencing-säteen ja tyypin pikamääritys suoraan satelliittikartalla (piirtää L.circle-ympyrän kartalle) -->
+            <div class="geofence-settings-box" style="margin-top: 0; margin-bottom: 10px;">
+                <div class="geofence-settings-title">
+                    <span>📍 Kohteen Geofence-paikkatodennus</span>
+                    <label class="check-row" style="margin: 0; font-size: 0.8rem;">
+                        <input type="checkbox" id="yardMapGeofenceEnabled" checked onchange="updateCurrentMapTargetGeofence()">
+                        Vaadi paikkatodennus kohteessa
+                    </label>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 10px; align-items: center;">
+                    <div>
+                        <label for="yardMapGeofenceType" style="margin-bottom: 3px;">Tarkistustapa:</label>
+                        <select id="yardMapGeofenceType" style="margin-bottom: 0; padding: 7px 10px; font-size: 0.84rem;" onchange="updateCurrentMapTargetGeofence()">
+                            <option value="radius" selected>Ympyräsäde (Radius)</option>
+                            <option value="polygon">Piirretty alue (Polygon)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="yardMapGeofenceRadius" style="margin-bottom: 3px;">Geofence-säde: <strong><span id="yardMapGeofenceRadiusVal">80</span> m</strong> <span class="muted-text">(+50m GPS-toleranssi)</span></label>
+                        <input type="range" id="yardMapGeofenceRadius" min="30" max="300" step="5" value="80" style="margin-bottom: 0; padding: 4px 0;" oninput="updateCurrentMapTargetGeofence(true)">
+                    </div>
+                </div>
+            </div>
 
             <!-- 3 piirtokategoriaa -->
             <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
@@ -1817,6 +1975,29 @@
 
                 <label for="custNotes">Kuljettajan lisätiedot / huomiot:</label>
                 <textarea id="custNotes" rows="2" placeholder="esim. Varo kaivonkantta nurkassa, portin koodi 1234"></textarea>
+
+                <div class="geofence-settings-box">
+                    <div class="geofence-settings-title">
+                        <span>🛰️ Paikkatodennus (Geofence / Proof of Presence)</span>
+                    </div>
+                    <label class="check-row" style="margin-bottom: 10px;">
+                        <input type="checkbox" id="custGeofenceEnabled" checked>
+                        Vaadi paikkatodennus kohteessa
+                    </label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div>
+                            <label for="custGeofenceType">Aluetyyppi:</label>
+                            <select id="custGeofenceType" style="margin-bottom: 0;">
+                                <option value="radius" selected>Ympyräsäde (Radius)</option>
+                                <option value="polygon">Piirretty satelliittiraja (Polygon)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="custGeofenceRadius">Säde: <span id="custGeofenceRadiusVal">80</span> m (+50 m GPS-tol.):</label>
+                            <input type="range" id="custGeofenceRadius" min="30" max="300" step="5" value="80" style="margin-bottom: 0; padding: 6px 0;" oninput="document.getElementById('custGeofenceRadiusVal').textContent = this.value">
+                        </div>
+                    </div>
+                </div>
 
                 <button class="btn-primary" onclick="addCustomerFromForm()">💾 Tallenna asiakas rekisteriin</button>
             </div>
@@ -2156,6 +2337,29 @@
             <label for="editNotes">Kuljettajan lisätiedot / huomiot:</label>
             <textarea id="editNotes" rows="2"></textarea>
 
+            <div class="geofence-settings-box">
+                <div class="geofence-settings-title">
+                    <span>🛰️ Paikkatodennus (Geofence / Proof of Presence)</span>
+                </div>
+                <label class="check-row" style="margin-bottom: 10px;">
+                    <input type="checkbox" id="editTaskGeofenceEnabled" checked>
+                    Vaadi paikkatodennus kohteessa
+                </label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div>
+                        <label for="editTaskGeofenceType">Aluetyyppi:</label>
+                        <select id="editTaskGeofenceType" style="margin-bottom: 0;">
+                            <option value="radius" selected>Ympyräsäde (Radius)</option>
+                            <option value="polygon">Piirretty satelliittiraja (Polygon)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="editTaskGeofenceRadius">Säde: <span id="editTaskGeofenceRadiusVal">80</span> m (+50 m GPS-tol.):</label>
+                        <input type="range" id="editTaskGeofenceRadius" min="30" max="300" step="5" value="80" style="margin-bottom: 0; padding: 6px 0;" oninput="document.getElementById('editTaskGeofenceRadiusVal').textContent = this.value; previewGeofenceRadiusFromDialog('task', this.value)">
+                    </div>
+                </div>
+            </div>
+
             <div class="dialog-actions">
                 <button type="button" class="btn-outline" onclick="document.getElementById('editDialog').close('cancel')">Peruuta</button>
                 <button type="submit" value="ok" class="btn-primary" style="width: auto; padding: 10px 20px;">Tallenna muutokset</button>
@@ -2245,9 +2449,80 @@
             <label for="editCustNotes">Kuljettajan lisätiedot / huomiot:</label>
             <textarea id="editCustNotes" rows="2"></textarea>
 
+            <div class="geofence-settings-box">
+                <div class="geofence-settings-title">
+                    <span>🛰️ Paikkatodennus (Geofence / Proof of Presence)</span>
+                </div>
+                <label class="check-row" style="margin-bottom: 10px;">
+                    <input type="checkbox" id="editCustGeofenceEnabled" checked>
+                    Vaadi paikkatodennus kohteessa
+                </label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div>
+                        <label for="editCustGeofenceType">Aluetyyppi:</label>
+                        <select id="editCustGeofenceType" style="margin-bottom: 0;">
+                            <option value="radius" selected>Ympyräsäde (Radius)</option>
+                            <option value="polygon">Piirretty satelliittiraja (Polygon)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="editCustGeofenceRadius">Säde: <span id="editCustGeofenceRadiusVal">80</span> m (+50 m GPS-tol.):</label>
+                        <input type="range" id="editCustGeofenceRadius" min="30" max="300" step="5" value="80" style="margin-bottom: 0; padding: 6px 0;" oninput="document.getElementById('editCustGeofenceRadiusVal').textContent = this.value; previewGeofenceRadiusFromDialog('customer', this.value)">
+                    </div>
+                </div>
+            </div>
+
             <div class="dialog-actions">
                 <button type="button" class="btn-outline" onclick="document.getElementById('editCustomerDialog').close('cancel')">Peruuta</button>
                 <button type="submit" value="ok" class="btn-primary" style="width: auto; padding: 10px 20px;">Tallenna muutokset</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- Geofence Manuaalikuittauksen (Override) ponnahdusikkuna -->
+    <dialog id="geofenceOverrideDialog" class="app-dialog">
+        <form method="dialog" class="dialog-content" onsubmit="event.preventDefault(); confirmGeofenceManualOverride();">
+            <h3 style="color: var(--accent-amber); display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                <span>⚠️</span>
+                <span>Sijainti ei vastaa kohdetta</span>
+            </h3>
+            <div id="geofenceOverrideTargetInfo" style="font-size: 0.9rem; font-weight: 600; color: var(--fg); margin-bottom: 6px;"></div>
+            <div id="geofenceOverrideDistanceInfo" style="font-size: 0.82rem; color: var(--muted); margin-bottom: 12px;"></div>
+
+            <div style="background: rgba(245, 158, 11, 0.14); border: 1px solid rgba(245, 158, 11, 0.45); border-radius: var(--radius-md); padding: 10px 12px; font-size: 0.85rem; color: var(--warning-text); margin-bottom: 14px;">
+                Voit kuitata työn manuaalisesti. Kuittauksesta tallentuu merkintä esimiehelle.
+            </div>
+
+            <label style="font-weight: 600; color: var(--fg);">Valitse poikkeuskuittauksen syy (pakollinen):</label>
+            <div class="override-reason-list" id="overrideReasonGroup">
+                <label class="override-reason-option">
+                    <input type="radio" name="geofenceOverrideReason" value="GPS-paikannusvirhe / heikko signaali" onchange="updateGeofenceOverrideModalState()">
+                    <span>1. GPS-paikannusvirhe / heikko signaali</span>
+                </label>
+                <label class="override-reason-option">
+                    <input type="radio" name="geofenceOverrideReason" value="Koneella ei päässyt piha-alueelle" onchange="updateGeofenceOverrideModalState()">
+                    <span>2. Koneella ei päässyt piha-alueelle</span>
+                </label>
+                <label class="override-reason-option">
+                    <input type="radio" name="geofenceOverrideReason" value="Kiinteistön karttarajat vaativat korjausta" onchange="updateGeofenceOverrideModalState()">
+                    <span>3. Kiinteistön karttarajat vaativat korjausta</span>
+                </label>
+                <label class="override-reason-option">
+                    <input type="radio" name="geofenceOverrideReason" value="Muu syy" onchange="updateGeofenceOverrideModalState()">
+                    <span>4. Muu syy (kirjoita perustelu alle)</span>
+                </label>
+            </div>
+
+            <div id="geofenceOverrideCustomBox" style="display: none; margin-top: 8px; margin-bottom: 12px;">
+                <label for="geofenceOverrideCustomReason" style="color: var(--accent-amber);">Kirjoita tarkempi perustelu (pakollinen):</label>
+                <textarea id="geofenceOverrideCustomReason" rows="2" placeholder="Kirjoita miksi kuittaus tehdään kohteen ulkopuolelta..." oninput="updateGeofenceOverrideModalState()" style="margin-bottom: 0;"></textarea>
+            </div>
+
+            <div class="dialog-actions">
+                <button type="button" class="btn-outline" onclick="cancelGeofenceManualOverride()">Peruuta</button>
+                <button type="submit" id="btnConfirmGeofenceOverride" class="btn-primary" style="width: auto; padding: 10px 20px; background: var(--accent-amber); box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3);" disabled>
+                    ⚠️ Vahvista manuaalikuittaus
+                </button>
             </div>
         </form>
     </dialog>
@@ -3644,7 +3919,8 @@
     function addWorkLogEntry(data) {
         const entry = {
             id: data.id || newId(),
-            timestamp: data.timestamp || new Date().toISOString(),
+            timestamp: data.timestamp || data.completed_at || new Date().toISOString(),
+            completed_at: data.completed_at || data.timestamp || new Date().toISOString(),
             customerId: data.customerId || null,
             customerName: data.customerName || '',
             address: data.address || '',
@@ -3652,13 +3928,20 @@
             sepeliQty: (data.sepeliQty != null && !isNaN(data.sepeliQty)) ? Number(data.sepeliQty) : 0,
             notes: data.notes || '',
             contractType: data.contractType || '',
-            paymentMethod: data.paymentMethod || ''
+            paymentMethod: data.paymentMethod || '',
+            completed: data.completed !== undefined ? !!data.completed : true,
+            verified_on_site: data.verified_on_site !== undefined ? !!data.verified_on_site : false,
+            manual_override: data.manual_override !== undefined ? !!data.manual_override : false,
+            override_reason: data.override_reason || null,
+            override_distance_meters: (data.override_distance_meters != null && !isNaN(data.override_distance_meters)) ? Math.round(Number(data.override_distance_meters)) : null,
+            manager_alert: data.manager_alert !== undefined ? !!data.manager_alert : !!data.manual_override
         };
         workLogs.unshift(entry);
         persistWorkLogs();
         if (document.getElementById('viewLogs').style.display !== 'none') {
             renderWorkLogs();
         }
+        return entry;
     }
 
     function openNewLogModal() {
@@ -3776,6 +4059,7 @@
                 const match = (log.customerName && log.customerName.toLowerCase().includes(search)) ||
                               (log.address && log.address.toLowerCase().includes(search)) ||
                               (log.notes && log.notes.toLowerCase().includes(search)) ||
+                              (log.override_reason && log.override_reason.toLowerCase().includes(search)) ||
                               (log.type && log.type.toLowerCase().includes(search));
                 if (!match) return false;
             }
@@ -3828,12 +4112,31 @@
             const conTag = log.contractType ? `<span class="tag-pill tag-contract">📋 ${esc(log.contractType)}</span>` : '';
             const sepeliTag = (log.sepeliQty && Number(log.sepeliQty) > 0) ? `<span class="tag-pill tag-sepeli">🪨 ${log.sepeliQty} kg sepeliä</span>` : '';
 
-            return `
-                <div class="log-item">
-                    <div class="log-header">
+            let geofenceTag = '';
+            let managerAlertHtml = '';
+            if (log.manual_override || log.manager_alert) {
+                const distSuffix = (log.override_distance_meters != null) ? ` (${log.override_distance_meters} m kohteesta)` : '';
+                const reasonText = log.override_reason || 'Ei ilmoitettua syytä';
+                geofenceTag = `<span class="manager-alert-pill" title="Manuaalinen poikkeuskuittaus: ${esc(reasonText)}${esc(distSuffix)}">⚠️ Kuitattu manuaalisesti</span>`;
+                managerAlertHtml = `
+                    <div class="manager-alert-banner" title="Esimieshuomio: Kuljettaja kuittasi kohteen geofence-alueen ulkopuolelta">
+                        <span>⚠️</span>
                         <div>
+                            <strong>Esimieshuomio (Manuaalikuittaus${esc(distSuffix)}):</strong> ${esc(reasonText)}
+                        </div>
+                    </div>`;
+            } else if (log.verified_on_site) {
+                const distSuffix = (log.override_distance_meters != null) ? ` (${log.override_distance_meters} m)` : '';
+                geofenceTag = `<span class="geofence-verified-pill" title="Paikkatodennus vahvistettu kohteessa${esc(distSuffix)}">🛰️ Paikkatodennettu ✓</span>`;
+            }
+
+            return `
+                <div class="log-item" style="${(log.manual_override || log.manager_alert) ? 'border-left: 4px solid var(--accent-amber);' : ''}">
+                    <div class="log-header">
+                        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                             <span class="log-title">${esc(log.customerName)}</span>
-                            <span class="badge" style="margin-left: 6px;">${esc(log.type)}</span>
+                            <span class="badge">${esc(log.type)}</span>
+                            ${geofenceTag}
                         </div>
                         <span class="log-timestamp">⏱️ ${esc(fmtDateTime(log.timestamp))}</span>
                     </div>
@@ -3844,6 +4147,7 @@
 
                     ${(payTag || conTag || sepeliTag) ? `<div class="customer-tags" style="margin: 2px 0;">${payTag} ${conTag} ${sepeliTag}</div>` : ''}
 
+                    ${managerAlertHtml}
                     ${log.notes ? `<div class="task-notes" style="margin-top: 4px;">💬 <strong>Huomio:</strong> ${esc(log.notes)}</div>` : ''}
 
                     ${photosHtml}
@@ -4093,6 +4397,20 @@
                 JSON.parse(localStorage.getItem('pihatyot_tasks_v3')) ||
                 JSON.parse(localStorage.getItem('pihatyot_tasks')) || [];
 
+    function normalizeGeofenceFields(obj) {
+        if (!obj) return obj;
+        if (obj.geofence_enabled === undefined) obj.geofence_enabled = true;
+        else obj.geofence_enabled = !!obj.geofence_enabled;
+        if (obj.geofence_type !== 'polygon' && obj.geofence_type !== 'radius') {
+            obj.geofence_type = 'radius';
+        }
+        const r = Number(obj.geofence_radius);
+        obj.geofence_radius = (!isNaN(r) && r >= 10 && r <= 1000) ? r : 80;
+        return obj;
+    }
+
+    tasks.forEach(t => normalizeGeofenceFields(t));
+
     // ---------- Asiakasrekisteri ----------
     let customers = JSON.parse(localStorage.getItem('pihatyot_customers_v1')) || [];
     // Siemennetään aiemmin syötetyistä kohteista, jos asiakasrekisteri on vielä tyhjä
@@ -4102,7 +4420,7 @@
             const key = (t.name || '').toLowerCase() + '|' + (t.address || '').toLowerCase();
             if (!seen.has(key) && (t.name || t.address)) {
                 seen.add(key);
-                customers.push({
+                customers.push(normalizeGeofenceFields({
                     id: newId(),
                     name: t.name || '',
                     address: t.address || '',
@@ -4112,14 +4430,18 @@
                     contractType: t.contractType || 'Kuukausi + käynnit',
                     defaultType: t.type || 'Auraus & Hiekoitus',
                     notes: t.notes || '',
+                    geofence_enabled: t.geofence_enabled !== undefined ? !!t.geofence_enabled : true,
+                    geofence_type: t.geofence_type || 'radius',
+                    geofence_radius: Number(t.geofence_radius) || 80,
                     created: new Date().toISOString()
-                });
+                }));
             }
         });
         if (customers.length > 0) {
             localStorage.setItem('pihatyot_customers_v1', JSON.stringify(customers));
         }
     }
+    customers.forEach(c => normalizeGeofenceFields(c));
 
     function persistCustomers() {
         localStorage.setItem('pihatyot_customers_v1', JSON.stringify(customers));
@@ -4177,6 +4499,7 @@
         if (!id) return;
         const c = customers.find(x => String(x.id) === String(id));
         if (!c) return;
+        normalizeGeofenceFields(c);
         document.getElementById('name').value = c.name || '';
         const addrInput = document.getElementById('address');
         addrInput.value = c.address || '';
@@ -4190,6 +4513,16 @@
         if (emailInput) emailInput.value = c.email || '';
         if (c.defaultType) document.getElementById('type').value = c.defaultType;
         if (c.notes) document.getElementById('notes').value = c.notes;
+
+        const gfEn = document.getElementById('taskGeofenceEnabled');
+        const gfType = document.getElementById('taskGeofenceType');
+        const gfRad = document.getElementById('taskGeofenceRadius');
+        const gfRadVal = document.getElementById('taskGeofenceRadiusVal');
+        if (gfEn) gfEn.checked = c.geofence_enabled !== false;
+        if (gfType) gfType.value = c.geofence_type || 'radius';
+        if (gfRad) gfRad.value = c.geofence_radius || 80;
+        if (gfRadVal) gfRadVal.textContent = c.geofence_radius || 80;
+
         document.getElementById('quickCustomerPickerBox').style.display = 'none';
         document.getElementById('quickCustomerSelect').value = '';
         showStatus(`Asiakkaan "${esc(c.name)}" tiedot tuotu lomakkeelle!`, 'success');
@@ -4208,6 +4541,10 @@
         const sandPriceInput = document.getElementById('custSandPrice');
         const gravelPriceInput = document.getElementById('custGravelPrice');
 
+        const gfEn = document.getElementById('custGeofenceEnabled');
+        const gfType = document.getElementById('custGeofenceType');
+        const gfRad = document.getElementById('custGeofenceRadius');
+
         const name = nameInput.value.trim();
         const address = addrInput.value.trim();
         const phone = phoneInput ? phoneInput.value.trim() : '';
@@ -4220,12 +4557,15 @@
             return;
         }
 
-        const newCust = {
+        const picked = addrInput.dataset.addr === address && addrInput.dataset.lat;
+        const newCust = normalizeGeofenceFields({
             id: newId(),
             name,
             address,
             phone,
             email,
+            lat: picked ? parseFloat(addrInput.dataset.lat) : null,
+            lon: picked ? parseFloat(addrInput.dataset.lon) : null,
             paymentMethod,
             contractType,
             defaultType: typeSelect.value,
@@ -4234,8 +4574,11 @@
             sandPrice: (sandPriceInput && sandPriceInput.value) ? parseFloat(sandPriceInput.value) : null,
             gravelPrice: (gravelPriceInput && gravelPriceInput.value) ? parseFloat(gravelPriceInput.value) : null,
             notes: notesInput.value.trim(),
+            geofence_enabled: gfEn ? gfEn.checked : true,
+            geofence_type: gfType ? gfType.value : 'radius',
+            geofence_radius: gfRad ? Number(gfRad.value) || 80 : 80,
             created: new Date().toISOString()
-        };
+        });
 
         customers.unshift(newCust);
         persistCustomers();
@@ -4251,6 +4594,11 @@
         if (sandPriceInput) sandPriceInput.value = '';
         if (gravelPriceInput) gravelPriceInput.value = '';
         notesInput.value = '';
+        if (gfEn) gfEn.checked = true;
+        if (gfType) gfType.value = 'radius';
+        if (gfRad) gfRad.value = 80;
+        const gfRadVal = document.getElementById('custGeofenceRadiusVal');
+        if (gfRadVal) gfRadVal.textContent = '80';
 
         const custDrawer = document.getElementById('addCustomerDrawer');
         if (custDrawer) custDrawer.style.display = 'none';
@@ -4261,6 +4609,7 @@
     function addCustomerToTodayRoute(customerId) {
         const c = customers.find(x => String(x.id) === String(customerId));
         if (!c) return;
+        normalizeGeofenceFields(c);
 
         const already = tasks.some(t => t.name.toLowerCase() === c.name.toLowerCase() &&
                                         t.address.toLowerCase() === c.address.toLowerCase() && !t.done);
@@ -4268,7 +4617,7 @@
             return;
         }
 
-        const newTask = {
+        const newTask = normalizeGeofenceFields({
             id: newId(),
             customerId: c.id,
             name: c.name,
@@ -4279,12 +4628,22 @@
             contractType: c.contractType || 'Kuukausi + käynnit',
             type: c.defaultType || 'Auraus & Hiekoitus',
             notes: c.notes || '',
-            lat: null,
-            lon: null,
+            lat: c.lat || null,
+            lon: c.lon || null,
             gps: false,
             geoName: '',
-            done: false
-        };
+            geofence_enabled: c.geofence_enabled !== false,
+            geofence_type: c.geofence_type || 'radius',
+            geofence_radius: Number(c.geofence_radius) || 80,
+            done: false,
+            completed: false,
+            verified_on_site: false,
+            manual_override: false,
+            override_reason: null,
+            override_distance_meters: null,
+            completed_at: null,
+            manager_alert: false
+        });
 
         tasks.push(newTask);
         saveAndRender();
@@ -4307,6 +4666,7 @@
     function editCustomer(id) {
         const c = customers.find(x => String(x.id) === String(id));
         if (!c) return;
+        normalizeGeofenceFields(c);
         editingCustomerId = id;
         document.getElementById('editCustName').value = c.name || '';
         editCustAddressInput.value = c.address || '';
@@ -4326,6 +4686,15 @@
         document.getElementById('editCustGravelPrice').value = (c.gravelPrice != null && !isNaN(c.gravelPrice)) ? c.gravelPrice : '';
         document.getElementById('editCustNotes').value = c.notes || '';
 
+        const gfEn = document.getElementById('editCustGeofenceEnabled');
+        const gfType = document.getElementById('editCustGeofenceType');
+        const gfRad = document.getElementById('editCustGeofenceRadius');
+        const gfRadVal = document.getElementById('editCustGeofenceRadiusVal');
+        if (gfEn) gfEn.checked = c.geofence_enabled !== false;
+        if (gfType) gfType.value = c.geofence_type || 'radius';
+        if (gfRad) gfRad.value = c.geofence_radius || 80;
+        if (gfRadVal) gfRadVal.textContent = c.geofence_radius || 80;
+
         editCustDlg.returnValue = '';
         editCustDlg.showModal();
     }
@@ -4334,7 +4703,10 @@
         editCustDlg.addEventListener('close', () => {
             const id = editingCustomerId;
             editingCustomerId = null;
-            if (editCustDlg.returnValue !== 'ok' || id == null) return;
+            if (editCustDlg.returnValue !== 'ok' || id == null) {
+                if (typeof renderYardGeofenceCircle === 'function') renderYardGeofenceCircle();
+                return;
+            }
             const c = customers.find(x => String(x.id) === String(id));
             if (!c) return;
 
@@ -4357,6 +4729,13 @@
 
             c.notes = document.getElementById('editCustNotes').value.trim();
 
+            const gfEn = document.getElementById('editCustGeofenceEnabled');
+            const gfType = document.getElementById('editCustGeofenceType');
+            const gfRad = document.getElementById('editCustGeofenceRadius');
+            c.geofence_enabled = gfEn ? gfEn.checked : true;
+            c.geofence_type = gfType ? gfType.value : 'radius';
+            c.geofence_radius = gfRad ? Number(gfRad.value) || 80 : 80;
+
             // Synkronoidaan myös reitillä olevat tämän asiakkaan kohteet
             tasks.forEach(t => {
                 if (String(t.customerId) === String(id) || (t.name.toLowerCase() === c.name.toLowerCase())) {
@@ -4364,13 +4743,18 @@
                     t.email = c.email;
                     t.paymentMethod = c.paymentMethod;
                     t.contractType = c.contractType;
+                    t.geofence_enabled = c.geofence_enabled;
+                    t.geofence_type = c.geofence_type;
+                    t.geofence_radius = c.geofence_radius;
                 }
             });
 
             persistCustomers();
             renderCustomers();
             saveAndRender();
-            showStatus(`Asiakkaan "${esc(c.name)}" tiedot päivitetty!`, 'success');
+            if (typeof syncYardMapGeofenceControls === 'function') syncYardMapGeofenceControls();
+            if (typeof renderYardGeofenceCircle === 'function') renderYardGeofenceCircle();
+            showStatus(`Asiakkaan "${esc(c.name)}" tiedot ja geofence-asetukset päivitetty!`, 'success');
         });
     }
 
@@ -4412,11 +4796,16 @@
         }
 
         listEl.innerHTML = filtered.map(c => {
+            normalizeGeofenceFields(c);
             const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.address)}`;
             const phoneHtml = c.phone ? `<a href="tel:${esc(c.phone)}" class="contact-link" title="Soita asiakkaalle">📞 ${esc(c.phone)}</a>` : '';
             const emailHtml = c.email ? `<a href="mailto:${esc(c.email)}" class="contact-link" title="Lähetä sähköpostia">✉️ ${esc(c.email)}</a>` : '';
             const payTag = c.paymentMethod ? `<span class="tag-pill tag-payment">${c.paymentMethod === 'Laskutus' ? '💳' : '💵'} ${esc(c.paymentMethod)}</span>` : '';
             const conTag = c.contractType ? `<span class="tag-pill tag-contract">📋 ${esc(c.contractType)}</span>` : '';
+
+            const gfBadge = c.geofence_enabled !== false
+                ? `<span class="tag-pill" title="Vaadi paikkatodennus kohteessa">🛰️ Geofence: ${c.geofence_type === 'polygon' ? 'Karttaraja' : `${c.geofence_radius || 80} m`}</span>`
+                : `<span class="tag-pill" style="opacity:0.65;">🛰️ Paikkatodennus: Ei vaadita</span>`;
 
             const customPrices = [];
             if (c.monthlyPrice != null && Number(c.monthlyPrice) > 0) customPrices.push(`Kk ${c.monthlyPrice}€`);
@@ -4425,11 +4814,31 @@
             if (c.gravelPrice != null && Number(c.gravelPrice) > 0) customPrices.push(`Sepeli ${c.gravelPrice}€/kg`);
             const priceTag = customPrices.length ? `<span class="tag-pill tag-price">🏷️ ${customPrices.join(' · ')}</span>` : '';
 
+            // Tarkistetaan onko asiakkaalla aktiivista esimieshuomiota (manual_override / manager_alert)
+            const activeAlertTask = tasks.find(t =>
+                (t.manual_override || t.manager_alert) &&
+                (String(t.customerId) === String(c.id) || (t.name && t.name.toLowerCase() === c.name.toLowerCase()))
+            );
+            const hasAlert = !!(activeAlertTask || c.manager_alert || c.manual_override);
+            const alertReason = activeAlertTask?.override_reason || c.override_reason || '';
+            const alertDist = activeAlertTask?.override_distance_meters ?? c.override_distance_meters;
+
+            const managerAlertHtml = hasAlert ? `
+                <div class="manager-alert-banner" title="Esimieshuomio: ${esc(alertReason)}">
+                    <span>⚠️</span>
+                    <div>
+                        <strong>Poikkeuskuittaus / Esimieshuomio${alertDist != null ? ` (${alertDist} m kohteesta)` : ''}:</strong> ${esc(alertReason || 'Manuaalinen kuittaus alueen ulkopuolelta')}
+                    </div>
+                </div>` : '';
+
             return `
-                <div class="customer-card yard-card">
+                <div class="customer-card yard-card" style="${hasAlert ? 'border-left: 4px solid var(--accent-amber);' : ''}">
                     <div class="customer-header">
                         <span class="customer-name yard-title" style="margin-bottom: 0;">${esc(c.name)}</span>
-                        <span class="badge badge-active">${esc(c.defaultType || 'Auraus')}</span>
+                        <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                            ${hasAlert ? `<span class="manager-alert-pill" title="Manuaalikuittaus: ${esc(alertReason)}">⚠️ Manuaalikuittaus</span>` : ''}
+                            <span class="badge badge-active">${esc(c.defaultType || 'Auraus')}</span>
+                        </div>
                     </div>
 
                     <div class="task-address-row">
@@ -4440,9 +4849,11 @@
                     <div class="customer-tags" style="display: flex; gap: 6px; flex-wrap: wrap;">
                         ${payTag}
                         ${conTag}
+                        ${gfBadge}
                         ${priceTag}
                     </div>
 
+                    ${managerAlertHtml}
                     ${c.notes ? `<div class="customer-notes">⚠️ ${esc(c.notes)}</div>` : ''}
 
                     <div class="customer-actions">
@@ -4570,6 +4981,9 @@
         const emailInput = document.getElementById('taskEmail');
         const typeSelect = document.getElementById('type');
         const notesInput = document.getElementById('notes');
+        const gfEn = document.getElementById('taskGeofenceEnabled');
+        const gfType = document.getElementById('taskGeofenceType');
+        const gfRad = document.getElementById('taskGeofenceRadius');
 
         const name = nameInput.value.trim();
         const address = addressInput.value.trim();
@@ -4582,7 +4996,7 @@
         }
 
         const picked = addressInput.dataset.addr === address && addressInput.dataset.lat;
-        const newTask = {
+        const newTask = normalizeGeofenceFields({
             id: newId(),
             name, address, phone, email,
             type: typeSelect.value,
@@ -4591,8 +5005,18 @@
             lon: picked ? parseFloat(addressInput.dataset.lon) : null,
             gps: false,
             geoName: picked ? (addressInput.dataset.geo || '') : '',
-            done: false
-        };
+            geofence_enabled: gfEn ? gfEn.checked : true,
+            geofence_type: gfType ? gfType.value : 'radius',
+            geofence_radius: gfRad ? Number(gfRad.value) || 80 : 80,
+            done: false,
+            completed: false,
+            verified_on_site: false,
+            manual_override: false,
+            override_reason: null,
+            override_distance_meters: null,
+            completed_at: null,
+            manager_alert: false
+        });
 
         // Etsitään asiakasrekisteristä maksutapa ja sopimus
         const custMatch = customers.find(c =>
@@ -4600,6 +5024,7 @@
             (c.address && c.address.toLowerCase() === address.toLowerCase())
         );
         if (custMatch) {
+            newTask.customerId = custMatch.id;
             newTask.paymentMethod = custMatch.paymentMethod;
             newTask.contractType = custMatch.contractType;
             if (!newTask.phone && custMatch.phone) newTask.phone = custMatch.phone;
@@ -4613,6 +5038,11 @@
         if (emailInput) emailInput.value = '';
         ['lat', 'lon', 'geo', 'addr'].forEach(k => delete addressInput.dataset[k]);
         notesInput.value = '';
+        if (gfEn) gfEn.checked = true;
+        if (gfType) gfType.value = 'radius';
+        if (gfRad) gfRad.value = 80;
+        const gfRadVal = document.getElementById('taskGeofenceRadiusVal');
+        if (gfRadVal) gfRadVal.textContent = '80';
 
         const taskDrawer = document.getElementById('addTaskDrawer');
         if (taskDrawer) taskDrawer.style.display = 'none';
@@ -4623,29 +5053,495 @@
         if (!picked) geocodeTask(newTask.id);
     }
 
-    function toggleTask(id) {
-        const t = tasks.find(x => x.id === id);
-        if (!t) return;
-        const nowDone = !t.done;
-        t.done = nowDone;
-        if (nowDone) {
-            const hasHiekoitus = (t.type || '').toLowerCase().includes('hiekoitus');
-            addWorkLogEntry({
-                id: newId(),
-                timestamp: new Date().toISOString(),
-                customerId: t.customerId || null,
-                customerName: t.name,
-                address: t.address,
-                type: t.type || 'Auraus & Hiekoitus',
-                sepeliQty: 0,
-                notes: t.notes || '',
-                contractType: t.contractType || '',
-                paymentMethod: t.paymentMethod || ''
-            });
-            showStatus(`✓ "${esc(t.name)}" kuitattu valmiiksi ja kirjattu työlokiin!`, 'success');
-        }
-        saveAndRender();
+    // ============================================================
+    // 🛰️ GEOFENCING (PROOF OF PRESENCE) & MANUAALIKUITTAUS (OVERRIDE)
+    // ============================================================
+
+    // 1. Haversine-etäisyyslaskenta kahden GPS-pisteen välille metreinä
+    function calculateDistanceMeters(lat1, lng1, lat2, lng2) {
+        if (lat1 == null || lng1 == null || lat2 == null || lng2 == null) return null;
+        const nLat1 = Number(lat1), nLng1 = Number(lng1), nLat2 = Number(lat2), nLng2 = Number(lng2);
+        if (isNaN(nLat1) || isNaN(nLng1) || isNaN(nLat2) || isNaN(nLng2)) return null;
+        const R = 6371000; // Maapallon säde metreinä
+        const toRad = deg => (deg * Math.PI) / 180;
+        const dLat = toRad(nLat2 - nLat1);
+        const dLng = toRad(nLng2 - nLng1);
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                  Math.cos(toRad(nLat1)) * Math.cos(toRad(nLat2)) *
+                  Math.sin(dLng / 2) * Math.sin(dLng / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
     }
+    window.calculateDistanceMeters = calculateDistanceMeters;
+
+    // 2. Monikulmiolaskenta (Ray-casting) satelliittirajoille
+    function isPointInPolygon(lat, lng, polygonPoints) {
+        if (lat == null || lng == null || !Array.isArray(polygonPoints) || polygonPoints.length < 3) {
+            return false;
+        }
+        const y = Number(lat);
+        const x = Number(lng);
+        if (isNaN(y) || isNaN(x)) return false;
+
+        // Muunnetaan pisteet yhtenäiseen [lat, lng] -muotoon
+        // Huom: Jos syötteenä on GeoJSON-rengas ([lng, lat], jossa Suomessa lng ~19..32 ja lat ~59..71), tunnistetaan se automaattisesti
+        const pts = polygonPoints.map(p => {
+            if (Array.isArray(p)) {
+                const a = Number(p[0]);
+                const b = Number(p[1]);
+                // Jos ensimmäinen arvo on pituuspiiri (esim. 19..33) ja toinen leveyspiiri (59..71), kyseessä on GeoJSON [lng, lat]
+                if (a >= 18 && a <= 35 && b >= 58 && b <= 72) {
+                    return { lat: b, lng: a };
+                }
+                return { lat: a, lng: b };
+            }
+            if (p && typeof p === 'object') {
+                return {
+                    lat: Number(p.lat !== undefined ? p.lat : p.latitude),
+                    lng: Number(p.lng !== undefined ? p.lng : (p.lon !== undefined ? p.lon : p.longitude))
+                };
+            }
+            return { lat: NaN, lng: NaN };
+        }).filter(pt => !isNaN(pt.lat) && !isNaN(pt.lng));
+
+        if (pts.length < 3) return false;
+
+        let inside = false;
+        for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+            const yi = pts[i].lat, xi = pts[i].lng;
+            const yj = pts[j].lat, xj = pts[j].lng;
+            const intersect = ((yi > y) !== (yj > y)) &&
+                              (x < ((xj - xi) * (y - yi)) / ((yj - yi) || 1e-12) + xi);
+            if (intersect) inside = !inside;
+        }
+        return inside;
+    }
+    window.isPointInPolygon = isPointInPolygon;
+
+    // Palauttaa kohteen piirretyt satelliittipolygonit (taulukko kulmapistetaulukoita [lat, lng])
+    function extractPropertyPolygons(property) {
+        const rings = [];
+        if (!property) return rings;
+
+        if (Array.isArray(property.polygon) && property.polygon.length >= 3) {
+            rings.push(property.polygon);
+        }
+        if (Array.isArray(property.polygons)) {
+            property.polygons.forEach(r => { if (Array.isArray(r) && r.length >= 3) rings.push(r); });
+        }
+
+        let geo = property.areaGeoJSON;
+        if ((!geo || !Array.isArray(geo.features) || !geo.features.length) && typeof getSavedGeoJSONForTarget === 'function' && typeof makeTargetGeoKey === 'function') {
+            const key = makeTargetGeoKey(property.name, property.address);
+            geo = getSavedGeoJSONForTarget(key);
+        }
+
+        if (geo && Array.isArray(geo.features)) {
+            geo.features.forEach(f => {
+                const geom = f && f.geometry;
+                if (!geom) return;
+                if (geom.type === 'Polygon' && Array.isArray(geom.coordinates) && geom.coordinates[0]) {
+                    const ring = geom.coordinates[0].map(c => [c[1], c[0]]);
+                    if (ring.length >= 3) rings.push(ring);
+                } else if (geom.type === 'MultiPolygon' && Array.isArray(geom.coordinates)) {
+                    geom.coordinates.forEach(poly => {
+                        if (Array.isArray(poly) && poly[0]) {
+                            const ring = poly[0].map(c => [c[1], c[0]]);
+                            if (ring.length >= 3) rings.push(ring);
+                        }
+                    });
+                }
+            });
+        }
+        return rings;
+    }
+
+    // 3. Tarkistaa onko kuljettaja kiinteistöllä (geofence_enabled, polygon tai radius + 50m GPS-toleranssi)
+    function isDriverAtProperty(driverLat, driverLng, property, toleranceMeters = 50) {
+        const prop = property || {};
+        const tol = (toleranceMeters != null && !isNaN(toleranceMeters)) ? Number(toleranceMeters) : 50;
+        const radius = Number(prop.geofence_radius) || 80;
+        const maxAllowedMeters = radius + tol;
+
+        const propLat = prop.lat != null ? Number(prop.lat) : null;
+        const propLng = (prop.lon != null ? Number(prop.lon) : (prop.lng != null ? Number(prop.lng) : null));
+
+        let distanceMeters = null;
+        if (driverLat != null && driverLng != null && propLat != null && propLng != null) {
+            const d = calculateDistanceMeters(driverLat, driverLng, propLat, propLng);
+            if (d != null && !isNaN(d)) distanceMeters = Math.round(d);
+        }
+
+        // Jos geofence_enabled === false -> sallitaan heti
+        if (prop.geofence_enabled === false) {
+            return {
+                allowed: true,
+                verified_on_site: true,
+                mode: 'disabled',
+                distanceMeters: distanceMeters != null ? distanceMeters : 0,
+                maxAllowedMeters
+            };
+        }
+
+        if (driverLat == null || driverLng == null || isNaN(Number(driverLat)) || isNaN(Number(driverLng))) {
+            return {
+                allowed: false,
+                verified_on_site: false,
+                mode: prop.geofence_type || 'radius',
+                distanceMeters: null,
+                maxAllowedMeters,
+                reason: 'no_driver_gps'
+            };
+        }
+
+        // Jos geofence_type === 'polygon' ja kohteella on piirretyt rajat -> tarkistetaan onko piste monikulmiossa
+        const polygons = extractPropertyPolygons(prop);
+        if (prop.geofence_type === 'polygon' && polygons.length > 0) {
+            let insideAny = false;
+            let minVertexDist = Infinity;
+
+            for (const ring of polygons) {
+                if (isPointInPolygon(driverLat, driverLng, ring)) {
+                    insideAny = true;
+                    break;
+                }
+                for (const pt of ring) {
+                    const pLat = Array.isArray(pt) ? pt[0] : pt.lat;
+                    const pLng = Array.isArray(pt) ? pt[1] : (pt.lng ?? pt.lon);
+                    const vd = calculateDistanceMeters(driverLat, driverLng, pLat, pLng);
+                    if (vd != null && vd < minVertexDist) minVertexDist = vd;
+                }
+            }
+
+            // Jos ei suoraan monikulmion sisällä, tarkistetaan GPS-toleranssi (toleranceMeters) monikulmion reunoista
+            if (!insideAny && minVertexDist <= tol) {
+                insideAny = true;
+            }
+
+            const reportedDist = distanceMeters != null
+                ? distanceMeters
+                : (isFinite(minVertexDist) ? Math.round(minVertexDist) : null);
+
+            return {
+                allowed: insideAny,
+                verified_on_site: insideAny,
+                mode: 'polygon',
+                distanceMeters: insideAny ? (reportedDist || 0) : reportedDist,
+                maxAllowedMeters: tol
+            };
+        }
+
+        // Jos geofence_type === 'radius' (tai rajaton fallback) -> tarkistetaan etäisyys kohteeseen (säde + 50 m GPS-toleranssi)
+        if (distanceMeters == null) {
+            return {
+                allowed: false,
+                verified_on_site: false,
+                mode: 'radius',
+                distanceMeters: null,
+                maxAllowedMeters,
+                reason: 'missing_property_coords'
+            };
+        }
+
+        const isInsideRadius = distanceMeters <= maxAllowedMeters;
+        return {
+            allowed: isInsideRadius,
+            verified_on_site: isInsideRadius,
+            mode: 'radius',
+            distanceMeters,
+            maxAllowedMeters
+        };
+    }
+    window.isDriverAtProperty = isDriverAtProperty;
+
+    // 4. Kuittauspainikkeen työnkulku & Manuaalikuittaus (Override)
+    let pendingOverrideTaskId = null;
+    let pendingOverrideDistanceMeters = null;
+
+    function completeTaskVerified(task, distanceMeters) {
+        const nowIso = new Date().toISOString();
+        task.done = true;
+        task.completed = true;
+        task.verified_on_site = true;
+        task.manual_override = false;
+        task.override_reason = null;
+        task.override_distance_meters = (distanceMeters != null && !isNaN(distanceMeters)) ? Math.round(distanceMeters) : 0;
+        task.completed_at = nowIso;
+        task.completedAt = nowIso;
+        task.manager_alert = false;
+
+        // Päivitetään myös asiakaskortin viimeisin tila
+        const cust = customers.find(c =>
+            (task.customerId && String(c.id) === String(task.customerId)) ||
+            (c.name && task.name && c.name.toLowerCase() === task.name.toLowerCase())
+        );
+        if (cust) {
+            cust.manager_alert = false;
+            cust.manual_override = false;
+            cust.override_reason = null;
+            cust.override_distance_meters = task.override_distance_meters;
+            persistCustomers();
+        }
+
+        addWorkLogEntry({
+            id: newId(),
+            timestamp: nowIso,
+            completed_at: nowIso,
+            customerId: task.customerId || (cust ? cust.id : null),
+            customerName: task.name,
+            address: task.address,
+            type: task.type || 'Auraus & Hiekoitus',
+            sepeliQty: 0,
+            notes: task.notes || '',
+            contractType: task.contractType || '',
+            paymentMethod: task.paymentMethod || '',
+            completed: true,
+            verified_on_site: true,
+            manual_override: false,
+            override_reason: null,
+            override_distance_meters: task.override_distance_meters,
+            manager_alert: false
+        });
+
+        saveAndRender();
+        if (document.getElementById('viewCustomers').style.display !== 'none') renderCustomers();
+        const distInfo = task.override_distance_meters != null ? ` (etäisyys ${task.override_distance_meters} m)` : '';
+        showStatus(`🛰️ Paikkatodennus onnistui! "${esc(task.name)}" kuitattu valmiiksi ✓${distInfo}.`, 'success');
+    }
+
+    async function handleCompleteTaskClick(id, btnEl) {
+        const t = tasks.find(x => String(x.id) === String(id));
+        if (!t) return;
+        normalizeGeofenceFields(t);
+
+        // Jos kohde on jo kuitattu valmiiksi, tarjotaan palautusta tekemättömäksi
+        if (t.done) {
+            if (!confirm(`Palautetaanko kohde "${t.name}" takaisin tilaan "Tekemättä"?`)) return;
+            t.done = false;
+            t.completed = false;
+            t.verified_on_site = false;
+            t.manual_override = false;
+            t.override_reason = null;
+            t.override_distance_meters = null;
+            t.completed_at = null;
+            t.completedAt = null;
+            t.manager_alert = false;
+            saveAndRender();
+            showStatus(`Kohde "${esc(t.name)}" palautettu tekemättömäksi.`, 'info');
+            return;
+        }
+
+        // Estä tuplaklikkaukset ja aseta painikkeen tekstiksi "Tarkistetaan sijaintia... 🛰️"
+        if (btnEl) {
+            btnEl.disabled = true;
+            btnEl.classList.add('is-checking');
+            btnEl.textContent = 'Tarkistetaan sijaintia... 🛰️';
+        }
+
+        // Jos paikkatodennus on kytketty pois päältä tälle kohteelle, sallitaan heti
+        if (t.geofence_enabled === false) {
+            completeTaskVerified(t, 0);
+            return;
+        }
+
+        // Jos kohteelta puuttuu vielä koordinaatit, yritetään geokoodata osoite ennen etäisyystarkistusta
+        if ((!t.lat || !t.lon) && t.address) {
+            try {
+                const coords = await fetchCoordinates(t.address);
+                if (coords && coords.lat && coords.lon) {
+                    t.lat = coords.lat;
+                    t.lon = coords.lon;
+                    t.geoName = coords.name || '';
+                }
+            } catch (e) {}
+        }
+
+        if (!navigator.geolocation) {
+            openGeofenceOverrideModal(t.id, null, 'Laitteen GPS-paikannus ei ole käytettävissä.');
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            pos => {
+                const driverLat = pos.coords.latitude;
+                const driverLng = pos.coords.longitude;
+                const check = isDriverAtProperty(driverLat, driverLng, t, 50);
+
+                if (check.allowed) {
+                    completeTaskVerified(t, check.distanceMeters);
+                } else {
+                    const reasonMsg = check.distanceMeters != null
+                        ? `Etäisyys kohteeseen: ${check.distanceMeters} m (sallittu raja: ${check.maxAllowedMeters} m sis. 50 m GPS-toleranssin)`
+                        : 'Kohteen tarkkoja karttakoordinaatteja ei voitu varmentaa automaattisesti.';
+                    openGeofenceOverrideModal(t.id, check.distanceMeters, reasonMsg);
+                }
+            },
+            err => {
+                let errText = 'GPS-sijaintia ei saatu paikannettua (aikakatkaisu tai estetty).';
+                if (err && err.code === 1) errText = 'GPS-sijaintilupa on estetty selaimessa.';
+                else if (err && err.code === 3) errText = 'GPS-paikannus aikakatkaistiin (7 s).';
+                openGeofenceOverrideModal(t.id, null, errText);
+            },
+            { enableHighAccuracy: true, timeout: 7000, maximumAge: 0 }
+        );
+    }
+    window.handleCompleteTaskClick = handleCompleteTaskClick;
+
+    // Säilytetään toggleTask-funktio yhteensopivuuden vuoksi ja ohjataan se uuteen geofence-työnkulkuun
+    function toggleTask(id, btnEl) {
+        return handleCompleteTaskClick(id, btnEl);
+    }
+
+    function openGeofenceOverrideModal(taskId, distanceMeters, statusText) {
+        const t = tasks.find(x => String(x.id) === String(taskId));
+        if (!t) {
+            renderTasks();
+            return;
+        }
+        pendingOverrideTaskId = t.id;
+        pendingOverrideDistanceMeters = (distanceMeters != null && !isNaN(distanceMeters)) ? Math.round(Number(distanceMeters)) : null;
+
+        const targetInfoEl = document.getElementById('geofenceOverrideTargetInfo');
+        if (targetInfoEl) {
+            targetInfoEl.textContent = `Kohde: ${t.name} (${t.address})`;
+        }
+        const distInfoEl = document.getElementById('geofenceOverrideDistanceInfo');
+        if (distInfoEl) {
+            if (statusText) {
+                distInfoEl.textContent = statusText;
+            } else if (pendingOverrideDistanceMeters != null) {
+                distInfoEl.textContent = `Mitattu etäisyys kohteesta: ${pendingOverrideDistanceMeters} m (säde ${t.geofence_radius || 80} m + 50 m GPS-toleranssi)`;
+            } else {
+                distInfoEl.textContent = 'GPS-sijaintia ei saatu vahvistettua kohteessa.';
+            }
+        }
+
+        // Nollataan radiovalinnat ja tekstikenttä; Vahvista-painike on disabloitu kunnes syy valitaan
+        document.querySelectorAll('input[name="geofenceOverrideReason"]').forEach(r => { r.checked = false; });
+        const customBox = document.getElementById('geofenceOverrideCustomBox');
+        const customInput = document.getElementById('geofenceOverrideCustomReason');
+        if (customBox) customBox.style.display = 'none';
+        if (customInput) customInput.value = '';
+        const confirmBtn = document.getElementById('btnConfirmGeofenceOverride');
+        if (confirmBtn) confirmBtn.disabled = true;
+
+        const dlg = document.getElementById('geofenceOverrideDialog');
+        if (dlg && typeof dlg.showModal === 'function') {
+            dlg.showModal();
+        }
+    }
+    window.openGeofenceOverrideModal = openGeofenceOverrideModal;
+
+    function updateGeofenceOverrideModalState() {
+        const selected = document.querySelector('input[name="geofenceOverrideReason"]:checked')?.value || '';
+        const customBox = document.getElementById('geofenceOverrideCustomBox');
+        const customInput = document.getElementById('geofenceOverrideCustomReason');
+        const confirmBtn = document.getElementById('btnConfirmGeofenceOverride');
+
+        if (selected === 'Muu syy') {
+            if (customBox) customBox.style.display = 'block';
+            const hasCustomText = !!(customInput && customInput.value.trim().length > 0);
+            if (confirmBtn) confirmBtn.disabled = !hasCustomText;
+        } else if (selected) {
+            if (customBox) customBox.style.display = 'none';
+            if (confirmBtn) confirmBtn.disabled = false;
+        } else {
+            if (customBox) customBox.style.display = 'none';
+            if (confirmBtn) confirmBtn.disabled = true;
+        }
+    }
+    window.updateGeofenceOverrideModalState = updateGeofenceOverrideModalState;
+
+    function cancelGeofenceManualOverride() {
+        pendingOverrideTaskId = null;
+        pendingOverrideDistanceMeters = null;
+        const dlg = document.getElementById('geofenceOverrideDialog');
+        if (dlg) dlg.close('cancel');
+        renderTasks();
+    }
+    window.cancelGeofenceManualOverride = cancelGeofenceManualOverride;
+
+    function confirmGeofenceManualOverride() {
+        const selected = document.querySelector('input[name="geofenceOverrideReason"]:checked')?.value || '';
+        if (!selected) return;
+
+        const customInput = document.getElementById('geofenceOverrideCustomReason');
+        let finalReason = selected;
+        if (selected === 'Muu syy') {
+            const customText = customInput ? customInput.value.trim() : '';
+            if (!customText) {
+                alert('Kirjoita perustelu "Muu syy" -kenttään!');
+                return;
+            }
+            finalReason = `Muu syy: ${customText}`;
+        }
+
+        const t = tasks.find(x => String(x.id) === String(pendingOverrideTaskId));
+        if (!t) {
+            cancelGeofenceManualOverride();
+            return;
+        }
+
+        const nowIso = new Date().toISOString();
+        const distVal = pendingOverrideDistanceMeters;
+
+        // Tallennetaan vaadittu kuittausdata kohteelle
+        t.done = true;
+        t.completed = true;
+        t.verified_on_site = false;
+        t.manual_override = true;
+        t.override_reason = finalReason;
+        t.override_distance_meters = distVal;
+        t.completed_at = nowIso;
+        t.completedAt = nowIso;
+        t.manager_alert = true;
+
+        // Synkronoidaan esimieshuomio myös asiakasrekisterin kortille
+        const cust = customers.find(c =>
+            (t.customerId && String(c.id) === String(t.customerId)) ||
+            (c.name && t.name && c.name.toLowerCase() === t.name.toLowerCase())
+        );
+        if (cust) {
+            cust.manual_override = true;
+            cust.override_reason = finalReason;
+            cust.override_distance_meters = distVal;
+            cust.completed_at = nowIso;
+            cust.manager_alert = true;
+            persistCustomers();
+        }
+
+        // Kirjataan työlokiin esimiesliputuksella
+        addWorkLogEntry({
+            id: newId(),
+            timestamp: nowIso,
+            completed_at: nowIso,
+            customerId: t.customerId || (cust ? cust.id : null),
+            customerName: t.name,
+            address: t.address,
+            type: t.type || 'Auraus & Hiekoitus',
+            sepeliQty: 0,
+            notes: t.notes || '',
+            contractType: t.contractType || '',
+            paymentMethod: t.paymentMethod || '',
+            completed: true,
+            verified_on_site: false,
+            manual_override: true,
+            override_reason: finalReason,
+            override_distance_meters: distVal,
+            manager_alert: true
+        });
+
+        pendingOverrideTaskId = null;
+        pendingOverrideDistanceMeters = null;
+
+        const dlg = document.getElementById('geofenceOverrideDialog');
+        if (dlg) dlg.close('ok');
+
+        saveAndRender();
+        if (document.getElementById('viewCustomers').style.display !== 'none') renderCustomers();
+        showStatus(`⚠️ "${esc(t.name)}" kuitattu manuaalisesti (${esc(finalReason)}). Merkintä tallennettu esimiehelle.`, 'info');
+    }
+    window.confirmGeofenceManualOverride = confirmGeofenceManualOverride;
 
     function deleteTask(id) {
         if (confirm('Haluatko varmasti poistaa tämän kohteen?')) {
@@ -4665,7 +5561,18 @@
     function resetAllDone() {
         if (tasks.length === 0) return;
         if (confirm('Haluatko aloittaa uuden aurauskierroksen? Kaikki kohteet palautetaan tilaan "tekemättä".')) {
-            tasks = tasks.map(t => ({ ...t, done: false }));
+            tasks = tasks.map(t => ({
+                ...t,
+                done: false,
+                completed: false,
+                verified_on_site: false,
+                manual_override: false,
+                override_reason: null,
+                override_distance_meters: null,
+                completed_at: null,
+                completedAt: null,
+                manager_alert: false
+            }));
             saveAndRender();
             showStatus('Aurauskierros nollattu. Kaikki kohteet ovat tekemättöminä.', 'success');
         }
@@ -4740,7 +5647,17 @@
         const data = {
             name,
             updated: now,
-            tasks: JSON.parse(JSON.stringify(tasks)).map(t => ({ ...t, done: false })),
+            tasks: JSON.parse(JSON.stringify(tasks)).map(t => ({
+                ...t,
+                done: false,
+                completed: false,
+                verified_on_site: false,
+                manual_override: false,
+                override_reason: null,
+                override_distance_meters: null,
+                completed_at: null,
+                manager_alert: false
+            })),
             depot: { ...depot },
             returnToDepot: returnCheckbox.checked
         };
@@ -4761,7 +5678,18 @@
         const r = routes.find(x => String(x.id) === String(id));
         if (!r) return;
         if (tasks.length && !confirm(`Ladataanko reitti "${r.name}"? Nykyinen lista korvataan, ja tallentamattomat muutokset menetetään.`)) return;
-        tasks = JSON.parse(JSON.stringify(r.tasks)).map(t => ({ ...t, id: newId(), done: false }));
+        tasks = JSON.parse(JSON.stringify(r.tasks)).map(t => normalizeGeofenceFields({
+            ...t,
+            id: newId(),
+            done: false,
+            completed: false,
+            verified_on_site: false,
+            manual_override: false,
+            override_reason: null,
+            override_distance_meters: null,
+            completed_at: null,
+            manager_alert: false
+        }));
         if (r.depot) {
             depot = { address: '', lat: null, lon: null, useGps: false, ...r.depot };
             depotInput.value = depot.address || '';
@@ -4853,6 +5781,7 @@
     function editTask(id) {
         const t = tasks.find(x => x.id === id);
         if (!t) return;
+        normalizeGeofenceFields(t);
         editingId = id;
         document.getElementById('editName').value = t.name;
         editAddress.value = t.address;
@@ -4865,6 +5794,16 @@
         if (![...typeSel.options].some(o => o.value === t.type)) typeSel.add(new Option(t.type, t.type));
         typeSel.value = t.type;
         document.getElementById('editNotes').value = t.notes || '';
+
+        const gfEn = document.getElementById('editTaskGeofenceEnabled');
+        const gfType = document.getElementById('editTaskGeofenceType');
+        const gfRad = document.getElementById('editTaskGeofenceRadius');
+        const gfRadVal = document.getElementById('editTaskGeofenceRadiusVal');
+        if (gfEn) gfEn.checked = t.geofence_enabled !== false;
+        if (gfType) gfType.value = t.geofence_type || 'radius';
+        if (gfRad) gfRad.value = t.geofence_radius || 80;
+        if (gfRadVal) gfRadVal.textContent = t.geofence_radius || 80;
+
         editDlg.returnValue = '';
         editDlg.showModal();
     }
@@ -4872,7 +5811,10 @@
     editDlg.addEventListener('close', () => {
         const id = editingId;
         editingId = null;
-        if (editDlg.returnValue !== 'ok' || id == null) return;
+        if (editDlg.returnValue !== 'ok' || id == null) {
+            if (typeof renderYardGeofenceCircle === 'function') renderYardGeofenceCircle();
+            return;
+        }
         const t = tasks.find(x => x.id === id);
         if (!t) return;
         const address = editAddress.value.trim();
@@ -4884,6 +5826,26 @@
         if (emailEl) t.email = emailEl.value.trim();
         t.type = document.getElementById('editType').value;
         t.notes = document.getElementById('editNotes').value.trim();
+
+        const gfEn = document.getElementById('editTaskGeofenceEnabled');
+        const gfType = document.getElementById('editTaskGeofenceType');
+        const gfRad = document.getElementById('editTaskGeofenceRadius');
+        t.geofence_enabled = gfEn ? gfEn.checked : true;
+        t.geofence_type = gfType ? gfType.value : 'radius';
+        t.geofence_radius = gfRad ? Number(gfRad.value) || 80 : 80;
+
+        // Synkronoidaan myös asiakasrekisteriin, jos sama kohde löytyy sieltä
+        const cust = customers.find(c =>
+            (t.customerId && String(c.id) === String(t.customerId)) ||
+            (c.name && c.name.toLowerCase() === t.name.toLowerCase())
+        );
+        if (cust) {
+            cust.geofence_enabled = t.geofence_enabled;
+            cust.geofence_type = t.geofence_type;
+            cust.geofence_radius = t.geofence_radius;
+            persistCustomers();
+        }
+
         if (changed) {
             t.address = address;
             t.gps = false;
@@ -4899,6 +5861,8 @@
             }
         }
         saveAndRender();
+        if (typeof syncYardMapGeofenceControls === 'function') syncYardMapGeofenceControls();
+        if (typeof renderYardGeofenceCircle === 'function') renderYardGeofenceCircle();
     });
 
     // ---------- Osoite-ehdotukset (Photon / OpenStreetMap) ----------
@@ -5423,24 +6387,68 @@
 
         let shown = 0;
         tasks.forEach((task, index) => {
+            normalizeGeofenceFields(task);
             if (currentFilter === 'pending' && task.done) return;
             if (currentFilter === 'done' && !task.done) return;
             shown++;
 
+            const isManualOverride = !!(task.done && (task.manual_override || task.manager_alert));
+            const isVerifiedOnSite = !!(task.done && task.verified_on_site && !isManualOverride);
+
             const item = document.createElement('div');
-            item.className = `task-item yard-card ${task.done ? 'done' : ''}`;
+            item.className = `task-item yard-card ${task.done ? 'done' : ''} ${isManualOverride ? 'manual-override-card' : ''}`;
 
             const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(taskRef(task))}`;
 
-            const headerBadge = task.done
-                ? `<span class="badge badge-done">✓ Valmis</span>`
-                : `<span class="badge badge-active">${esc(task.type)}</span>`;
+            let headerBadge = '';
+            if (isManualOverride) {
+                const reasonTip = task.override_reason ? `Kuskin perustelu: ${task.override_reason}` : 'Kuitattu manuaalisesti geofence-alueen ulkopuolelta';
+                headerBadge = `<span class="badge" style="background: rgba(245, 158, 11, 0.22); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.5);" title="${esc(reasonTip)}">⚠️ Kuitattu manuaalisesti</span>`;
+            } else if (task.done) {
+                headerBadge = `<span class="badge badge-done">✓ Valmis</span>`;
+            } else {
+                headerBadge = `<span class="badge badge-active">${esc(task.type)}</span>`;
+            }
 
             let locPill = '';
             if (!task.lat || !task.lon) {
                 locPill = `<span class="coord-missing" onclick="clearTaskCoords(${task.id})" style="cursor:pointer;" title="Klikkaa hakeaksesi osoitteen sijainnin uudelleen">⚠️ Ei sijaintia ↻</span>`;
             } else if (task.gps) {
                 locPill = `<span class="coord-badge" title="Tallennettu GPS-piste">📍 GPS</span>`;
+            }
+
+            const gfModeLabel = task.geofence_enabled === false
+                ? 'Pois'
+                : (task.geofence_type === 'polygon' ? 'Karttaraja' : `${task.geofence_radius || 80} m`);
+            const gfPill = `<span class="coord-badge" style="cursor:pointer;" onclick="openTaskOnYardMap(${task.id})" title="Kohteen paikkatodennus (Geofence) — klikkaa muokataksesi sädettä tai rajoja">🛰️ Geofence: ${esc(gfModeLabel)}</span>`;
+
+            let verificationBannerHtml = '';
+            if (isManualOverride) {
+                const distStr = task.override_distance_meters != null ? ` · Etäisyys kohteesta: ${task.override_distance_meters} m` : '';
+                const timeStr = (task.completed_at || task.completedAt) ? ` · ${fmtDateTime(task.completed_at || task.completedAt)}` : '';
+                const reasonStr = task.override_reason || 'Ei ilmoitettua syytä';
+                verificationBannerHtml = `
+                    <div class="manager-alert-banner" title="Työnjohdon huomioliputus — Kuskin perustelu: ${esc(reasonStr)}${esc(distStr)}">
+                        <span class="alert-icon">⚠️</span>
+                        <div>
+                            <div class="alert-title">Huomio työnjohdolle: Manuaalinen kuittaus (Geofence-ohitus)</div>
+                            <div><b>Kuskin syy:</b> ${esc(reasonStr)}${esc(distStr)}${esc(timeStr)}</div>
+                        </div>
+                    </div>
+                `;
+            } else if (isVerifiedOnSite) {
+                const distStr = task.override_distance_meters != null ? ` (${task.override_distance_meters} m)` : '';
+                verificationBannerHtml = `<div style="margin-bottom: 10px;"><span class="geofence-verified-pill" title="Paikkatodennus vahvistettu kohteessa">🛰️ Paikkatodennus OK ✓${esc(distStr)}</span></div>`;
+            }
+
+            let completeBtnClass = 'btn-complete-main';
+            let completeBtnText = '✓ Kuittaa valmiiksi';
+            if (isManualOverride) {
+                completeBtnClass = 'btn-complete-main is-manual-override';
+                completeBtnText = 'Kuitattu manuaalisesti ⚠️';
+            } else if (task.done) {
+                completeBtnClass = 'btn-complete-main is-done';
+                completeBtnText = 'Kuitattu valmiiksi ✓';
             }
 
             item.innerHTML = `
@@ -5453,15 +6461,17 @@
                     <a href="${mapsUrl}" target="_blank" rel="noopener" class="yard-address">📍 ${esc(task.address)}</a>
                     <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
                         ${locPill}
+                        ${gfPill}
                         ${task.phone ? `<a href="tel:${esc(task.phone)}" class="contact-link" title="Soita asiakkaalle">📞 ${esc(task.phone)}</a>` : ''}
                     </div>
                 </div>
 
                 ${approxLocation(task) ? `<div class="task-warn">ℹ️ Sijainti kadun tarkkuudella (voit halutessasi tallentaa tarkan 📍 GPS-pisteen kohteessa).</div>` : ''}
                 ${task.notes ? `<div class="task-notes">⚠️ ${esc(task.notes)}</div>` : ''}
+                ${verificationBannerHtml}
 
-                <button type="button" class="btn-complete-main ${task.done ? 'is-done' : ''}" onclick="toggleTask(${task.id})">
-                    ${task.done ? '✓ Valmis – Palauta tekemättömäksi' : '✓ Kuittaa valmiiksi'}
+                <button type="button" class="${completeBtnClass}" onclick="handleCompleteTaskClick(${task.id}, this)" title="${task.done ? 'Klikkaa palauttaaksesi kohteen tekemättömäksi' : 'Tarkistaa GPS-sijainnin ja kuittaa pihan valmiiksi'}">
+                    ${completeBtnText}
                 </button>
 
                 <div class="task-tools-row">
@@ -5470,12 +6480,12 @@
                         <button class="order-btn" title="Siirrä alaspäin" onclick="moveTask(${index}, 1)" ${index === tasks.length - 1 ? 'disabled' : ''}>▼</button>
                     </div>
                     <div class="task-tools-group">
-                        <button class="tiny-btn" type="button" onclick="openTaskOnYardMap(${task.id})" title="Avaa satelliittikartta ja piirrä kone-/käsityöalueet">🛰️ Pihakartta</button>
+                        <button class="tiny-btn" type="button" onclick="openTaskOnYardMap(${task.id})" title="Avaa satelliittikartta ja piirrä kone-/käsityöalueet sekä geofence-ympyrä">🛰️ Pihakartta</button>
                         <button class="tiny-btn" type="button" onclick="openStreetViewForTask(${task.id})" title="Avaa kohde Google Street View -katunäkymässä">🛣️ Avaa Street View</button>
                         <button class="tiny-btn" type="button" onclick="quickSnapPhoto(${task.id})" title="Ota valokuva kohteesta">📷 Ota kuva</button>
                         <button class="photo-btn" type="button" onclick="openCustomerPhotos(${task.customerId ? task.customerId : `'${esc(task.name)}'`})" title="Näytä kohteen valokuvat">🖼️ <span data-photo-count-for="${task.customerId || esc(task.name)}">${photoCounts[String(task.customerId || task.name)] || 0}</span></button>
                         <button class="tiny-btn" type="button" onclick="setTaskGPS(${task.id})" title="Tallenna nykyinen GPS-sijaintisi tämän kohteen sijainniksi">📍 GPS</button>
-                        <button class="tiny-btn" type="button" onclick="editTask(${task.id})" title="Muokkaa kohteen tietoja">✎</button>
+                        <button class="tiny-btn" type="button" onclick="editTask(${task.id})" title="Muokkaa kohteen tietoja ja geofence-asetuksia">✎</button>
                         <button class="tiny-btn danger" type="button" onclick="deleteTask(${task.id})" title="Poista kohde ajolistalta">✕</button>
                     </div>
                 </div>
@@ -5531,6 +6541,7 @@
     let yardMap = null;
     let yardDrawnItems = null;
     let yardNeighborItems = null;
+    let yardGeofenceCircle = null;
     let currentDrawCategory = 'machine';
     let selectedMapLayer = null;
     let currentMapTargetKey = localStorage.getItem(YARD_ACTIVE_TARGET_KEY) || '';
@@ -6021,13 +7032,190 @@
         });
     }
 
+    // --- Geofence-ympyrän (L.circle) piirto ja synkronointi satelliittikartalle ---
+    function syncYardMapGeofenceControls(key) {
+        const activeKey = key || currentMapTargetKey || 'default_yard';
+        const target = resolveMapTargetObject(activeKey);
+        const ref = target?.taskRef || target?.custRef || null;
+        if (ref) normalizeGeofenceFields(ref);
+
+        const enEl = document.getElementById('yardMapGeofenceEnabled');
+        const typeEl = document.getElementById('yardMapGeofenceType');
+        const radEl = document.getElementById('yardMapGeofenceRadius');
+        const radValEl = document.getElementById('yardMapGeofenceRadiusVal');
+
+        const enabled = ref ? (ref.geofence_enabled !== false) : true;
+        const gType = ref?.geofence_type === 'polygon' ? 'polygon' : 'radius';
+        const radius = ref ? (Number(ref.geofence_radius) || 80) : 80;
+
+        if (enEl) enEl.checked = enabled;
+        if (typeEl) typeEl.value = gType;
+        if (radEl) radEl.value = radius;
+        if (radValEl) radValEl.textContent = radius;
+    }
+    window.syncYardMapGeofenceControls = syncYardMapGeofenceControls;
+
+    function renderYardGeofenceCircle(customRadiusOverride = null, customTargetKey = null) {
+        if (!yardMap || typeof L === 'undefined') return;
+        const activeKey = customTargetKey || currentMapTargetKey || 'default_yard';
+        const target = resolveMapTargetObject(activeKey);
+        const ref = target?.taskRef || target?.custRef || null;
+        if (ref) normalizeGeofenceFields(ref);
+
+        const enabled = ref ? (ref.geofence_enabled !== false) : true;
+        const gType = ref?.geofence_type || 'radius';
+        const radius = customRadiusOverride != null
+            ? Number(customRadiusOverride)
+            : (ref ? (Number(ref.geofence_radius) || 80) : 80);
+
+        if (!enabled && customRadiusOverride == null) {
+            if (yardGeofenceCircle && yardMap.hasLayer(yardGeofenceCircle)) {
+                yardMap.removeLayer(yardGeofenceCircle);
+            }
+            yardGeofenceCircle = null;
+            return;
+        }
+
+        let centerLat = target?.lat || target?.taskRef?.lat || target?.custRef?.lat || null;
+        let centerLon = target?.lon || target?.taskRef?.lon || target?.custRef?.lon || null;
+
+        if ((!centerLat || !centerLon) && yardDrawnItems && yardDrawnItems.getLayers().length > 0) {
+            try {
+                const b = yardDrawnItems.getBounds();
+                if (b && b.isValid()) {
+                    const c = b.getCenter();
+                    centerLat = c.lat;
+                    centerLon = c.lng;
+                }
+            } catch (e) {}
+        }
+
+        if (!centerLat || !centerLon) {
+            const c = yardMap.getCenter();
+            centerLat = c.lat;
+            centerLon = c.lng;
+        }
+
+        const circleColor = gType === 'polygon' ? '#0ea5e9' : '#10b981';
+        const circleStyle = {
+            radius: radius,
+            color: circleColor,
+            weight: 2.5,
+            dashArray: '8, 6',
+            fillColor: circleColor,
+            fillOpacity: gType === 'polygon' ? 0.05 : 0.12,
+            interactive: false,
+            pmIgnore: true
+        };
+
+        if (yardGeofenceCircle && yardMap.hasLayer(yardGeofenceCircle)) {
+            yardGeofenceCircle.setLatLng([centerLat, centerLon]);
+            yardGeofenceCircle.setRadius(radius);
+            yardGeofenceCircle.setStyle(circleStyle);
+        } else {
+            yardGeofenceCircle = L.circle([centerLat, centerLon], circleStyle).addTo(yardMap);
+        }
+
+        if (yardGeofenceCircle && typeof yardGeofenceCircle.unbindTooltip === 'function') {
+            yardGeofenceCircle.unbindTooltip();
+            yardGeofenceCircle.bindTooltip(`🛰️ Geofence-säde: ${radius} m (+50 m GPS-toleranssi)`, {
+                permanent: false,
+                direction: 'top'
+            });
+        }
+    }
+    window.renderYardGeofenceCircle = renderYardGeofenceCircle;
+
+    function updateCurrentMapTargetGeofence(isLiveSlider = false) {
+        const enEl = document.getElementById('yardMapGeofenceEnabled');
+        const typeEl = document.getElementById('yardMapGeofenceType');
+        const radEl = document.getElementById('yardMapGeofenceRadius');
+        const radValEl = document.getElementById('yardMapGeofenceRadiusVal');
+
+        const enabled = enEl ? enEl.checked : true;
+        const gType = typeEl ? typeEl.value : 'radius';
+        const radius = radEl ? (Number(radEl.value) || 80) : 80;
+        if (radValEl) radValEl.textContent = radius;
+
+        const activeKey = currentMapTargetKey || 'default_yard';
+        let tasksChanged = false;
+        tasks.forEach(t => {
+            if (makeTargetGeoKey(t.name, t.address) === activeKey) {
+                t.geofence_enabled = enabled;
+                t.geofence_type = gType;
+                t.geofence_radius = radius;
+                tasksChanged = true;
+            }
+        });
+
+        let custChanged = false;
+        customers.forEach(c => {
+            if (makeTargetGeoKey(c.name, c.address) === activeKey) {
+                c.geofence_enabled = enabled;
+                c.geofence_type = gType;
+                c.geofence_radius = radius;
+                custChanged = true;
+            }
+        });
+
+        // Piirretään havainnollistava ympyrä (L.circle) välittömästi kartalle
+        renderYardGeofenceCircle(enabled ? radius : null, activeKey);
+
+        if (!isLiveSlider) {
+            if (tasksChanged) {
+                localStorage.setItem('pihatyot_tasks_v4', JSON.stringify(tasks));
+                renderTasks();
+            }
+            if (custChanged) {
+                persistCustomers();
+                if (document.getElementById('viewCustomers').style.display !== 'none') renderCustomers();
+            }
+            setYardMapStatus(enabled
+                ? `🛰️ Geofence päivitetty: ${gType === 'polygon' ? 'Satelliittikartan piharajat' : `Säde ${radius} m`} (+50 m GPS-toleranssi).`
+                : '🛰️ Paikkatodennus (Geofence) kytketty pois päältä tälle kohteelle.');
+        } else {
+            setYardMapStatus(`🛰️ Geofence-ympyrä kartalla: säde ${radius} m (yht. ${radius + 50} m GPS-toleranssilla).`);
+        }
+    }
+    window.updateCurrentMapTargetGeofence = updateCurrentMapTargetGeofence;
+
+    function previewGeofenceRadiusFromDialog(mode, val) {
+        const radius = Number(val) || 80;
+        let targetKey = currentMapTargetKey || 'default_yard';
+
+        if (mode === 'editTask' && editingId != null) {
+            const t = tasks.find(x => x.id === editingId);
+            if (t) {
+                t.geofence_radius = radius;
+                targetKey = makeTargetGeoKey(t.name, t.address);
+            }
+        } else if (mode === 'editCust' && editingCustId != null) {
+            const c = customers.find(x => String(x.id) === String(editingCustId));
+            if (c) {
+                c.geofence_radius = radius;
+                targetKey = makeTargetGeoKey(c.name, c.address);
+            }
+        }
+
+        const mapRadEl = document.getElementById('yardMapGeofenceRadius');
+        const mapRadValEl = document.getElementById('yardMapGeofenceRadiusVal');
+        if (targetKey === currentMapTargetKey) {
+            if (mapRadEl) mapRadEl.value = radius;
+            if (mapRadValEl) mapRadValEl.textContent = radius;
+        }
+        renderYardGeofenceCircle(radius, targetKey);
+    }
+    window.previewGeofenceRadiusFromDialog = previewGeofenceRadiusFromDialog;
+
     function renderTargetGeoJSONOnMap(key, centerMap = true) {
         if (!yardMap || !yardDrawnItems) return;
         selectedMapLayer = null;
         yardDrawnItems.clearLayers();
         const activeKey = key || 'default_yard';
 
+        syncYardMapGeofenceControls(activeKey);
         renderNeighborCardsOnMap(activeKey);
+        renderYardGeofenceCircle(null, activeKey);
 
         const geoData = getSavedGeoJSONForTarget(activeKey);
         if (geoData && Array.isArray(geoData.features) && geoData.features.length > 0) {
@@ -6051,6 +7239,7 @@
                 }
             });
 
+            renderYardGeofenceCircle(null, activeKey);
             setYardMapStatus(`Ladattu ${geoData.features.length} tallennettua aluetta kohteelle.`);
             if (centerMap) {
                 try {
@@ -6073,20 +7262,27 @@
     async function centerMapOnTarget(key) {
         if (!yardMap) return;
         const target = resolveMapTargetObject(key);
-        if (!target) return;
+        if (!target) {
+            renderYardGeofenceCircle(null, key);
+            return;
+        }
 
         if (target.lat && target.lon) {
-            yardMap.setView([target.lat, target.lon], 19);
+            yardMap.setView([target.lat, target.lon], 18);
+            renderYardGeofenceCircle(null, key);
             return;
         }
         if (target.taskRef && target.taskRef.lat && target.taskRef.lon) {
-            yardMap.setView([target.taskRef.lat, target.taskRef.lon], 19);
+            yardMap.setView([target.taskRef.lat, target.taskRef.lon], 18);
+            renderYardGeofenceCircle(null, key);
             return;
         }
 
         if (target.address) {
             const c = await fetchCoordinates(target.address);
             if (c && c.lat && c.lon) {
+                target.lat = c.lat;
+                target.lon = c.lon;
                 if (target.taskRef) {
                     target.taskRef.lat = c.lat;
                     target.taskRef.lon = c.lon;
@@ -6098,7 +7294,8 @@
                     localStorage.setItem('pihatyot_customers_v1', JSON.stringify(customers));
                 }
                 if (currentMapTargetKey === target.key) {
-                    yardMap.setView([c.lat, c.lon], 19);
+                    yardMap.setView([c.lat, c.lon], 18);
+                    renderYardGeofenceCircle(null, target.key);
                 }
             }
         }
@@ -6109,6 +7306,7 @@
         localStorage.setItem(YARD_ACTIVE_TARGET_KEY, currentMapTargetKey);
         const sel = document.getElementById('yardMapTargetSelect');
         if (sel && sel.value !== currentMapTargetKey) sel.value = currentMapTargetKey;
+        syncYardMapGeofenceControls(currentMapTargetKey);
         renderTargetGeoJSONOnMap(currentMapTargetKey, true);
     }
 
