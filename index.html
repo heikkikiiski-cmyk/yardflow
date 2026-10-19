@@ -1625,6 +1625,16 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                     <span id="driverHudNoteText"></span>
                 </div>
 
+                <!-- Kuljettajan valokuvapainike ja kohteen ohjeet -->
+                <div style="display: flex; gap: 8px; margin: 8px 0 10px 0; flex-wrap: wrap;">
+                    <button type="button" class="btn-primary" style="flex: 1.2; min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; font-size: 0.88rem; background: #0284c7; border: 1px solid #38bdf8;" onclick="openPhotoCaptureForActiveTarget()" title="Ota valokuva tai ilmoita huomio nykyisestä kohteesta">
+                        <span>📷</span> <span>Ota kuva / Ilmoita huomio</span>
+                    </button>
+                    <button type="button" class="btn-outline" style="min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.85rem;" onclick="openActiveTargetPhotos()" title="Katso kohteen tallennetut kuvat ja kiinteistöohjeet">
+                        <span>🖼️</span> <span>Kuvat &amp; ohjeet</span>
+                    </button>
+                </div>
+
                 <!-- Työkalurivi: Automaattinen optimointi ja työjonon avaus -->
                 <div class="driver-hud-tools-row">
                     <button type="button" id="btn-optimize-route" class="btn-driver-tool" onclick="optimizeDriverRoute()" title="Järjestä käymättömät kohteet lyhimmän siirtymämatkan mukaan">
@@ -1752,6 +1762,9 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                 <button type="button" id="btn-uncomplete-property" class="btn-driver-uncomplete" onclick="uncompleteActiveYard()" style="display: none;" title="Ota valmis-tila pois ja palauta kohde tekemättömäksi">
                     <span>↩️</span>
                     <span>Ota valmis-tila pois / Avaa uudelleen</span>
+                </button>
+                <button type="button" id="btn-driver-photo" class="btn-driver-photo" onclick="openPhotoCaptureForActiveTarget()" title="Ota valokuva tai ilmoita huomio kohteesta" style="background: rgba(14, 165, 233, 0.15); border: 1.5px solid #0ea5e9; color: #38bdf8; font-weight: 700; border-radius: var(--radius-md); padding: 0 14px; min-height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; font-size: 0.86rem; white-space: nowrap;">
+                    📷 Ota kuva / Huomio
                 </button>
                 <button type="button" id="btn-driver-obstacle" class="btn-driver-obstacle" onclick="reportNextYardObstacle()" title="Ilmoita este tai syy, miksi kohdetta ei voida tehdä">
                     ⚠️ Ilmoita esteestä
@@ -2095,12 +2108,20 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                     </div>
                 </div>
 
-                <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; border-top: 1px solid var(--border); padding-top: 10px;">
-                    <span style="font-size: 0.82rem; font-weight: 600; color: var(--muted); margin-right: 4px;">Pikavalinta:</span>
-                    <button type="button" class="history-period-btn" data-period="week" onclick="setWorkHistoryPeriod('week')">Tämä viikko</button>
-                    <button type="button" class="history-period-btn active" data-period="month" onclick="setWorkHistoryPeriod('month')">Tämä kuukausi</button>
-                    <button type="button" class="history-period-btn" data-period="lastMonth" onclick="setWorkHistoryPeriod('lastMonth')">Edellinen kuukausi</button>
-                    <button type="button" class="history-period-btn" data-period="all" onclick="setWorkHistoryPeriod('all')">Kaikki</button>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 10px;">
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+                        <span style="font-size: 0.82rem; font-weight: 600; color: var(--muted); margin-right: 4px;">Pikavalinta:</span>
+                        <button type="button" class="history-period-btn" data-period="week" onclick="setWorkHistoryPeriod('week')">Tämä viikko</button>
+                        <button type="button" class="history-period-btn active" data-period="month" onclick="setWorkHistoryPeriod('month')">Tämä kuukausi</button>
+                        <button type="button" class="history-period-btn" data-period="lastMonth" onclick="setWorkHistoryPeriod('lastMonth')">Edellinen kuukausi</button>
+                        <button type="button" class="history-period-btn" data-period="all" onclick="setWorkHistoryPeriod('all')">Kaikki</button>
+                    </div>
+                    <div>
+                        <label style="display: inline-flex; align-items: center; gap: 8px; font-size: 0.82rem; font-weight: 700; color: #38bdf8; cursor: pointer; background: rgba(14, 165, 233, 0.08); padding: 6px 12px; border-radius: 6px; border: 1px solid rgba(14, 165, 233, 0.25);">
+                            <input type="checkbox" id="includePhotosInPdf" checked style="accent-color: #0284c7; width: 16px; height: 16px; margin: 0; cursor: pointer;">
+                            <span>📷 Ota mukaan valokuvat (työnäytteet ja vahinkoilmoitukset)</span>
+                        </label>
+                    </div>
                 </div>
             </div>
 
@@ -2364,60 +2385,91 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     </div>
 
     <!-- Valokuvan lisäysdialogi -->
-    <dialog id="photoCaptureDialog" class="app-dialog">
+    <dialog id="photoCaptureDialog" class="app-dialog" style="max-width: 580px; width: 95%;">
         <form method="dialog" class="dialog-content" onsubmit="event.preventDefault(); savePhotoFromDialog();">
-            <h3 id="photoDialogTitle">📷 Lisää valokuva kohteesta</h3>
-            <p id="photoDialogSubtitle" style="color: var(--muted); font-size: 0.85rem; margin-top:-6px; margin-bottom: 12px;"></p>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+                <div>
+                    <h3 id="photoDialogTitle" style="margin: 0; font-size: 1.15rem;">📷 Lisää valokuva kohteesta</h3>
+                    <p id="photoDialogSubtitle" style="color: var(--muted); font-size: 0.85rem; margin: 4px 0 0 0;"></p>
+                </div>
+                <button type="button" class="tiny-btn" onclick="document.getElementById('photoCaptureDialog').close('cancel')">✕ Sulje</button>
+            </div>
 
-            <div style="margin-bottom: 14px; text-align: center;">
-                <input type="file" id="photoFileInput" accept="image/*" style="display: none;" onchange="handlePhotoFileSelected(event)">
-                <button type="button" class="btn-secondary" style="width: 100%; margin-bottom: 8px;" onclick="document.getElementById('photoFileInput').click()">
-                    📷 Ota kuva tai valitse galleriasta
+            <div style="margin: 12px 0; text-align: center;">
+                <input type="file" id="photoFileInput" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoFileSelected(event)">
+                <button type="button" class="btn-secondary" style="width: 100%; margin-bottom: 8px; font-weight: 700; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;" onclick="document.getElementById('photoFileInput').click()">
+                    <span>📷</span> <span>Ota kuva kameralla tai valitse galleriasta</span>
                 </button>
-                <div id="photoPreviewBox" style="display: none; margin-top: 10px; border-radius: 10px; overflow: hidden; border: 1px solid var(--accent); max-height: 220px; background: #000;">
-                    <img id="photoPreviewImg" style="width: 100%; max-height: 220px; object-fit: contain;" alt="Esikatselu">
+                <div id="photoPreviewBox" style="display: none; margin-top: 10px; border-radius: 10px; overflow: hidden; border: 1.5px solid var(--accent); max-height: 240px; background: #000;">
+                    <img id="photoPreviewImg" style="width: 100%; max-height: 240px; object-fit: contain;" alt="Esikatselu">
                 </div>
                 <div id="photoMetaTimeInfo" style="display: none; margin-top: 8px; font-size: 0.82rem; color: var(--accent); font-weight: 600;"></div>
             </div>
 
-            <label>Kuvan tilanne / luokittelu:</label>
-            <div class="choice-group">
-                <label class="choice-label"><input type="radio" name="photoTag" value="Valmis auraus" checked> ✓ Valmis auraus</label>
-                <label class="choice-label"><input type="radio" name="photoTag" value="Ennen aurausta"> ❄ Ennen aurausta</label>
-                <label class="choice-label"><input type="radio" name="photoTag" value="Hiekoitus suoritettu"> 🪨 Hiekoitus suoritettu</label>
-                <label class="choice-label"><input type="radio" name="photoTag" value="Olemassa oleva vaurio"> ⚠️ Olemassa oleva vaurio</label>
-                <label class="choice-label"><input type="radio" name="photoTag" value="Este / Huomio"> 🚫 Este / Huomio</label>
+            <label style="font-weight: 700; margin-bottom: 6px; display: block;">Kuvan tyyppi / kategoria:</label>
+            <div class="choice-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+                <label class="choice-label" style="display: flex; align-items: center; gap: 6px; padding: 10px; cursor: pointer; border-radius: 8px; border: 1px solid var(--border);">
+                    <input type="radio" name="photoTag" value="Työtodiste" checked>
+                    <span>❄️ Työtodiste</span>
+                </label>
+                <label class="choice-label" style="display: flex; align-items: center; gap: 6px; padding: 10px; cursor: pointer; border-radius: 8px; border: 1px solid var(--border);">
+                    <input type="radio" name="photoTag" value="Este / Epäkohta">
+                    <span>⚠️ Este / Epäkohta</span>
+                </label>
+                <label class="choice-label" style="display: flex; align-items: center; gap: 6px; padding: 10px; cursor: pointer; border-radius: 8px; border: 1px solid var(--border);">
+                    <input type="radio" name="photoTag" value="Vahinko / Kolhu">
+                    <span>💥 Vahinko / Kolhu</span>
+                </label>
+                <label class="choice-label" style="display: flex; align-items: center; gap: 6px; padding: 10px; cursor: pointer; border-radius: 8px; border: 1px solid var(--border);">
+                    <input type="radio" name="photoTag" value="Kiinteistöohje">
+                    <span>📌 Kiinteistöohje</span>
+                </label>
             </div>
 
-            <label for="photoNotesInput">Kuvan huomiot (esim. vakuutusyhtiölle tai tilaajalle):</label>
-            <textarea id="photoNotesInput" rows="2" placeholder="esim. Kulkuväylät ja autopaikat aurattu puhtaaksi, aita oli vino jo saavuttaessa"></textarea>
+            <label for="photoNotesInput" style="font-weight: 600; margin-bottom: 4px; display: block;">Vapaa kommentti / kuvaus:</label>
+            <textarea id="photoNotesInput" rows="3" placeholder="esim. Kulkuväylät ja autopaikat aurattu puhtaaksi, aita oli vino jo saavuttaessa"></textarea>
 
-            <div class="dialog-actions">
-                <button type="button" class="btn-outline" onclick="document.getElementById('photoCaptureDialog').close('cancel')">Peruuta</button>
-                <button type="submit" id="btnSavePhoto" class="btn-primary" style="width: auto; padding: 10px 20px;">💾 Tallenna kuva</button>
+            <div class="dialog-actions modal-action-buttons" style="display: flex; gap: 10px; margin-top: 14px;">
+                <button type="button" class="btn-outline btn-form-cancel" style="flex: 1;" onclick="document.getElementById('photoCaptureDialog').close('cancel')">✕ Peruuta</button>
+                <button type="submit" id="btnSavePhoto" class="btn-primary btn-form-save" style="flex: 1.5; min-height: 40px; padding: 10px 20px; font-weight: 700;">💾 Tallenna kuva</button>
             </div>
         </form>
     </dialog>
 
-    <!-- Asiakkaan kuvagalleriadialogi -->
-    <dialog id="photoGalleryDialog" class="app-dialog" style="max-width: 650px;">
+    <!-- Asiakkaan kuvagalleriadialogi ja kiinteistöohjeet -->
+    <dialog id="photoGalleryDialog" class="app-dialog" style="max-width: 720px; width: 95%;">
         <div class="dialog-content">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                <h3 id="galleryTitle" style="margin: 0;">📷 Kohteen valokuvat</h3>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+                <div>
+                    <h3 id="galleryTitle" style="margin: 0; font-size: 1.15rem;">📷 Kohteen valokuvat ja kiinteistöohjeet</h3>
+                    <div id="gallerySubtitle" style="color: var(--muted); font-size: 0.85rem; margin-top: 3px;"></div>
+                </div>
                 <button type="button" class="tiny-btn" onclick="document.getElementById('photoGalleryDialog').close()">✕ Sulje</button>
             </div>
-            <div id="gallerySubtitle" style="color: var(--muted); font-size: 0.85rem; margin-bottom: 12px;"></div>
 
-            <div style="display: flex; gap: 8px; margin-bottom: 14px;">
-                <button type="button" class="btn-primary" style="flex: 1;" onclick="openAddPhotoForCurrentGallery()">
-                    📷 Ota uusi kuva kohteelle
+            <!-- Toimintorivi: Lisää pysyvä ohjekuva tai ota kenttäkuva -->
+            <div style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;">
+                <button type="button" class="btn-primary" style="flex: 1; min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 700; font-size: 0.86rem;" onclick="openAddPhotoForCurrentGallery('Kiinteistöohje')">
+                    ➕ Lisää ohjekuva kohteelle
                 </button>
+                <button type="button" class="btn-secondary" style="flex: 1; min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; font-size: 0.86rem;" onclick="openAddPhotoForCurrentGallery('Työtodiste')">
+                    📷 Ota kuva / Ilmoita huomio
+                </button>
+            </div>
+
+            <!-- Kategoriasuodatus -->
+            <div id="galleryFilterTabs" style="display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px;">
+                <button type="button" class="tiny-btn active" data-filter="all" onclick="filterGalleryCategory('all')">Kaikki</button>
+                <button type="button" class="tiny-btn" data-filter="Kiinteistöohje" onclick="filterGalleryCategory('Kiinteistöohje')">📌 Kiinteistöohjeet</button>
+                <button type="button" class="tiny-btn" data-filter="Työtodiste" onclick="filterGalleryCategory('Työtodiste')">❄️ Työtodisteet</button>
+                <button type="button" class="tiny-btn" data-filter="Este / Epäkohta" onclick="filterGalleryCategory('Este / Epäkohta')">⚠️ Esteet</button>
+                <button type="button" class="tiny-btn" data-filter="Vahinko / Kolhu" onclick="filterGalleryCategory('Vahinko / Kolhu')">💥 Vahingot</button>
             </div>
 
             <div id="galleryPhotoGrid" class="photo-grid" style="max-height: 52vh; overflow-y: auto; padding-right: 4px;"></div>
 
-            <div class="dialog-actions" style="margin-top: 14px;">
-                <button type="button" class="btn-outline" onclick="document.getElementById('photoGalleryDialog').close()">Sulje</button>
+            <div class="dialog-actions modal-action-buttons" style="margin-top: 14px;">
+                <button type="button" class="btn-outline btn-form-cancel" style="width: 100%;" onclick="document.getElementById('photoGalleryDialog').close()">✕ Sulje</button>
             </div>
         </div>
     </dialog>
@@ -2493,17 +2545,33 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     </dialog>
 
     <div id="lightboxModal" class="lightbox-modal" onclick="closeLightbox(event)">
-        <img id="lightboxImg" class="lightbox-img" alt="Kohteen valokuva">
-        <div class="lightbox-info">
-            <div id="lightboxTag" style="font-weight: 700; color: var(--accent); margin-bottom: 4px;"></div>
-            <div id="lightboxTime" style="font-size: 0.8rem; color: var(--muted);"></div>
-            <div id="lightboxNotes" style="margin-top: 6px; font-size: 0.9rem;"></div>
-        </div>
-        <div class="lightbox-actions" onclick="event.stopPropagation()">
-            <button type="button" class="btn-primary" id="lightboxShareBtn" onclick="shareCurrentLightboxPhoto()">📤 Jaa kuva</button>
-            <button type="button" class="btn-outline" id="lightboxDownloadBtn" onclick="downloadCurrentLightboxPhoto()">⬇ Lataa</button>
-            <button type="button" class="btn-outline-warning" onclick="deleteCurrentLightboxPhoto()">🗑️ Poista</button>
-            <button type="button" class="btn-secondary" onclick="closeLightbox()">Sulje</button>
+        <div class="lightbox-container" onclick="event.stopPropagation();" style="position: relative; max-width: 900px; width: 95%; max-height: 92vh; display: flex; flex-direction: column; background: var(--bg-card); border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--border); box-shadow: 0 16px 48px rgba(0,0,0,0.7);">
+            <div style="position: absolute; top: 12px; right: 12px; z-index: 20;">
+                <button type="button" class="tiny-btn" onclick="closeLightbox()" style="background: rgba(0,0,0,0.65); color: #fff; border: 1px solid rgba(255,255,255,0.3); font-size: 1rem; padding: 6px 12px; border-radius: 999px; cursor: pointer;">✕ Sulje</button>
+            </div>
+            <div style="background: #000; display: flex; align-items: center; justify-content: center; max-height: 58vh; min-height: 200px; overflow: hidden;">
+                <img id="lightboxImg" class="lightbox-img" alt="Kohteen valokuva" style="max-height: 58vh; width: auto; max-width: 100%; object-fit: contain;">
+            </div>
+            <div class="lightbox-info" style="padding: 16px; overflow-y: auto;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; flex-wrap: wrap;">
+                    <div>
+                        <div id="lightboxTag" style="font-weight: 800; font-size: 1.1rem; color: #38bdf8; margin-bottom: 2px;"></div>
+                        <div id="lightboxProperty" style="font-size: 0.95rem; font-weight: 700; color: var(--fg);"></div>
+                        <div id="lightboxAddress" style="font-size: 0.82rem; color: var(--muted); margin-top: 2px;"></div>
+                    </div>
+                    <div class="lightbox-actions" style="display: flex; gap: 6px; flex-wrap: wrap;">
+                        <button type="button" class="btn-primary" id="lightboxShareBtn" onclick="shareCurrentLightboxPhoto()" style="padding: 6px 14px; font-size: 0.82rem;">📤 Jaa kuva</button>
+                        <button type="button" class="btn-outline" id="lightboxDownloadBtn" onclick="downloadCurrentLightboxPhoto()" style="padding: 6px 14px; font-size: 0.82rem;">⬇ Lataa</button>
+                        <button type="button" class="btn-outline-warning" onclick="deleteCurrentLightboxPhoto()" style="padding: 6px 14px; font-size: 0.82rem;">🗑️ Poista</button>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin-top: 12px; padding: 10px 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.82rem;">
+                    <div>🕒 <strong>Kuvausaika:</strong> <span id="lightboxTime">-</span></div>
+                    <div>👤 <strong>Kuljettaja:</strong> <span id="lightboxDriver">-</span></div>
+                    <div>📍 <strong>Koordinaatit:</strong> <span id="lightboxCoords">-</span></div>
+                </div>
+                <div id="lightboxNotes" style="margin-top: 10px; font-size: 0.88rem; line-height: 1.45; color: var(--fg); padding: 10px; background: rgba(0,0,0,0.2); border-radius: var(--radius-sm); border-left: 3px solid #0284c7;"></div>
+            </div>
         </div>
     </div>
 
@@ -2714,6 +2782,20 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                         <input type="range" id="editCustGeofenceRadius" min="30" max="300" step="5" style="margin-bottom: 0; padding: 6px 0;" oninput="document.getElementById('editCustGeofenceRadiusVal').textContent = this.value">
                     </div>
                 </div>
+            </div>
+
+            <!-- 📷 Kuvat ja kiinteistöohjeet -->
+            <div style="background: rgba(14, 165, 233, 0.08); border: 1px solid rgba(14, 165, 233, 0.3); border-radius: var(--radius-md); padding: 12px; margin-top: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 8px;">
+                    <div style="display: flex; align-items: center; gap: 6px; font-weight: 700; color: #38bdf8;">
+                        <span>📷</span> <span>Kuvat ja kiinteistöohjeet</span>
+                    </div>
+                    <div style="display: flex; gap: 6px;">
+                        <button type="button" class="tiny-btn" onclick="openAddPhotoForSpecificCustomer(editingCustomerId, 'Kiinteistöohje')" style="background: rgba(14, 165, 233, 0.2); color: #38bdf8; border-color: rgba(14, 165, 233, 0.4); font-weight: 600;">➕ Lisää ohjekuva</button>
+                        <button type="button" class="tiny-btn" onclick="openCustomerPhotos(editingCustomerId)">🖼️ Selaa kuvia</button>
+                    </div>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--muted);">Lataa pysyviä ohjekuvia (kuten kaivonkansien paikat tai mihin lunta ei saa kasata) ja selaa kuskien ottamia kenttäkuvia.</div>
             </div>
 
             <div class="dialog-actions modal-action-buttons" style="display: flex; gap: 10px; margin-top: 14px;">
@@ -4277,11 +4359,14 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                         <div style="font-size: 0.82rem; color: var(--muted); margin-top: 3px;">📍 ${esc(nextTask.address || 'Ei osoitetta')}</div>
                         ${nextTask.notes ? `<div style="font-size: 0.8rem; color: var(--accent); margin-top: 6px; background: rgba(37,99,235,0.08); padding: 4px 8px; border-radius: 4px;">💬 ${esc(nextTask.notes)}</div>` : ''}
                     </div>
-                    <div style="display: flex; gap: 8px;">
-                        <button type="button" class="btn-primary" style="flex: 1; min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600;" onclick="openYardOnMapFromDashboard(${nextTask.id})">
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button type="button" class="btn-primary" style="flex: 1.5; min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 700;" onclick="openYardOnMapFromDashboard(${nextTask.id})">
                             <span>🗺️</span> <span>Avaa kartta</span>
                         </button>
-                        <button type="button" class="btn-outline" style="min-height: 40px; padding: 0 12px;" onclick="navigateToNextYard()" title="Navigoi Google Mapsissa">
+                        <button type="button" class="btn-secondary" style="flex: 1.2; min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600;" onclick="openPhotoCaptureForTask(${nextTask.id})" title="Ota valokuva tai ilmoita huomio kohteesta">
+                            <span>📷</span> <span>Ota kuva / Huomio</span>
+                        </button>
+                        <button type="button" class="btn-outline" style="min-height: 40px; padding: 0 14px;" onclick="navigateToNextYard()" title="Navigoi Google Mapsissa">
                             <span>🧭</span>
                         </button>
                     </div>
@@ -4482,7 +4567,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     window.showToast = showToast;
 
     // ---------- Kuva-apu & IndexedDB ----------
-    function compressImage(file, maxDimension = 1280, quality = 0.75) {
+    function compressImage(file, maxDimension = 1280, quality = 0.70) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onerror = reject;
@@ -4512,6 +4597,41 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             };
             reader.readAsDataURL(file);
         });
+    }
+
+    function dataUrlToBlob(dataUrl) {
+        try {
+            const arr = dataUrl.split(',');
+            const mime = arr[0].match(/:(.*?);/)[1] || 'image/jpeg';
+            const bstr = atob(arr[1]);
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
+            while (n--) {
+                u8arr[n] = bstr.charCodeAt(n);
+            }
+            return new Blob([u8arr], { type: mime });
+        } catch (e) {
+            console.error('dataUrlToBlob failed:', e);
+            return null;
+        }
+    }
+
+    async function getQuickDriverCoords() {
+        if (typeof navigator !== 'undefined' && navigator.geolocation) {
+            try {
+                const pos = await new Promise((res, rej) => {
+                    navigator.geolocation.getCurrentPosition(res, rej, {
+                        enableHighAccuracy: true,
+                        timeout: 3500,
+                        maximumAge: 30000
+                    });
+                });
+                if (pos && pos.coords) {
+                    return { lat: pos.coords.latitude, lon: pos.coords.longitude };
+                }
+            } catch (e) {}
+        }
+        return null;
     }
 
     let dbInstance = null;
@@ -4575,9 +4695,12 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     }
 
     let photoCounts = {};
+    let cachedPhotos = [];
+
     async function updatePhotoCounts() {
         try {
             const all = await dbGetAllPhotos();
+            cachedPhotos = all;
             photoCounts = {};
             all.forEach(p => {
                 if (p.customerId) {
@@ -4594,10 +4717,16 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                 const count = photoCounts[key] || photoCounts[key.toLowerCase().trim()] || 0;
                 el.textContent = count;
             });
+
+            const historyView = document.getElementById('work-history-view');
+            if (historyView && historyView.style.display !== 'none' && typeof renderWorkHistory === 'function') {
+                renderWorkHistory();
+            }
         } catch (e) {
             console.error(e);
         }
     }
+    window.updatePhotoCounts = updatePhotoCounts;
 
     let pendingPhotoContext = null;
     let currentPhotoBase64 = null;
@@ -4772,12 +4901,143 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         });
     }
 
+    // =========================================================================
+    // 📸 VALOKUVATOIMINNOT: SUPABASE STORAGE, TIETOKANTA JA OFFLINE-SYNKRONOINTI
+    // =========================================================================
+    const PHOTO_SYNC_QUEUE_KEY = 'yardflow_photo_sync_queue';
+
+    function getPhotoSyncQueue() {
+        try {
+            return JSON.parse(localStorage.getItem(PHOTO_SYNC_QUEUE_KEY) || '[]');
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function addToPhotoSyncQueue(photoId) {
+        try {
+            const q = getPhotoSyncQueue();
+            const sid = String(photoId);
+            if (!q.includes(sid)) {
+                q.push(sid);
+                localStorage.setItem(PHOTO_SYNC_QUEUE_KEY, JSON.stringify(q));
+            }
+        } catch (e) {}
+    }
+
+    function removeFromPhotoSyncQueue(photoId) {
+        try {
+            let q = getPhotoSyncQueue();
+            const sid = String(photoId);
+            q = q.filter(id => String(id) !== sid);
+            localStorage.setItem(PHOTO_SYNC_QUEUE_KEY, JSON.stringify(q));
+        } catch (e) {}
+    }
+
+    async function uploadPhotoToSupabase(photoObj) {
+        const client = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : null) || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+        if (!client || !navigator.onLine) {
+            addToPhotoSyncQueue(photoObj.id);
+            return false;
+        }
+
+        try {
+            const blob = dataUrlToBlob(photoObj.dataUrl);
+            if (!blob) {
+                removeFromPhotoSyncQueue(photoObj.id);
+                return false;
+            }
+
+            const safeName = (photoObj.customerName || 'property').replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+            const fileName = `${safeName}_${photoObj.id}.jpg`;
+            const filePath = `photos/${photoObj.customerId || 'general'}/${fileName}`;
+
+            // 1. Ladataan Supabasen Storageen 'yardflow_photos' -bucketiin
+            const { data: uploadData, error: uploadErr } = await client.storage
+                .from('yardflow_photos')
+                .upload(filePath, blob, {
+                    contentType: 'image/jpeg',
+                    upsert: true
+                });
+
+            if (uploadErr) {
+                console.warn('Supabase Storage -lataus epäonnistui:', uploadErr);
+                addToPhotoSyncQueue(photoObj.id);
+                return false;
+            }
+
+            // 2. Haetaan julkinen URL
+            const { data: urlData } = client.storage
+                .from('yardflow_photos')
+                .getPublicUrl(filePath);
+
+            const publicUrl = urlData ? urlData.publicUrl : null;
+            photoObj.storagePath = filePath;
+            photoObj.photoUrl = publicUrl;
+            photoObj.synced = true;
+
+            // 3. Luodaan / päivitetään rivi 'work_photos'-tauluun nykyisillä koordinaateilla ja aikaleimalla
+            const { error: dbErr } = await client
+                .from('work_photos')
+                .upsert({
+                    id: String(photoObj.id),
+                    customer_id: photoObj.customerId ? String(photoObj.customerId) : null,
+                    customer_name: photoObj.customerName || '',
+                    address: photoObj.address || '',
+                    task_id: photoObj.taskId ? String(photoObj.taskId) : null,
+                    log_id: photoObj.logId ? String(photoObj.logId) : null,
+                    tag: photoObj.tag || 'Työtodiste',
+                    notes: photoObj.notes || '',
+                    lat: (photoObj.lat != null && !isNaN(photoObj.lat)) ? Number(photoObj.lat) : null,
+                    lon: (photoObj.lon != null && !isNaN(photoObj.lon)) ? Number(photoObj.lon) : null,
+                    driver_name: photoObj.driverName || '',
+                    captured_at: photoObj.capturedAt || photoObj.timestamp || new Date().toISOString(),
+                    photo_url: publicUrl,
+                    storage_path: filePath
+                });
+
+            if (dbErr) {
+                console.warn('work_photos DB insert -huomio:', dbErr);
+            }
+
+            await dbSavePhoto(photoObj);
+            removeFromPhotoSyncQueue(photoObj.id);
+            return true;
+        } catch (e) {
+            console.warn('uploadPhotoToSupabase -poikkeus:', e);
+            addToPhotoSyncQueue(photoObj.id);
+            return false;
+        }
+    }
+    window.uploadPhotoToSupabase = uploadPhotoToSupabase;
+
+    async function syncPendingPhotos() {
+        const client = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : null) || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+        if (!client || !navigator.onLine) return;
+        const q = getPhotoSyncQueue();
+        if (q.length === 0) return;
+
+        const all = await dbGetAllPhotos();
+        for (const pid of [...q]) {
+            const photo = all.find(p => String(p.id) === String(pid));
+            if (photo && photo.dataUrl) {
+                await uploadPhotoToSupabase(photo);
+            } else {
+                removeFromPhotoSyncQueue(pid);
+            }
+        }
+    }
+    window.syncPendingPhotos = syncPendingPhotos;
+
     function resetPhotoDialog() {
         currentPhotoBase64 = null;
         currentPhotoCapturedAt = null;
         currentPhotoTimeSource = '';
         const notesEl = document.getElementById('photoNotesInput');
-        if (notesEl) notesEl.value = '';
+        if (notesEl) {
+            notesEl.value = '';
+            notesEl.placeholder = 'esim. Kulkuväylät ja autopaikat aurattu puhtaaksi, aita oli vino jo saavuttaessa';
+        }
         const prevBox = document.getElementById('photoPreviewBox');
         if (prevBox) prevBox.style.display = 'none';
         const prevImg = document.getElementById('photoPreviewImg');
@@ -4789,23 +5049,88 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             metaInfo.style.display = 'none';
             metaInfo.textContent = '';
         }
-        const firstRadio = document.querySelector('input[name="photoTag"][value="Valmis auraus"]');
+        const firstRadio = document.querySelector('input[name="photoTag"][value="Työtodiste"]');
         if (firstRadio) firstRadio.checked = true;
     }
 
     function openPhotoCapture(context) {
         pendingPhotoContext = context || {};
         resetPhotoDialog();
-        const title = pendingPhotoContext.customerName
-            ? `📷 Valokuva: ${pendingPhotoContext.customerName}`
-            : '📷 Lisää valokuva kohteesta';
-        document.getElementById('photoDialogTitle').textContent = title;
-        document.getElementById('photoDialogSubtitle').textContent = pendingPhotoContext.address || '';
+
+        const isGuide = pendingPhotoContext.defaultTag === 'Kiinteistöohje' || pendingPhotoContext.isGuide;
+        const targetTitle = pendingPhotoContext.customerName
+            ? (isGuide ? `📌 Ohjekuva: ${pendingPhotoContext.customerName}` : `📷 Valokuva: ${pendingPhotoContext.customerName}`)
+            : (isGuide ? '📌 Lisää ohjekuva kohteelle' : '📷 Lisää valokuva kohteesta');
+
+        const dlgTitle = document.getElementById('photoDialogTitle');
+        if (dlgTitle) dlgTitle.textContent = targetTitle;
+        const dlgSub = document.getElementById('photoDialogSubtitle');
+        if (dlgSub) dlgSub.textContent = pendingPhotoContext.address || '';
+
+        if (isGuide) {
+            const guideRadio = document.querySelector('input[name="photoTag"][value="Kiinteistöohje"]');
+            if (guideRadio) guideRadio.checked = true;
+            const notesEl = document.getElementById('photoNotesInput');
+            if (notesEl) {
+                notesEl.placeholder = 'esim. Kaivonkansien paikat, lumenkaatokieltoalue, sähkökaapin suojaus';
+            }
+        } else if (pendingPhotoContext.defaultTag) {
+            const selRadio = document.querySelector(`input[name="photoTag"][value="${pendingPhotoContext.defaultTag}"]`);
+            if (selRadio) selRadio.checked = true;
+        }
 
         const dlg = document.getElementById('photoCaptureDialog');
-        dlg.returnValue = '';
-        dlg.showModal();
+        if (dlg) {
+            dlg.returnValue = '';
+            dlg.showModal();
+        }
     }
+    window.openPhotoCapture = openPhotoCapture;
+
+    function openPhotoCaptureForActiveTarget() {
+        const currentTask = (typeof getActiveOrNextTask === 'function') ? getActiveOrNextTask() : null;
+        if (currentTask) {
+            openPhotoCapture({
+                taskId: currentTask.id,
+                customerId: currentTask.customerId || currentTask.propertyId || null,
+                customerName: currentTask.name,
+                address: currentTask.address,
+                lat: currentTask.lat,
+                lon: currentTask.lon
+            });
+        } else {
+            openPhotoCapture({
+                customerName: 'Yleinen kenttäkuva',
+                address: ''
+            });
+        }
+    }
+    window.openPhotoCaptureForActiveTarget = openPhotoCaptureForActiveTarget;
+
+    function openActiveTargetPhotos() {
+        const currentTask = (typeof getActiveOrNextTask === 'function') ? getActiveOrNextTask() : null;
+        if (currentTask && (currentTask.customerId || currentTask.name)) {
+            openCustomerPhotos(currentTask.customerId || currentTask.name);
+        } else {
+            openCustomerPhotos(null);
+        }
+    }
+    window.openActiveTargetPhotos = openActiveTargetPhotos;
+
+    function openPhotoCaptureForTask(taskId) {
+        const t = (typeof tasks !== 'undefined' && Array.isArray(tasks)) ? tasks.find(x => String(x.id) === String(taskId)) : null;
+        if (t) {
+            openPhotoCapture({
+                taskId: t.id,
+                customerId: t.customerId || t.propertyId || null,
+                customerName: t.name,
+                address: t.address,
+                lat: t.lat,
+                lon: t.lon
+            });
+        }
+    }
+    window.openPhotoCaptureForTask = openPhotoCaptureForTask;
 
     async function handlePhotoFileSelected(e) {
         const file = e.target.files && e.target.files[0];
@@ -4814,7 +5139,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         try {
             const [metaResult, compressed] = await Promise.all([
                 extractPhotoCaptureTimestamp(file),
-                compressImage(file, 1280, 0.75)
+                compressImage(file, 1280, 0.70)
             ]);
             currentPhotoBase64 = compressed;
             currentPhotoCapturedAt = metaResult.iso;
@@ -4840,19 +5165,31 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
 
     async function savePhotoFromDialog() {
         if (!currentPhotoBase64) {
-            alert('Ota ensin kuva tai valitse kuva laitteeltasi painamalla "Ota kuva tai valitse galleriasta"!');
+            alert('Ota ensin kuva tai valitse kuva laitteeltasi painamalla "Ota kuva kameralla tai valitse galleriasta"!');
             return;
         }
-        const tag = document.querySelector('input[name="photoTag"]:checked')?.value || 'Valmis auraus';
-        const notes = document.getElementById('photoNotesInput').value.trim();
+        const tag = document.querySelector('input[name="photoTag"]:checked')?.value || 'Työtodiste';
+        const notes = (document.getElementById('photoNotesInput')?.value || '').trim();
         const captureIso = currentPhotoCapturedAt || new Date().toISOString();
+
+        // Selvitetään GPS-koordinaatit
+        let coords = await getQuickDriverCoords();
+        if (!coords && pendingPhotoContext) {
+            if (pendingPhotoContext.lat != null && pendingPhotoContext.lon != null) {
+                coords = { lat: Number(pendingPhotoContext.lat), lon: Number(pendingPhotoContext.lon) };
+            }
+        }
+
+        const driverName = (typeof currentDriverName !== 'undefined' ? currentDriverName : '') ||
+                           localStorage.getItem('yardflow_driver_name') ||
+                           'Kuljettaja';
 
         const photoObj = {
             id: newId(),
             timestamp: captureIso,
             capturedAt: captureIso,
             addedAt: new Date().toISOString(),
-            timeSource: currentPhotoTimeSource || 'Metatieto',
+            timeSource: currentPhotoTimeSource || 'Kuvaushetki',
             customerId: pendingPhotoContext.customerId || null,
             customerName: pendingPhotoContext.customerName || '',
             address: pendingPhotoContext.address || '',
@@ -4860,7 +5197,13 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             logId: pendingPhotoContext.logId || null,
             tag,
             notes,
-            dataUrl: currentPhotoBase64
+            lat: coords ? coords.lat : null,
+            lon: coords ? coords.lon : null,
+            driverName: driverName,
+            dataUrl: currentPhotoBase64,
+            storagePath: null,
+            photoUrl: null,
+            synced: false
         };
 
         try {
@@ -4871,7 +5214,15 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             if (activeGalleryCustomerId) {
                 await renderCustomerGallery(activeGalleryCustomerId);
             }
-            showStatus(`Valokuva tallennettu (ottoaika: ${fmtDateTime(captureIso)})! 📷`, 'success');
+            const historyView = document.getElementById('work-history-view');
+            if (historyView && historyView.style.display !== 'none' && typeof renderWorkHistory === 'function') {
+                renderWorkHistory();
+            }
+
+            showStatus(`Valokuva tallennettu (${tag}, ottoaika: ${fmtDateTime(captureIso)})! 📷`, 'success');
+
+            // Taustalla lähetys Supabase Storageen & tietokantaan
+            uploadPhotoToSupabase(photoObj);
         } catch (err) {
             console.error(err);
             alert('Kuvan tallennus epäonnistui: ' + err.message);
@@ -4881,70 +5232,132 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     let activeGalleryCustomerId = null;
     let activeGalleryCustomerName = '';
     let activeGalleryAddress = '';
+    let currentGalleryFilter = 'all';
+
+    function filterGalleryCategory(cat) {
+        currentGalleryFilter = cat || 'all';
+        const tabs = document.getElementById('galleryFilterTabs');
+        if (tabs) {
+            tabs.querySelectorAll('button').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.filter === currentGalleryFilter);
+            });
+        }
+        if (activeGalleryCustomerId != null) {
+            renderCustomerGallery(activeGalleryCustomerId, currentGalleryFilter);
+        }
+    }
+    window.filterGalleryCategory = filterGalleryCategory;
 
     async function openCustomerPhotos(cidOrName) {
         activeGalleryCustomerId = cidOrName;
+        currentGalleryFilter = 'all';
         const dlg = document.getElementById('photoGalleryDialog');
-        let title = 'Kohteen valokuvat';
+        let title = '📷 Kohteen valokuvat ja kiinteistöohjeet';
         let sub = '';
 
-        const cust = customers.find(c => String(c.id) === String(cidOrName) || (c.name && c.name.toLowerCase() === String(cidOrName).toLowerCase()));
+        const cust = (typeof customers !== 'undefined' && Array.isArray(customers))
+            ? customers.find(c => String(c.id) === String(cidOrName) || (c.name && c.name.toLowerCase() === String(cidOrName).toLowerCase()))
+            : null;
+
         if (cust) {
             activeGalleryCustomerName = cust.name;
             activeGalleryAddress = cust.address;
-            title = `📷 Valokuvat: ${cust.name}`;
+            title = `📷 Kuvat ja kiinteistöohjeet: ${cust.name}`;
             sub = cust.address;
         } else {
-            activeGalleryCustomerName = String(cidOrName);
+            activeGalleryCustomerName = String(cidOrName || 'Kohde');
             activeGalleryAddress = '';
-            title = `📷 Valokuvat: ${cidOrName}`;
+            title = `📷 Kuvat ja kiinteistöohjeet: ${cidOrName || 'Kaikki'}`;
         }
 
-        document.getElementById('galleryTitle').textContent = title;
-        document.getElementById('gallerySubtitle').textContent = sub;
-        await renderCustomerGallery(cidOrName);
-        dlg.showModal();
-    }
+        const gTitle = document.getElementById('galleryTitle');
+        if (gTitle) gTitle.textContent = title;
+        const gSub = document.getElementById('gallerySubtitle');
+        if (gSub) gSub.textContent = sub;
 
-    function openAddPhotoForCurrentGallery() {
+        const tabs = document.getElementById('galleryFilterTabs');
+        if (tabs) {
+            tabs.querySelectorAll('button').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.filter === 'all');
+            });
+        }
+
+        await renderCustomerGallery(cidOrName, 'all');
+        if (dlg) dlg.showModal();
+    }
+    window.openCustomerPhotos = openCustomerPhotos;
+
+    function openAddPhotoForCurrentGallery(tag = 'Työtodiste') {
         openPhotoCapture({
             customerId: activeGalleryCustomerId,
             customerName: activeGalleryCustomerName,
-            address: activeGalleryAddress
+            address: activeGalleryAddress,
+            defaultTag: tag,
+            isGuide: (tag === 'Kiinteistöohje')
         });
     }
+    window.openAddPhotoForCurrentGallery = openAddPhotoForCurrentGallery;
 
-    async function renderCustomerGallery(cidOrName) {
+    function openAddPhotoForSpecificCustomer(cid, tag = 'Kiinteistöohje') {
+        const cust = (typeof customers !== 'undefined' && Array.isArray(customers))
+            ? customers.find(c => String(c.id) === String(cid))
+            : null;
+        if (cust) {
+            openPhotoCapture({
+                customerId: cust.id,
+                customerName: cust.name,
+                address: cust.address,
+                defaultTag: tag,
+                isGuide: (tag === 'Kiinteistöohje')
+            });
+        }
+    }
+    window.openAddPhotoForSpecificCustomer = openAddPhotoForSpecificCustomer;
+
+    async function renderCustomerGallery(cidOrName, filterCategory = currentGalleryFilter) {
         const grid = document.getElementById('galleryPhotoGrid');
+        if (!grid) return;
         grid.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;">Ladataan kuvia...</p>';
 
         const all = await dbGetAllPhotos();
-        const photos = all.filter(p => {
+        let photos = all.filter(p => {
             if (!cidOrName) return true;
             return String(p.customerId) === String(cidOrName) ||
                    (p.customerName && p.customerName.toLowerCase() === String(cidOrName).toLowerCase());
         });
+
+        if (filterCategory && filterCategory !== 'all') {
+            photos = photos.filter(p => p.tag === filterCategory);
+        }
+
         photos.sort((a, b) => new Date(getPhotoCaptureIso(b)) - new Date(getPhotoCaptureIso(a)));
 
         if (photos.length === 0) {
-            grid.innerHTML = '<p class="empty-state">Tälle kohteelle ei ole vielä tallennettu valokuvia. Ota uusi kuva yllä olevasta painikkeesta!</p>';
+            grid.innerHTML = '<div style="text-align:center; padding: 28px 12px; color: var(--muted);"><div style="font-size: 1.8rem; margin-bottom: 6px;">📷</div><div style="font-weight: 600; color: var(--fg);">Ei valokuvia tässä kategoriassa</div><div style="font-size: 0.8rem; margin-top: 4px;">Lisää pysyvä kiinteistöohjekuva tai ota kenttäkuva yllä olevista painikkeista.</div></div>';
             return;
         }
 
         grid.innerHTML = photos.map(p => {
             const shotTime = fmtDateTime(getPhotoCaptureIso(p));
+            const isGuide = p.tag === 'Kiinteistöohje';
+            const badgeColor = isGuide ? '#0284c7' : (p.tag === 'Este / Epäkohta' ? '#f59e0b' : (p.tag === 'Vahinko / Kolhu' ? '#f43f5e' : '#10b981'));
+            const coordsText = (p.lat != null && p.lon != null) ? `📍 ${Number(p.lat).toFixed(4)}, ${Number(p.lon).toFixed(4)}` : '';
+            const driverText = p.driverName ? `👤 ${esc(p.driverName)}` : '';
+
             return `
-                <div class="photo-card">
-                    <div class="photo-thumb-wrap" onclick="openLightbox(${p.id})">
+                <div class="photo-card" style="border: 1px solid ${isGuide ? 'rgba(14,165,233,0.5)' : 'var(--border)'}; background: ${isGuide ? 'rgba(14,165,233,0.04)' : 'var(--bg-card)'};">
+                    <div class="photo-thumb-wrap" onclick="openLightbox('${p.id}')" style="cursor: pointer; position: relative;">
                         <img src="${p.dataUrl}" class="photo-thumb" alt="${esc(p.tag)}">
-                        <span class="photo-tag-badge">${esc(p.tag)}</span>
+                        <span class="photo-tag-badge" style="background: ${badgeColor}; color: #fff; font-weight: 700;">${esc(p.tag)}</span>
                     </div>
                     <div class="photo-body">
-                        <div class="photo-time">📷 Kuvausaika: ${esc(shotTime)}</div>
-                        ${p.notes ? `<div class="photo-notes">${esc(p.notes)}</div>` : ''}
-                        <div class="photo-actions">
-                            <button class="tiny-btn" type="button" onclick="openLightbox(${p.id})">🔎 Avaa</button>
-                            <button class="tiny-btn" type="button" onclick="sharePhotoById(${p.id})">📤 Jaa</button>
+                        <div class="photo-time">🕒 ${esc(shotTime)}</div>
+                        ${(driverText || coordsText) ? `<div style="font-size: 0.72rem; color: var(--muted); margin-top: 2px;">${driverText} ${coordsText}</div>` : ''}
+                        ${p.notes ? `<div class="photo-notes" style="margin-top: 6px; font-size: 0.82rem;">${esc(p.notes)}</div>` : ''}
+                        <div class="photo-actions" style="margin-top: 8px; display: flex; gap: 6px;">
+                            <button class="tiny-btn" type="button" onclick="openLightbox('${p.id}')">🔎 Avaa</button>
+                            <button class="tiny-btn" type="button" onclick="sharePhotoById('${p.id}')">📤 Jaa</button>
+                            <button class="tiny-btn danger" type="button" onclick="deletePhotoById('${p.id}')">🗑️</button>
                         </div>
                     </div>
                 </div>
@@ -4960,36 +5373,66 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         currentLightboxPhoto = photo;
 
         const shotTime = fmtDateTime(getPhotoCaptureIso(photo));
-        document.getElementById('lightboxImg').src = photo.dataUrl;
-        document.getElementById('lightboxTag').textContent = `${photo.tag} · ${photo.customerName || ''}`;
-        document.getElementById('lightboxTime').textContent = `📷 Kuvausaika: ${shotTime} · ${photo.address || ''}`;
-        document.getElementById('lightboxNotes').textContent = photo.notes || '';
-        document.getElementById('lightboxModal').style.display = 'flex';
+        const lbImg = document.getElementById('lightboxImg');
+        if (lbImg) lbImg.src = photo.dataUrl;
+
+        const lbTag = document.getElementById('lightboxTag');
+        if (lbTag) lbTag.textContent = `${photo.tag || 'Valokuva'}`;
+
+        const lbProp = document.getElementById('lightboxProperty');
+        if (lbProp) lbProp.textContent = photo.customerName || 'Nimetön kohde';
+
+        const lbAddr = document.getElementById('lightboxAddress');
+        if (lbAddr) lbAddr.textContent = photo.address ? `📍 ${photo.address}` : '';
+
+        const lbTime = document.getElementById('lightboxTime');
+        if (lbTime) lbTime.textContent = shotTime || '-';
+
+        const lbDriver = document.getElementById('lightboxDriver');
+        if (lbDriver) lbDriver.textContent = photo.driverName || 'Kuljettaja';
+
+        const lbCoords = document.getElementById('lightboxCoords');
+        if (lbCoords) {
+            lbCoords.textContent = (photo.lat != null && photo.lon != null)
+                ? `${Number(photo.lat).toFixed(5)}, ${Number(photo.lon).toFixed(5)}`
+                : 'Ei tallennettu';
+        }
+
+        const lbNotes = document.getElementById('lightboxNotes');
+        if (lbNotes) lbNotes.textContent = photo.notes || 'Ei lisättyjä huomioita.';
+
+        const modal = document.getElementById('lightboxModal');
+        if (modal) modal.style.display = 'flex';
     }
+    window.openLightbox = openLightbox;
 
     function closeLightbox(e) {
         if (e && e.target !== document.getElementById('lightboxModal') && !e.target.classList.contains('btn-secondary')) {
             return;
         }
-        document.getElementById('lightboxModal').style.display = 'none';
+        const modal = document.getElementById('lightboxModal');
+        if (modal) modal.style.display = 'none';
         currentLightboxPhoto = null;
     }
+    window.closeLightbox = closeLightbox;
 
     async function shareCurrentLightboxPhoto() {
         if (currentLightboxPhoto) await sharePhoto(currentLightboxPhoto);
     }
+    window.shareCurrentLightboxPhoto = shareCurrentLightboxPhoto;
+
     async function sharePhotoById(photoId) {
         const all = await dbGetAllPhotos();
         const photo = all.find(p => String(p.id) === String(photoId));
         if (photo) await sharePhoto(photo);
     }
+    window.sharePhotoById = sharePhotoById;
 
     async function sharePhoto(photo) {
         if (!photo || !photo.dataUrl) return;
         const shotIso = getPhotoCaptureIso(photo);
         try {
-            const res = await fetch(photo.dataUrl);
-            const blob = await res.blob();
+            const blob = dataUrlToBlob(photo.dataUrl);
             const filename = `auraus-${(photo.customerName || 'kuva').replace(/[^a-z0-9]/gi, '_')}-${shotIso.slice(0, 10)}.jpg`;
             const file = new File([blob], filename, { type: 'image/jpeg' });
 
@@ -5011,6 +5454,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     function downloadCurrentLightboxPhoto() {
         if (currentLightboxPhoto) downloadPhoto(currentLightboxPhoto);
     }
+    window.downloadCurrentLightboxPhoto = downloadCurrentLightboxPhoto;
 
     function downloadPhoto(photo) {
         const shotIso = getPhotoCaptureIso(photo);
@@ -5023,17 +5467,47 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         showStatus('Kuva ladattu laitteelle!', 'success');
     }
 
-    async function deleteCurrentLightboxPhoto() {
-        if (!currentLightboxPhoto) return;
+    async function deletePhotoById(id) {
         if (!confirm('Haluatko varmasti poistaa tämän valokuvan? Tätä ei voi perua.')) return;
-        await dbDeletePhoto(currentLightboxPhoto.id);
-        closeLightbox();
+        await dbDeletePhoto(id);
+        removeFromPhotoSyncQueue(id);
         await updatePhotoCounts();
-        if (activeGalleryCustomerId) {
+        if (activeGalleryCustomerId != null) {
             await renderCustomerGallery(activeGalleryCustomerId);
+        }
+        const historyView = document.getElementById('work-history-view');
+        if (historyView && historyView.style.display !== 'none' && typeof renderWorkHistory === 'function') {
+            renderWorkHistory();
         }
         showStatus('Valokuva poistettu.', 'info');
     }
+    window.deletePhotoById = deletePhotoById;
+
+    async function deleteCurrentLightboxPhoto() {
+        if (!currentLightboxPhoto) return;
+        await deletePhotoById(currentLightboxPhoto.id);
+        closeLightbox();
+    }
+    window.deleteCurrentLightboxPhoto = deleteCurrentLightboxPhoto;
+
+    async function openPhotosForWorkLog(logId, propertyId, propertyName) {
+        const all = await dbGetAllPhotos();
+        const matches = all.filter(p => {
+            if (p.logId && String(p.logId) === String(logId)) return true;
+            if (propertyId && String(p.customerId) === String(propertyId)) return true;
+            if (propertyName && p.customerName && p.customerName.toLowerCase() === propertyName.toLowerCase()) return true;
+            return false;
+        });
+
+        if (matches.length === 1) {
+            openLightbox(matches[0].id);
+        } else if (matches.length > 1) {
+            openCustomerPhotos(propertyId || propertyName);
+        } else {
+            showStatus('Tälle työlle ei löytynyt tallennettuja valokuvia.', 'info');
+        }
+    }
+    window.openPhotosForWorkLog = openPhotosForWorkLog;
 
         // ============================================================
     // 📋 TEHTYJEN TÖIDEN LOKI, 💶 LASKUTUS & 📄 PDF-RAPORTIT
@@ -5196,6 +5670,12 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             if (typeof renderDashboardView === 'function') {
                 renderDashboardView();
             }
+        if (typeof syncPendingPhotos === 'function') {
+            try {
+                await syncPendingPhotos();
+            } catch (photoSyncErr) {
+                console.warn('syncPendingPhotos virhe:', photoSyncErr);
+            }
         }
     }
     window.syncPendingLogs = syncPendingLogs;
@@ -5206,6 +5686,9 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         const client = getSupabaseClient() || supabaseClient;
         if (client && navigator.onLine) {
             await syncPendingLogs();
+            if (typeof syncPendingPhotos === 'function') {
+                await syncPendingPhotos();
+            }
         } else if (!client) {
             // Varajärjestelmä paikallisille lokeille jos Supabase-asiakas ei ole ladattavissa
             const logs = getStoredWorkLogs();
@@ -5915,6 +6398,30 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                 ? '<div style="font-size: 0.72rem; color: var(--muted); margin-top: 2px;" title="Kuittauskoordinaatit: ' + log.coordinates.lat.toFixed(5) + ', ' + log.coordinates.lon.toFixed(5) + '">📍 ' + log.coordinates.lat.toFixed(3) + ', ' + log.coordinates.lon.toFixed(3) + '</div>'
                 : '';
 
+            // Valokuvamerkintä kyseiselle työlle tai kohteelle
+            const logPhotos = cachedPhotos.filter(p => {
+                if (p.logId && String(p.logId) === String(log.id)) return true;
+                if (log.propertyId && String(p.customerId) === String(log.propertyId)) {
+                    const pDate = (p.capturedAt || p.timestamp || '').slice(0, 10);
+                    const lDate = (log.completedAt || '').slice(0, 10);
+                    if (pDate && lDate && pDate === lDate) return true;
+                }
+                if (log.propertyName && p.customerName && p.customerName.toLowerCase() === log.propertyName.toLowerCase()) {
+                    const pDate = (p.capturedAt || p.timestamp || '').slice(0, 10);
+                    const lDate = (log.completedAt || '').slice(0, 10);
+                    if (pDate && lDate && pDate === lDate) return true;
+                }
+                return false;
+            });
+
+            const photoBadge = logPhotos.length > 0
+                ? '<div style="margin-top: 4px;">' +
+                    '<button type="button" class="tiny-btn photo-indicator-btn" onclick="openPhotosForWorkLog(\'' + log.id + '\', ' + (log.propertyId ? '\'' + log.propertyId + '\'' : 'null') + ', \'' + esc(log.propertyName).replace(/'/g, "\\'") + '\')" style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; font-size: 0.74rem; font-weight: 700; background: rgba(14, 165, 233, 0.15); color: #38bdf8; border: 1px solid rgba(14, 165, 233, 0.4); border-radius: 999px; cursor: pointer;" title="Katso työn valokuvat (' + logPhotos.length + ' kpl)">' +
+                        '📷 ' + logPhotos.length + ' kuva' + (logPhotos.length > 1 ? 'a' : '') +
+                    '</button>' +
+                  '</div>'
+                : '';
+
             return '<tr>' +
                 '<td style="white-space: nowrap; font-size: 0.82rem; font-weight: 600;">' + esc(dateStr) + '</td>' +
                 '<td>' +
@@ -5922,6 +6429,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                     (log.propertyId != null ? ' <span style="font-size: 0.74rem; color: var(--muted); font-weight: normal;">(#' + esc(log.propertyId) + ')</span>' : '') +
                     (log.customerName && log.customerName !== log.propertyName ? '<div style="font-size: 0.76rem; color: var(--accent); font-weight: 600;">👥 ' + esc(log.customerName) + '</div>' : '') +
                     '<div style="font-size: 0.78rem; color: var(--muted); margin-top: 2px;">' + esc(log.address) + '</div>' +
+                    photoBadge +
                 '</td>' +
                 '<td><span style="font-size: 0.82rem; color: var(--fg-secondary);">' + esc(log.workType || 'Auraus') + '</span></td>' +
                 '<td>' +
@@ -6222,7 +6730,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     window.exportBillingCSV = exportBillingCSV;
 
     // ---------- PDF-vientilogiikka (html2pdf) ----------
-    function exportWorkHistoryPDF() {
+    async function exportWorkHistoryPDF() {
         const meta = getFilterExportMetadata('history');
         const logs = getFilteredWorkLogs();
         if (logs.length === 0) {
@@ -6239,6 +6747,75 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         const totalValue = logs.reduce((acc, l) => acc + (Number(l.price) || 0), 0);
         const geofenceCount = logs.filter(l => l.method === 'Geofence').length;
         const geofencePct = logs.length > 0 ? Math.round((geofenceCount / logs.length) * 100) : 0;
+
+        const includePhotos = document.getElementById('includePhotosInPdf')
+            ? document.getElementById('includePhotosInPdf').checked
+            : true;
+
+        let reportPhotos = [];
+        if (includePhotos) {
+            try {
+                const allPhotos = (cachedPhotos && cachedPhotos.length > 0) ? cachedPhotos : await dbGetAllPhotos();
+                const seenIds = new Set();
+                logs.forEach(l => {
+                    const matches = allPhotos.filter(p => {
+                        if (p.logId && String(p.logId) === String(l.id)) return true;
+                        if (l.propertyId && String(p.customerId) === String(l.propertyId)) {
+                            const pDate = (p.capturedAt || p.timestamp || '').slice(0, 10);
+                            const lDate = (l.completedAt || '').slice(0, 10);
+                            if (pDate && lDate && pDate === lDate) return true;
+                        }
+                        if (l.propertyName && p.customerName && p.customerName.toLowerCase() === l.propertyName.toLowerCase()) {
+                            const pDate = (p.capturedAt || p.timestamp || '').slice(0, 10);
+                            const lDate = (l.completedAt || '').slice(0, 10);
+                            if (pDate && lDate && pDate === lDate) return true;
+                        }
+                        return false;
+                    });
+                    matches.forEach(p => {
+                        if (!seenIds.has(String(p.id))) {
+                            seenIds.add(String(p.id));
+                            reportPhotos.push(p);
+                        }
+                    });
+                });
+            } catch (photoErr) {
+                console.warn('Virhe valokuvien haussa PDF-raporttiin:', photoErr);
+            }
+        }
+
+        let photosSectionHtml = '';
+        if (reportPhotos.length > 0) {
+            photosSectionHtml = '<div style="page-break-before: always; margin-top: 28px;">' +
+                '<div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0284c7; padding-bottom: 8px; margin-bottom: 16px;">' +
+                    '<h2 style="font-size: 15px; color: #0f172a; margin: 0; font-weight: 800;">Liite: Työnäytteet, esteet ja vahinkoilmoitukset (' + reportPhotos.length + ' kpl)</h2>' +
+                    '<span style="font-size: 11px; color: #64748b; font-weight: 600;">YardFlow Valokuvaliite</span>' +
+                '</div>' +
+                '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">' +
+                    reportPhotos.map(p => {
+                        const shotTime = fmtDateTime(p.capturedAt || p.timestamp);
+                        const isObstacle = p.tag === 'Este / Epäkohta' || p.tag === 'Vahinko / Kolhu';
+                        const tagColor = isObstacle ? '#d97706' : (p.tag === 'Kiinteistöohje' ? '#0284c7' : '#059669');
+                        const coordsStr = (p.lat != null && p.lon != null) ? 'GPS: ' + Number(p.lat).toFixed(5) + ', ' + Number(p.lon).toFixed(5) : '';
+                        const driverStr = p.driverName ? 'Kuski: ' + esc(p.driverName) : '';
+
+                        return '<div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; background: #ffffff; page-break-inside: avoid; font-size: 11px;">' +
+                            '<div style="text-align: center; margin-bottom: 8px; background: #0f172a; border-radius: 4px; overflow: hidden; height: 180px; display: flex; align-items: center; justify-content: center;">' +
+                                '<img src="' + p.dataUrl + '" style="max-height: 180px; width: auto; max-width: 100%; object-fit: contain;" alt="' + esc(p.tag) + '">' +
+                            '</div>' +
+                            '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">' +
+                                '<strong style="color: ' + tagColor + ';">' + esc(p.tag || 'Työtodiste') + '</strong>' +
+                                '<span style="font-size: 10px; color: #64748b;">🕒 ' + esc(shotTime) + '</span>' +
+                            '</div>' +
+                            '<div style="font-weight: 700; color: #0f172a;">' + esc(p.customerName || '') + '</div>' +
+                            (p.address ? '<div style="font-size: 10px; color: #64748b;">📍 ' + esc(p.address) + '</div>' : '') +
+                            ((coordsStr || driverStr) ? '<div style="font-size: 9px; color: #64748b; margin-top: 2px;">' + esc(driverStr) + (driverStr && coordsStr ? ' · ' : '') + esc(coordsStr) + '</div>' : '') +
+                            (p.notes ? '<div style="font-size: 10px; color: #1e293b; background: #f1f5f9; padding: 6px 8px; border-radius: 4px; margin-top: 6px; border-left: 3px solid ' + tagColor + ';">💬 ' + esc(p.notes) + '</div>' : '') +
+                        '</div>';
+                    }).join('') +
+                '</div>' +
+            '</div>';
+        }
 
         const printEl = document.getElementById('pdf-print-template');
         printEl.innerHTML = '<div style="font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, Arial, sans-serif; color: #0f172a; line-height: 1.4;">' +
@@ -6298,6 +6875,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                     'Allekirjoitus: _____________________________' +
                 '</div>' +
             '</div>' +
+            photosSectionHtml +
         '</div>';
 
         showStatus('Luodaan työraportti-PDF...', 'info');
@@ -6923,6 +7501,23 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
 
                     ${c.notes ? `<div class="customer-notes" style="margin-bottom: 8px;">⚠️ <strong>Kuskiohje:</strong> ${esc(c.notes)}</div>` : ''}
 
+                    <!-- 📷 Kuvat ja kiinteistöohjeet -osio -->
+                    <div class="customer-photos-section" style="background: rgba(14, 165, 233, 0.05); border: 1px solid rgba(14, 165, 233, 0.25); border-radius: var(--radius-md); padding: 8px 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <div style="font-size: 0.84rem; display: flex; align-items: center; gap: 6px;">
+                            <span>📷</span>
+                            <strong style="color: #38bdf8;">Kuvat ja kiinteistöohjeet:</strong>
+                            <span style="color: var(--muted); font-size: 0.8rem;">Yhteensä <span data-photo-count-for="${c.id}">${photoCounts[String(c.id)] || 0}</span> kuvaa</span>
+                        </div>
+                        <div style="display: flex; gap: 6px;">
+                            <button type="button" class="tiny-btn" onclick="openAddPhotoForSpecificCustomer(${c.id}, 'Kiinteistöohje')" title="Lataa pysyvä ohjekuva (kuten kaivonkansien paikat tai lumenkaatokielto)" style="background: rgba(14, 165, 233, 0.15); color: #38bdf8; border-color: rgba(14, 165, 233, 0.4); font-weight: 600;">
+                                ➕ Lisää ohjekuva kohteelle
+                            </button>
+                            <button type="button" class="tiny-btn" onclick="openCustomerPhotos(${c.id})" title="Selaa kaikkia kohteesta otettuja kuvia ja ohjeita">
+                                🖼️ Selaa kuvia
+                            </button>
+                        </div>
+                    </div>
+
                     <div class="customer-actions" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 10px; border-top: 1px solid var(--border); padding-top: 10px;">
                         <button class="btn-primary" style="padding: 8px 14px; min-height: 38px; font-size: 0.82rem; width: auto;" onclick="addCustomerToTodayRoute(${c.id})">
                             🚜 Lisää ajolistalle
@@ -6932,7 +7527,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                             <button class="tiny-btn" type="button" onclick="editCustomer(${c.id})" title="Muokkaa asiakkaan tietoja">✏️ Muokkaa tietoja</button>
                             <button class="tiny-btn btn-customer-pdf" type="button" id="btn-customer-pdf" onclick="exportCustomerCardPDF(${c.id})" title="Luo ja lataa tulostuskelpoinen A4-asiakaskortti PDF">📄 Asiakaskortti / PDF</button>
                             <button class="tiny-btn" type="button" onclick="openCustomerOnYardMap(${c.id})" title="Avaa kohteen satelliittikartta">🛰️ Pihakartta</button>
-                            <button class="photo-btn" type="button" onclick="openCustomerPhotos(${c.id})" title="Kohteen valokuvat">📷 <span data-photo-count-for="${c.id}">${photoCounts[String(c.id)] || 0}</span></button>
+                            <button class="photo-btn" type="button" onclick="openCustomerPhotos(${c.id})" title="Kohteen valokuvat ja kiinteistöohjeet">📷 Kuvat &amp; ohjeet (<span data-photo-count-for="${c.id}">${photoCounts[String(c.id)] || 0}</span>)</button>
                             <button class="tiny-btn danger" type="button" onclick="deleteCustomer(${c.id})" title="Poista asiakas rekisteristä">🗑️ Poista asiakas</button>
                         </div>
                     </div>
@@ -7965,12 +8560,12 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         const subEl = document.getElementById('photoDialogSubtitle');
         if (subEl) subEl.textContent = `Este: ${reasonDesc}`;
 
-        const tagObstacle = document.querySelector('input[name="photoTag"][value="Este / Huomio"]') ||
-                            document.querySelector('input[name="photoTag"][value="Ennen aurausta"]');
+        const tagObstacle = document.querySelector('input[name="photoTag"][value="Este / Epäkohta"]') ||
+                            document.querySelector('input[name="photoTag"][value="Vahinko / Kolhu"]');
         if (tagObstacle) tagObstacle.checked = true;
 
         const notesInput = document.getElementById('photoNotesInput');
-        if (notesInput) notesInput.value = `🚫 Este kohteessa: ${reasonDesc}`;
+        if (notesInput) notesInput.value = `⚠️ Este kohteessa: ${reasonDesc}`;
 
         const capDlg = document.getElementById('photoCaptureDialog');
         if (capDlg) {
