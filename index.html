@@ -17,6 +17,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.17.0/dist/leaflet-geoman.min.js" crossorigin=""></script>
     <script src="https://unpkg.com/@turf/turf@6.5.0/turf.min.js" crossorigin=""></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://unpkg.com/exifr@7.1.3/dist/lite.umd.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet-path-transform@1.1.3/dist/L.Path.Transform.js" crossorigin=""></script>
     <script>
@@ -332,10 +333,10 @@
         /* ---- Apple Segmented Control Tabs ---- */
         .nav-tabs {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 3px;
-            margin: 0 auto 20px auto;
-            max-width: 480px;
+            margin: 0 auto 16px auto;
+            max-width: 760px;
             width: 100%;
             background: var(--segmented-bg);
             padding: 3px;
@@ -343,6 +344,26 @@
             border: 1px solid var(--border-light);
             user-select: none;
             transition: background var(--transition);
+        }
+        @media (max-width: 720px) {
+            .nav-tabs {
+                display: flex !important;
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+                padding: 4px !important;
+                gap: 4px !important;
+                max-width: 100% !important;
+            }
+            .nav-tabs::-webkit-scrollbar {
+                display: none;
+            }
+            .nav-tab {
+                flex: 0 0 auto !important;
+                padding: 8px 12px !important;
+                font-size: 0.74rem !important;
+                white-space: nowrap !important;
+            }
         }
         .nav-tab {
             padding: 9px 4px;
@@ -1122,6 +1143,167 @@
         .lightbox-info { color: #fff; margin-top: 12px; text-align: center; max-width: 500px; }
         .lightbox-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; justify-content: center; }
 
+                /* ============================================================
+           📋 TEHTYJEN TÖIDEN LOKI & 💶 LASKUTUS TYYLIT
+           ============================================================ */
+        .work-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .kpi-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .kpi-label {
+            font-size: 0.76rem;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            color: var(--muted);
+        }
+        .kpi-value {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--fg);
+        }
+        .history-filter-bar {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 10px 14px;
+            margin-bottom: 14px;
+        }
+        .history-period-btn, .billing-period-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--fg-secondary);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .history-period-btn:hover, .billing-period-btn:hover {
+            border-color: var(--accent);
+            color: var(--fg);
+        }
+        .history-period-btn.active, .billing-period-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #ffffff;
+        }
+        .work-history-table, .billing-summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            margin-top: 8px;
+        }
+        .work-history-table th, .billing-summary-table th {
+            text-align: left;
+            padding: 10px 10px;
+            background: var(--bg-card);
+            color: var(--muted);
+            border-bottom: 1px solid var(--border);
+            font-size: 0.74rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+        .work-history-table td, .billing-summary-table td {
+            padding: 10px 10px;
+            border-bottom: 1px solid var(--border-light);
+            color: var(--fg);
+            vertical-align: middle;
+        }
+        .work-history-table tr:hover td, .billing-summary-table tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .method-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.74rem;
+            font-weight: 600;
+        }
+        .method-badge.geofence {
+            background: rgba(16, 185, 129, 0.14);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.35);
+        }
+        .method-badge.manual {
+            background: rgba(245, 158, 11, 0.14);
+            color: var(--accent-amber);
+            border: 1px solid rgba(245, 158, 11, 0.35);
+        }
+        .billing-grand-total-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 16px 20px;
+            margin-top: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-width: 480px;
+            margin-left: auto;
+        }
+        .billing-total-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            color: var(--fg-secondary);
+        }
+        .billing-total-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 4px 0;
+        }
+        .billing-total-row.grand {
+            padding-top: 6px;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--fg);
+        }
+
+        /* Tulostettava / generoitu PDF-pohja */
+        #pdf-print-template {
+            position: fixed;
+            left: -9999px;
+            top: 0;
+            width: 210mm;
+            min-height: 297mm;
+            background: #ffffff !important;
+            color: #0f172a !important;
+            padding: 14mm 12mm;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            box-sizing: border-box;
+            z-index: -1000;
+        }
+        @media print {
+            body > *:not(#pdf-print-template) {
+                display: none !important;
+            }
+            #pdf-print-template {
+                position: static !important;
+                left: auto !important;
+                display: block !important;
+                width: 100% !important;
+                padding: 8mm !important;
+            }
+        }
+
+
         /* ---- Selkeä uusi ohjauspalkki & avattavat paneelit (Drawers) ---- */
         .primary-actions-row {
             display: grid;
@@ -1555,6 +1737,8 @@
 
             #viewRoutes[style*="display: none"],
             #viewCustomers[style*="display: none"],
+            #work-history-view[style*="display: none"],
+            #billing-view[style*="display: none"],
             #viewSettings[style*="display: none"] {
                 display: none !important;
             }
@@ -1607,7 +1791,7 @@
                 border-radius: var(--radius-lg);
             }
 
-            #viewCustomers, #viewSettings {
+            #viewCustomers, #work-history-view, #billing-view, #viewSettings {
                 height: 100%;
                 width: 100%;
                 overflow-y: auto;
@@ -1810,9 +1994,11 @@
 <div class="container">
     <!-- Päänäytön välilehdet -->
     <div class="nav-tabs">
-        <button class="nav-tab active" id="tabBtnRoutes" onclick="switchTab('routes')">🚜 Ajolista</button>
-        <button class="nav-tab" id="tabBtnCustomers" onclick="switchTab('customers')">👥 Asiakkaat (<span id="customerCountBadge">0</span>)</button>
-        <button class="nav-tab" id="tabBtnSettings" onclick="switchTab('settings')">⚙️ Asetukset</button>
+        <button class="nav-tab active" id="tab-map" onclick="switchTab('routes')" title="Kartta ja ajokohteet">🗺️ Kartta &amp; Kohteet</button>
+        <button class="nav-tab" id="tab-history" onclick="switchTab('history')" title="Tehtyjen töiden loki">📋 Tehdyt työt (<span id="workHistoryBadge">0</span>)</button>
+        <button class="nav-tab" id="tab-billing" onclick="switchTab('billing')" title="Laskutuksen erittely ja koosteet">💶 Laskutus</button>
+        <button class="nav-tab" id="tabBtnCustomers" onclick="switchTab('customers')" title="Asiakasrekisteri">👥 Asiakkaat (<span id="customerCountBadge">0</span>)</button>
+        <button class="nav-tab" id="tabBtnSettings" onclick="switchTab('settings')" title="Järjestelmäasetukset">⚙️ Asetukset</button>
     </div>
 
     <!-- NÄKYMÄ 1: AJO & REITIT (Ajolista heti ensimmäisenä!) -->
@@ -2262,7 +2448,193 @@
         </div>
     </div>
 
-    <!-- NÄKYMÄ 3: ASETUKSET & KUSTOMOINTI -->
+        <!-- NÄKYMÄ 3: TEHTYJEN TÖIDEN LOKI (#work-history-view) -->
+    <div id="work-history-view" style="display: none;">
+        <div class="card" style="max-width: 1040px; margin: 0 auto;">
+            <!-- Yläpalkki: Otsikko, vientinappi ja uuden työn lisäys -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <h3 style="margin: 0; font-size: 1.25rem; display: flex; align-items: center; gap: 8px;">
+                        <span>📋</span>
+                        <span>Tehtyjen töiden loki</span>
+                    </h3>
+                    <div style="font-size: 0.82rem; color: var(--muted); margin-top: 3px;">
+                        Automaattiset geofence-kuittaukset ja manuaaliset työkirjaukset
+                    </div>
+                </div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button type="button" class="btn-primary" id="btn-export-work-pdf" onclick="exportWorkHistoryPDF()" style="display: inline-flex; align-items: center; gap: 6px; min-height: 42px; padding: 0 16px; font-weight: 600;">
+                        📄 Lataa työraportti (PDF)
+                    </button>
+                    <button type="button" class="btn-outline" onclick="openManualWorkLogModal()" style="display: inline-flex; align-items: center; gap: 6px; min-height: 42px; padding: 0 14px;">
+                        ➕ Lisää merkintä
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tilastopalkki (KPI:t) -->
+            <div class="work-kpi-grid">
+                <div class="kpi-card">
+                    <span class="kpi-label">Töitä yhteensä</span>
+                    <span class="kpi-value" id="historyKpiTotal">0 kpl</span>
+                </div>
+                <div class="kpi-card">
+                    <span class="kpi-label">Geofence-varmennettu</span>
+                    <span class="kpi-value" id="historyKpiGeofence" style="color: #10b981;">0%</span>
+                </div>
+                <div class="kpi-card">
+                    <span class="kpi-label">Manuaalisia kuittauksia</span>
+                    <span class="kpi-value" id="historyKpiManual" style="color: var(--accent-amber);">0 kpl</span>
+                </div>
+                <div class="kpi-card">
+                    <span class="kpi-label">Töiden arvo (ALV 0 %)</span>
+                    <span class="kpi-value" id="historyKpiValue" style="color: var(--accent);">0,00 €</span>
+                </div>
+            </div>
+
+            <!-- Suodattimet -->
+            <div class="history-filter-bar">
+                <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+                    <span style="font-size: 0.82rem; font-weight: 600; color: var(--muted); margin-right: 4px;">Aikaväli:</span>
+                    <button type="button" class="history-period-btn active" data-period="today" onclick="setWorkHistoryPeriod('today')">Tänään</button>
+                    <button type="button" class="history-period-btn" data-period="week" onclick="setWorkHistoryPeriod('week')">Tämä viikko</button>
+                    <button type="button" class="history-period-btn" data-period="month" onclick="setWorkHistoryPeriod('month')">Tämä kuukausi</button>
+                    <button type="button" class="history-period-btn" data-period="all" onclick="setWorkHistoryPeriod('all')">Kaikki</button>
+                    <button type="button" class="history-period-btn" data-period="custom" onclick="setWorkHistoryPeriod('custom')">Valitse pvm-väli</button>
+                </div>
+                <div id="historyCustomDates" style="display: none; align-items: center; gap: 6px; margin-top: 8px;">
+                    <input type="date" id="historyStartDate" onchange="renderWorkHistory()" style="margin: 0; width: auto; font-size: 0.84rem;">
+                    <span style="color: var(--muted); font-size: 0.82rem;">–</span>
+                    <input type="date" id="historyEndDate" onchange="renderWorkHistory()" style="margin: 0; width: auto; font-size: 0.84rem;">
+                </div>
+            </div>
+
+            <!-- Hakukenttä -->
+            <div style="margin: 12px 0;">
+                <input type="text" id="historySearchInput" placeholder="🔍 Hae kohteen nimellä tai osoitteella..." oninput="renderWorkHistory()" style="margin-bottom: 0;">
+            </div>
+
+            <!-- Taulukkolistaus -->
+            <div style="overflow-x: auto;">
+                <table class="work-history-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 140px;">Pvm &amp; Klo</th>
+                            <th>Kiinteistö &amp; Osoite</th>
+                            <th style="width: 160px;">Työ</th>
+                            <th style="width: 150px;">Kuittaustapa</th>
+                            <th style="width: 110px; text-align: right;">Hinta (ALV 0%)</th>
+                            <th style="width: 50px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="workHistoryTableBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="workHistoryEmptyState" style="display: none; text-align: center; padding: 36px 16px; color: var(--muted);">
+                <div style="font-size: 2rem; margin-bottom: 8px;">📋</div>
+                <div style="font-weight: 600; font-size: 0.95rem; color: var(--fg);">Ei tehtyjä töitä valitulla aikavälillä</div>
+                <div style="font-size: 0.82rem; margin-top: 4px;">Kuittaa kohteita valmiiksi ajolistasta tai lisää merkintä yllä olevasta painikkeesta.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NÄKYMÄ 4: LASKUTUSOSIO (#billing-view) -->
+    <div id="billing-view" style="display: none;">
+        <div class="card" style="max-width: 1040px; margin: 0 auto;">
+            <!-- Yläpalkki: Otsikko ja Vientinapit -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <h3 style="margin: 0; font-size: 1.25rem; display: flex; align-items: center; gap: 8px;">
+                        <span>💶</span>
+                        <span>Laskutuksen yhteenveto &amp; erittely</span>
+                    </h3>
+                    <div style="font-size: 0.82rem; color: var(--muted); margin-top: 3px;">
+                        Tehtyjen töiden automaattinen kooste kiinteistöittäin
+                    </div>
+                </div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button type="button" class="btn-primary" id="btn-export-billing-pdf" onclick="exportBillingPDF()" style="display: inline-flex; align-items: center; gap: 6px; min-height: 42px; padding: 0 16px; font-weight: 600;">
+                        📄 Lataa laskuerittely (PDF)
+                    </button>
+                    <button type="button" class="btn-secondary" id="btn-export-billing-csv" onclick="exportBillingCSV()" style="display: inline-flex; align-items: center; gap: 6px; min-height: 42px; padding: 0 16px;">
+                        📊 Vie CSV / Excel
+                    </button>
+                </div>
+            </div>
+
+            <!-- Aikavälisuodatus laskutukselle -->
+            <div class="history-filter-bar">
+                <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+                    <span style="font-size: 0.82rem; font-weight: 600; color: var(--muted); margin-right: 4px;">Laskutusjakso:</span>
+                    <button type="button" class="billing-period-btn active" data-period="month" onclick="setBillingPeriod('month')">Tämä kuukausi</button>
+                    <button type="button" class="billing-period-btn" data-period="lastMonth" onclick="setBillingPeriod('lastMonth')">Edellinen kk</button>
+                    <button type="button" class="billing-period-btn" data-period="week" onclick="setBillingPeriod('week')">Tämä viikko</button>
+                    <button type="button" class="billing-period-btn" data-period="today" onclick="setBillingPeriod('today')">Tänään</button>
+                    <button type="button" class="billing-period-btn" data-period="custom" onclick="setBillingPeriod('custom')">Valitse pvm-väli</button>
+                </div>
+                <div id="billingCustomDates" style="display: none; align-items: center; gap: 6px; margin-top: 8px;">
+                    <input type="date" id="billingStartDate" onchange="renderBillingSummary()" style="margin: 0; width: auto; font-size: 0.84rem;">
+                    <span style="color: var(--muted); font-size: 0.82rem;">–</span>
+                    <input type="date" id="billingEndDate" onchange="renderBillingSummary()" style="margin: 0; width: auto; font-size: 0.84rem;">
+                </div>
+            </div>
+
+            <!-- Laskutustaulukko kiinteistöittäin -->
+            <div style="overflow-x: auto; margin-top: 14px;">
+                <table class="billing-summary-table">
+                    <thead>
+                        <tr>
+                            <th>Kiinteistö / Asiakas</th>
+                            <th>Osoite</th>
+                            <th style="text-align: center; width: 90px;">Käynnit</th>
+                            <th style="text-align: right; width: 110px;">à Hinta (€)</th>
+                            <th style="text-align: right; width: 130px;">Veroton (ALV 0%)</th>
+                            <th style="text-align: right; width: 110px;">ALV 25,5%</th>
+                            <th style="text-align: right; width: 140px;">Yhteensä (sis. ALV)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="billingTableBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="billingEmptyState" style="display: none; text-align: center; padding: 36px 16px; color: var(--muted);">
+                <div style="font-size: 2rem; margin-bottom: 8px;">💶</div>
+                <div style="font-weight: 600; font-size: 0.95rem; color: var(--fg);">Ei laskutettavia töitä valitulla jaksolla</div>
+                <div style="font-size: 0.82rem; margin-top: 4px;">Valitse toinen aikaväli tai suorita ajokohteita päänäkymässä.</div>
+            </div>
+
+            <!-- Loppusummat & ALV-erittely -->
+            <div class="billing-grand-total-card">
+                <div class="billing-total-row">
+                    <span>Laskutettavia kohteita:</span>
+                    <strong id="billingTotalProperties">0 kpl</strong>
+                </div>
+                <div class="billing-total-row">
+                    <span>Käyntikertoja yhteensä:</span>
+                    <strong id="billingTotalVisits">0 kpl</strong>
+                </div>
+                <div class="billing-total-divider"></div>
+                <div class="billing-total-row">
+                    <span>Veroton yhteensä (ALV 0 %):</span>
+                    <strong id="billingNetTotal" style="font-size: 1.05rem;">0,00 €</strong>
+                </div>
+                <div class="billing-total-row">
+                    <span>Arvonlisävero (ALV 25,5 %):</span>
+                    <strong id="billingVatTotal" style="color: var(--muted);">0,00 €</strong>
+                </div>
+                <div class="billing-total-row grand">
+                    <span>Verollinen loppusumma yhteensä (sis. ALV 25,5 %):</span>
+                    <strong id="billingGrandTotal" style="color: var(--accent); font-size: 1.3rem;">0,00 €</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- NÄKYMÄ 5: ASETUKSET & KUSTOMOINTI -->
     <div id="viewSettings" style="display: none;">
         <div class="card" style="max-width: 800px; margin: 0 auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
@@ -2395,6 +2767,75 @@
     </dialog>
 
     <!-- Koko ruudun kuvan esikatselu (Lightbox) -->
+    <!-- Dialogi: Uusi manuaalinen työkirjaus -->
+    <dialog id="manualWorkLogDialog" class="app-dialog">
+        <form method="dialog" class="dialog-content" onsubmit="event.preventDefault(); saveManualWorkLogFromModal();">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+                <h3 style="margin: 0; font-size: 1.15rem;">➕ Lisää työkirjaus lokiin</h3>
+                <button type="button" class="tiny-btn" onclick="document.getElementById('manualWorkLogDialog').close('cancel')">✕ Sulje</button>
+            </div>
+
+            <label for="manualWorkLogPropertySelect">Valitse kohde reitiltä / asiakasrekisteristä:</label>
+            <select id="manualWorkLogPropertySelect" onchange="handleManualLogPropertySelect(this.value)" style="margin-bottom: 10px;">
+                <option value="">-- Valitse kohde tai syötä käsin alle --</option>
+            </select>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div>
+                    <label for="manualWorkLogName">Kohteen nimi:</label>
+                    <input type="text" id="manualWorkLogName" placeholder="esim. Asunto Oy Esimerkki" required>
+                </div>
+                <div>
+                    <label for="manualWorkLogPrice">Yksikköhinta (€ ALV 0 %):</label>
+                    <input type="number" id="manualWorkLogPrice" step="0.5" min="0" value="45.00" required>
+                </div>
+            </div>
+
+            <label for="manualWorkLogAddress">Katuosoite ja kaupunki:</label>
+            <input type="text" id="manualWorkLogAddress" placeholder="esim. Kauppakatu 10, Tampere" required>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div>
+                    <label for="manualWorkLogDate">Päivämäärä:</label>
+                    <input type="date" id="manualWorkLogDate" required>
+                </div>
+                <div>
+                    <label for="manualWorkLogTime">Kellonaika:</label>
+                    <input type="time" id="manualWorkLogTime" required>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div>
+                    <label for="manualWorkLogType">Suoritettu työ:</label>
+                    <select id="manualWorkLogType">
+                        <option value="Auraus & Hiekoitus" selected>Auraus & Hiekoitus</option>
+                        <option value="Pelkkä auraus">Pelkkä auraus</option>
+                        <option value="Liukkaudentorjunta / Hiekoitus">Liukkaudentorjunta / Hiekoitus</option>
+                        <option value="Polanteen poisto">Polanteen poisto</option>
+                        <option value="Lumen siirto / Kasaus">Lumen siirto / Kasaus</option>
+                        <option value="Muu kiinteistöhuolto">Muu kiinteistöhuolto</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="manualWorkLogMethod">Kuittaustapa:</label>
+                    <select id="manualWorkLogMethod">
+                        <option value="Manuaalinen" selected>Manuaalinen kuittaus</option>
+                        <option value="Geofence">Geofence (Paikkatodennettu)</option>
+                    </select>
+                </div>
+            </div>
+
+            <label for="manualWorkLogNotes">Kuljettajan huomiot / lisätiedot:</label>
+            <textarea id="manualWorkLogNotes" rows="2" placeholder="esim. Piha-alue ja ajoväylä aurattu ja hiekoitettu"></textarea>
+
+            <div class="dialog-actions">
+                <button type="button" class="btn-outline" onclick="document.getElementById('manualWorkLogDialog').close('cancel')">Peruuta</button>
+                <button type="submit" class="btn-primary" style="width: auto; padding: 10px 20px;">💾 Tallenna työlokiin</button>
+            </div>
+        </form>
+    </dialog>
+
     <div id="lightboxModal" class="lightbox-modal" onclick="closeLightbox(event)">
         <img id="lightboxImg" class="lightbox-img" alt="Kohteen valokuva">
         <div class="lightbox-info">
@@ -2719,6 +3160,9 @@
     </dialog>
 </div>
 
+<!-- Piilotettu tulostuspohja (html2pdf) -->
+<div id="pdf-print-template"></div>
+
 <script>
     // ---------- Apufunktiot ----------
     function esc(s) {
@@ -2993,16 +3437,24 @@
 
     // ---------- Välilehtien vaihto ----------
     function switchTab(tab) {
+        if (tab === 'map') tab = 'routes';
+
         const routesView = document.getElementById('viewRoutes');
         const custView = document.getElementById('viewCustomers');
+        const historyView = document.getElementById('work-history-view');
+        const billingView = document.getElementById('billing-view');
         const settingsView = document.getElementById('viewSettings');
 
-        const tabBtnRoutes = document.getElementById('tabBtnRoutes');
+        const tabBtnRoutes = document.getElementById('tab-map') || document.getElementById('tabBtnRoutes');
         const tabBtnCust = document.getElementById('tabBtnCustomers');
+        const tabBtnHistory = document.getElementById('tab-history');
+        const tabBtnBilling = document.getElementById('tab-billing');
         const tabBtnSettings = document.getElementById('tabBtnSettings');
 
         if (routesView) routesView.style.display = tab === 'routes' ? '' : 'none';
         if (custView) custView.style.display = tab === 'customers' ? '' : 'none';
+        if (historyView) historyView.style.display = tab === 'history' ? '' : 'none';
+        if (billingView) billingView.style.display = tab === 'billing' ? '' : 'none';
         if (settingsView) settingsView.style.display = tab === 'settings' ? '' : 'none';
 
         if (tab === 'routes' && typeof yardMap !== 'undefined' && yardMap) {
@@ -3013,9 +3465,13 @@
 
         if (tabBtnRoutes) tabBtnRoutes.classList.toggle('active', tab === 'routes');
         if (tabBtnCust) tabBtnCust.classList.toggle('active', tab === 'customers');
+        if (tabBtnHistory) tabBtnHistory.classList.toggle('active', tab === 'history');
+        if (tabBtnBilling) tabBtnBilling.classList.toggle('active', tab === 'billing');
         if (tabBtnSettings) tabBtnSettings.classList.toggle('active', tab === 'settings');
 
         if (tab === 'customers') renderCustomers();
+        if (tab === 'history') renderWorkHistory();
+        if (tab === 'billing') renderBillingSummary();
         if (tab === 'settings') applyHomeWidgetVisibility();
     }
     window.switchTab = switchTab;
@@ -3596,11 +4052,721 @@
         showStatus('Valokuva poistettu.', 'info');
     }
 
-    // ---------- Työloki (poistettu käytöstä) ----------
+        // ============================================================
+    // 📋 TEHTYJEN TÖIDEN LOKI, 💶 LASKUTUS & 📄 PDF-RAPORTIT
+    // ============================================================
+    const STORAGE_KEY_WORK_LOGS = 'yardflow_work_logs';
+
+    function getStoredWorkLogs() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY_WORK_LOGS);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed)) return parsed;
+            }
+        } catch (e) {
+            console.error('Virhe työlokin lukemisessa:', e);
+        }
+        return [];
+    }
+
+    function saveStoredWorkLogs(logs) {
+        try {
+            localStorage.setItem(STORAGE_KEY_WORK_LOGS, JSON.stringify(logs));
+        } catch (e) {
+            console.error('Virhe työlokin tallentamisessa:', e);
+        }
+    }
+
+    function getPropertyDefaultPrice(propertyId, propertyName) {
+        if (typeof tasks !== 'undefined' && Array.isArray(tasks)) {
+            const t = tasks.find(x => String(x.id) === String(propertyId) || (x.name && propertyName && x.name.toLowerCase() === propertyName.toLowerCase()));
+            if (t && t.defaultPrice != null && !isNaN(t.defaultPrice) && Number(t.defaultPrice) > 0) return Number(t.defaultPrice);
+            if (t && t.price != null && !isNaN(t.price) && Number(t.price) > 0) return Number(t.price);
+        }
+        if (typeof customers !== 'undefined' && Array.isArray(customers)) {
+            const c = customers.find(x => String(x.id) === String(propertyId) || (x.name && propertyName && x.name.toLowerCase() === propertyName.toLowerCase()));
+            if (c && c.plowPrice != null && !isNaN(c.plowPrice) && Number(c.plowPrice) > 0) return Number(c.plowPrice);
+            if (c && c.defaultPrice != null && !isNaN(c.defaultPrice) && Number(c.defaultPrice) > 0) return Number(c.defaultPrice);
+        }
+        return 45.00;
+    }
+
+    // Päätallennusfunktio: kutsutaan automaattisesti kun kohde kuitataan valmiiksi
     function addWorkLogEntry(data) {
-        // no-op: työloki poistettu käytöstä
+        if (!data) return;
+        const logs = getStoredWorkLogs();
+        const propId = data.propertyId || data.customerId || (data.task ? data.task.id : null) || data.id || '';
+        const propName = data.propertyName || data.customerName || (data.task ? data.task.name : null) || data.name || 'Kohde';
+        const addr = data.address || '';
+        const priceVal = (data.price != null && !isNaN(data.price) && Number(data.price) > 0)
+            ? Number(data.price)
+            : getPropertyDefaultPrice(propId, propName);
+
+        const record = {
+            id: data.id || ('log_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6)),
+            propertyId: propId,
+            propertyName: propName,
+            address: addr,
+            completedAt: data.completedAt || data.completed_at || data.timestamp || new Date().toISOString(),
+            workType: data.workType || data.type || 'Auraus & Hiekoitus',
+            method: data.method || (data.manual_override ? 'Manuaalinen' : (data.verified_on_site ? 'Geofence' : 'Manuaalinen')),
+            overrideReason: data.overrideReason || data.override_reason || null,
+            price: priceVal
+        };
+
+        logs.unshift(record);
+        saveStoredWorkLogs(logs);
+        updateWorkHistoryBadge();
+
+        const historyView = document.getElementById('work-history-view');
+        if (historyView && historyView.style.display !== 'none') {
+            renderWorkHistory();
+        }
+        const billingView = document.getElementById('billing-view');
+        if (billingView && billingView.style.display !== 'none') {
+            renderBillingSummary();
+        }
+        return record;
     }
     window.addWorkLogEntry = addWorkLogEntry;
+
+    function updateWorkHistoryBadge() {
+        const badge = document.getElementById('workHistoryBadge');
+        if (badge) {
+            const logs = getStoredWorkLogs();
+            badge.textContent = logs.length;
+        }
+    }
+    window.updateWorkHistoryBadge = updateWorkHistoryBadge;
+
+    // Alustetaan esimerkkimerkinnät jos loki on tyhjä
+    function ensureInitialWorkLogs() {
+        const current = getStoredWorkLogs();
+        if (current.length === 0) {
+            const now = new Date();
+            const todayIso = now.toISOString();
+            const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+            const yesterdayIso = yesterday.toISOString();
+
+            const seeds = [
+                {
+                    id: 'seed_1',
+                    propertyId: 'sample_1',
+                    propertyName: 'Asunto Oy Kissanmaankatu 3',
+                    address: 'Kissanmaankatu 3, Tampere',
+                    completedAt: todayIso,
+                    workType: 'Auraus & Hiekoitus',
+                    method: 'Geofence',
+                    overrideReason: null,
+                    price: 45.00
+                },
+                {
+                    id: 'seed_2',
+                    propertyId: 'sample_2',
+                    propertyName: 'Kiinteistö Oy Hatanpään Valtatie 24',
+                    address: 'Hatanpään valtatie 24, Tampere',
+                    completedAt: todayIso,
+                    workType: 'Auraus & Hiekoitus',
+                    method: 'Geofence',
+                    overrideReason: null,
+                    price: 65.00
+                },
+                {
+                    id: 'seed_3',
+                    propertyId: 'sample_3',
+                    propertyName: 'Tampereen Logistiikkakeskus',
+                    address: 'Sammon valtatie 15, Tampere',
+                    completedAt: yesterdayIso,
+                    workType: 'Auraus & Hiekoitus',
+                    method: 'Manuaalinen',
+                    overrideReason: 'Koneella ei päässyt puomin läpi ilman koodia',
+                    price: 85.00
+                }
+            ];
+            saveStoredWorkLogs(seeds);
+            updateWorkHistoryBadge();
+        }
+    }
+
+    // ---------- Aikavälisuodatus ----------
+    let currentHistoryPeriod = 'today';
+    let currentBillingPeriod = 'month';
+
+    function setWorkHistoryPeriod(period) {
+        currentHistoryPeriod = period;
+        document.querySelectorAll('.history-period-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.period === period);
+        });
+        const customBox = document.getElementById('historyCustomDates');
+        if (customBox) {
+            customBox.style.display = period === 'custom' ? 'flex' : 'none';
+        }
+        renderWorkHistory();
+    }
+    window.setWorkHistoryPeriod = setWorkHistoryPeriod;
+
+    function setBillingPeriod(period) {
+        currentBillingPeriod = period;
+        document.querySelectorAll('.billing-period-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.period === period);
+        });
+        const customBox = document.getElementById('billingCustomDates');
+        if (customBox) {
+            customBox.style.display = period === 'custom' ? 'flex' : 'none';
+        }
+        renderBillingSummary();
+    }
+    window.setBillingPeriod = setBillingPeriod;
+
+    function isLogMatchesPeriod(completedAt, period, customStart, customEnd) {
+        if (!completedAt) return false;
+        const d = new Date(completedAt);
+        if (isNaN(d.getTime())) return false;
+        const now = new Date();
+
+        if (period === 'today') {
+            return d.getFullYear() === now.getFullYear() &&
+                   d.getMonth() === now.getMonth() &&
+                   d.getDate() === now.getDate();
+        }
+        if (period === 'week') {
+            const day = now.getDay();
+            const diffToMon = (day === 0 ? -6 : 1) - day;
+            const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMon, 0, 0, 0, 0);
+            return d >= monday;
+        }
+        if (period === 'month') {
+            const first = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+            return d >= first;
+        }
+        if (period === 'lastMonth') {
+            const first = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0);
+            const last = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+            return d >= first && d <= last;
+        }
+        if (period === 'custom') {
+            const s = customStart ? new Date(customStart + 'T00:00:00') : new Date(0);
+            const e = customEnd ? new Date(customEnd + 'T23:59:59.999') : new Date(8640000000000000);
+            return d >= s && d <= e;
+        }
+        return true; // 'all'
+    }
+
+    function getPeriodLabel(period, customStart, customEnd) {
+        const now = new Date();
+        if (period === 'today') return 'Tänään (' + now.toLocaleDateString('fi-FI') + ')';
+        if (period === 'week') return 'Tämä viikko';
+        if (period === 'month') return 'Tämä kuukausi (' + (now.getMonth() + 1) + '/' + now.getFullYear() + ')';
+        if (period === 'lastMonth') return 'Edellinen kuukausi';
+        if (period === 'custom' && (customStart || customEnd)) {
+            return (customStart || 'Alku') + ' – ' + (customEnd || 'Loppu');
+        }
+        return 'Kaikki ajat';
+    }
+
+    // ---------- Tehtyjen töiden loki: Renderöinti ----------
+    function getFilteredWorkLogs() {
+        const all = getStoredWorkLogs();
+        const searchInput = document.getElementById('historySearchInput');
+        const search = (searchInput ? searchInput.value : '').toLowerCase().trim();
+        const startInput = document.getElementById('historyStartDate');
+        const start = startInput ? startInput.value : '';
+        const endInput = document.getElementById('historyEndDate');
+        const end = endInput ? endInput.value : '';
+
+        return all.filter(l => {
+            if (!isLogMatchesPeriod(l.completedAt, currentHistoryPeriod, start, end)) return false;
+            if (search) {
+                const name = (l.propertyName || '').toLowerCase();
+                const addr = (l.address || '').toLowerCase();
+                const type = (l.workType || '').toLowerCase();
+                if (!name.includes(search) && !addr.includes(search) && !type.includes(search)) {
+                    return false;
+                }
+            }
+            return true;
+        });
+    }
+
+    function renderWorkHistory() {
+        const tbody = document.getElementById('workHistoryTableBody');
+        const emptyState = document.getElementById('workHistoryEmptyState');
+        if (!tbody) return;
+
+        const filtered = getFilteredWorkLogs();
+
+        // Päivitetään KPI:t
+        const totalCount = filtered.length;
+        const geofenceCount = filtered.filter(l => l.method === 'Geofence').length;
+        const manualCount = filtered.filter(l => l.method !== 'Geofence').length;
+        const geofencePct = totalCount > 0 ? Math.round((geofenceCount / totalCount) * 100) : 0;
+        const totalValue = filtered.reduce((acc, l) => acc + (Number(l.price) || 0), 0);
+
+        const elTotal = document.getElementById('historyKpiTotal');
+        const elGeofence = document.getElementById('historyKpiGeofence');
+        const elManual = document.getElementById('historyKpiManual');
+        const elValue = document.getElementById('historyKpiValue');
+
+        if (elTotal) elTotal.textContent = totalCount + ' kpl';
+        if (elGeofence) elGeofence.textContent = geofencePct + '%';
+        if (elManual) elManual.textContent = manualCount + ' kpl';
+        if (elValue) elValue.textContent = totalValue.toFixed(2).replace('.', ',') + ' €';
+
+        if (totalCount === 0) {
+            tbody.innerHTML = '';
+            if (emptyState) emptyState.style.display = 'block';
+            return;
+        }
+
+        if (emptyState) emptyState.style.display = 'none';
+
+        tbody.innerHTML = filtered.map(log => {
+            const dateStr = fmtDateTime(log.completedAt);
+            const isGeofence = log.method === 'Geofence';
+            const badgeClass = isGeofence ? 'geofence' : 'manual';
+            const badgeIcon = isGeofence ? '🛰️' : '⚠️';
+            const badgeText = isGeofence ? 'Geofence' : 'Manuaalinen';
+            const priceNum = Number(log.price) || 0;
+
+            return '<tr>' +
+                '<td style="white-space: nowrap; font-size: 0.82rem; font-weight: 600;">' + esc(dateStr) + '</td>' +
+                '<td>' +
+                    '<strong style="color: var(--fg);">' + esc(log.propertyName) + '</strong>' +
+                    '<div style="font-size: 0.78rem; color: var(--muted); margin-top: 2px;">' + esc(log.address) + '</div>' +
+                '</td>' +
+                '<td><span style="font-size: 0.82rem; color: var(--fg-secondary);">' + esc(log.workType || 'Auraus') + '</span></td>' +
+                '<td>' +
+                    '<span class="method-badge ' + badgeClass + '" title="' + esc(log.overrideReason || '') + '">' +
+                        badgeIcon + ' ' + badgeText +
+                    '</span>' +
+                    (log.overrideReason ? '<div style="font-size: 0.72rem; color: var(--accent-amber); margin-top: 2px;">' + esc(log.overrideReason) + '</div>' : '') +
+                '</td>' +
+                '<td style="text-align: right; font-weight: 700; white-space: nowrap;">' + priceNum.toFixed(2).replace('.', ',') + ' €</td>' +
+                '<td style="text-align: center;">' +
+                    '<button type="button" class="btn-danger" style="padding: 4px 7px; font-size: 0.72rem;" onclick="deleteWorkLogRecord(\'' + log.id + '\')" title="Poista merkintä">✕</button>' +
+                '</td>' +
+            '</tr>';
+        }).join('');
+    }
+    window.renderWorkHistory = renderWorkHistory;
+
+    function deleteWorkLogRecord(id) {
+        if (!confirm('Haluatko varmasti poistaa tämän työkirjauksen? Tätä ei voi perua.')) return;
+        let logs = getStoredWorkLogs();
+        logs = logs.filter(l => String(l.id) !== String(id));
+        saveStoredWorkLogs(logs);
+        updateWorkHistoryBadge();
+        renderWorkHistory();
+        renderBillingSummary();
+        showStatus('Työkirjaus poistettu.', 'info');
+    }
+    window.deleteWorkLogRecord = deleteWorkLogRecord;
+
+    // Manuaalinen lisäysmodaali
+    function openManualWorkLogModal() {
+        const dlg = document.getElementById('manualWorkLogDialog');
+        if (!dlg) return;
+
+        const sel = document.getElementById('manualWorkLogPropertySelect');
+        if (sel) {
+            let options = '<option value="">-- Valitse kohde tai syötä käsin alle --</option>';
+            if (typeof tasks !== 'undefined' && Array.isArray(tasks)) {
+                tasks.forEach(t => {
+                    options += '<option value="task_' + t.id + '">' + esc(t.name) + ' (' + esc(t.address) + ')</option>';
+                });
+            }
+            if (typeof customers !== 'undefined' && Array.isArray(customers)) {
+                customers.forEach(c => {
+                    options += '<option value="cust_' + c.id + '">👥 ' + esc(c.name) + ' (' + esc(c.address) + ')</option>';
+                });
+            }
+            sel.innerHTML = options;
+        }
+
+        const now = new Date();
+        const dateInput = document.getElementById('manualWorkLogDate');
+        const timeInput = document.getElementById('manualWorkLogTime');
+        if (dateInput) dateInput.value = now.toISOString().slice(0, 10);
+        if (timeInput) timeInput.value = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+
+        dlg.showModal();
+    }
+    window.openManualWorkLogModal = openManualWorkLogModal;
+
+    function handleManualLogPropertySelect(val) {
+        if (!val) return;
+        let found = null;
+        if (val.startsWith('task_')) {
+            const id = val.replace('task_', '');
+            found = tasks.find(t => String(t.id) === String(id));
+        } else if (val.startsWith('cust_')) {
+            const id = val.replace('cust_', '');
+            found = customers.find(c => String(c.id) === String(id));
+        }
+        if (found) {
+            const nameEl = document.getElementById('manualWorkLogName');
+            const addrEl = document.getElementById('manualWorkLogAddress');
+            const priceEl = document.getElementById('manualWorkLogPrice');
+            if (nameEl) nameEl.value = found.name || '';
+            if (addrEl) addrEl.value = found.address || '';
+            const price = found.defaultPrice || found.price || found.plowPrice || 45.00;
+            if (priceEl) priceEl.value = price;
+        }
+    }
+    window.handleManualLogPropertySelect = handleManualLogPropertySelect;
+
+    function saveManualWorkLogFromModal() {
+        const name = document.getElementById('manualWorkLogName')?.value?.trim();
+        const address = document.getElementById('manualWorkLogAddress')?.value?.trim();
+        const date = document.getElementById('manualWorkLogDate')?.value;
+        const time = document.getElementById('manualWorkLogTime')?.value;
+        const price = parseFloat(document.getElementById('manualWorkLogPrice')?.value) || 45.00;
+        const workType = document.getElementById('manualWorkLogType')?.value || 'Auraus & Hiekoitus';
+        const method = document.getElementById('manualWorkLogMethod')?.value || 'Manuaalinen';
+        const notes = document.getElementById('manualWorkLogNotes')?.value?.trim() || '';
+
+        if (!name || !address || !date) {
+            alert('Täytä vähintään kohteen nimi, osoite ja päivämäärä.');
+            return;
+        }
+
+        const timeStr = time ? time : '12:00';
+        const completedAt = new Date(date + 'T' + timeStr + ':00').toISOString();
+
+        addWorkLogEntry({
+            id: 'man_' + Date.now(),
+            propertyName: name,
+            address: address,
+            completedAt: completedAt,
+            workType: workType,
+            method: method,
+            overrideReason: notes ? notes : (method === 'Manuaalinen' ? 'Kuljettajan manuaalikirjaus' : null),
+            price: price
+        });
+
+        document.getElementById('manualWorkLogDialog')?.close('ok');
+        showStatus('Työkirjaus tallennettu lokiin! ✓', 'success');
+    }
+    window.saveManualWorkLogFromModal = saveManualWorkLogFromModal;
+
+    // ---------- Laskutusosio: Kooste kiinteistöittäin ----------
+    function getGroupedBillingData() {
+        const all = getStoredWorkLogs();
+        const start = document.getElementById('billingStartDate')?.value || '';
+        const end = document.getElementById('billingEndDate')?.value || '';
+
+        const periodLogs = all.filter(l => isLogMatchesPeriod(l.completedAt, currentBillingPeriod, start, end));
+
+        // Ryhmitellään kiinteistöittäin
+        const groups = {};
+        periodLogs.forEach(log => {
+            const key = (log.propertyName || 'Tuntematon').toLowerCase().trim();
+            if (!groups[key]) {
+                groups[key] = {
+                    propertyName: log.propertyName || 'Tuntematon',
+                    address: log.address || '',
+                    visits: 0,
+                    totalNet: 0,
+                    prices: []
+                };
+            }
+            groups[key].visits += 1;
+            const p = Number(log.price) || 45.00;
+            groups[key].totalNet += p;
+            groups[key].prices.push(p);
+        });
+
+        const items = Object.values(groups).map(g => {
+            const unitPrice = g.visits > 0 ? (g.totalNet / g.visits) : 45.00;
+            const net = g.totalNet;
+            const vat = net * 0.255;
+            const gross = net + vat;
+            return {
+                propertyName: g.propertyName,
+                address: g.address,
+                visits: g.visits,
+                unitPrice: unitPrice,
+                net: net,
+                vat: vat,
+                gross: gross
+            };
+        });
+
+        items.sort((a, b) => b.net - a.net);
+
+        const totalProperties = items.length;
+        const totalVisits = items.reduce((acc, x) => acc + x.visits, 0);
+        const grandNet = items.reduce((acc, x) => acc + x.net, 0);
+        const grandVat = grandNet * 0.255;
+        const grandTotal = grandNet + grandVat;
+
+        return {
+            items,
+            totalProperties,
+            totalVisits,
+            grandNet,
+            grandVat,
+            grandTotal,
+            periodLabel: getPeriodLabel(currentBillingPeriod, start, end)
+        };
+    }
+
+    function renderBillingSummary() {
+        const tbody = document.getElementById('billingTableBody');
+        const emptyState = document.getElementById('billingEmptyState');
+        if (!tbody) return;
+
+        const data = getGroupedBillingData();
+
+        const elProp = document.getElementById('billingTotalProperties');
+        const elVis = document.getElementById('billingTotalVisits');
+        const elNet = document.getElementById('billingNetTotal');
+        const elVat = document.getElementById('billingVatTotal');
+        const elGrand = document.getElementById('billingGrandTotal');
+
+        if (elProp) elProp.textContent = data.totalProperties + ' kpl';
+        if (elVis) elVis.textContent = data.totalVisits + ' kpl';
+        if (elNet) elNet.textContent = data.grandNet.toFixed(2).replace('.', ',') + ' €';
+        if (elVat) elVat.textContent = data.grandVat.toFixed(2).replace('.', ',') + ' €';
+        if (elGrand) elGrand.textContent = data.grandTotal.toFixed(2).replace('.', ',') + ' €';
+
+        if (data.items.length === 0) {
+            tbody.innerHTML = '';
+            if (emptyState) emptyState.style.display = 'block';
+            return;
+        }
+
+        if (emptyState) emptyState.style.display = 'none';
+
+        tbody.innerHTML = data.items.map(item => '<tr>' +
+            '<td><strong style="color: var(--fg);">' + esc(item.propertyName) + '</strong></td>' +
+            '<td style="font-size: 0.8rem; color: var(--muted);">' + esc(item.address) + '</td>' +
+            '<td style="text-align: center; font-weight: 700;">' + item.visits + ' kpl</td>' +
+            '<td style="text-align: right; white-space: nowrap;">' + item.unitPrice.toFixed(2).replace('.', ',') + ' €</td>' +
+            '<td style="text-align: right; font-weight: 600; white-space: nowrap;">' + item.net.toFixed(2).replace('.', ',') + ' €</td>' +
+            '<td style="text-align: right; color: var(--muted); white-space: nowrap;">' + item.vat.toFixed(2).replace('.', ',') + ' €</td>' +
+            '<td style="text-align: right; font-weight: 800; color: var(--accent); white-space: nowrap;">' + item.gross.toFixed(2).replace('.', ',') + ' €</td>' +
+        '</tr>').join('');
+    }
+    window.renderBillingSummary = renderBillingSummary;
+
+    // ---------- CSV-vienti laskutukselle ----------
+    function exportBillingCSV() {
+        const data = getGroupedBillingData();
+        if (data.items.length === 0) {
+            alert('Ei laskutettavia töitä valitulla jaksolla.');
+            return;
+        }
+
+        let csv = '\uFEFF'; // UTF-8 BOM suomalaiselle Excelille
+        csv += 'Kiinteistö;Osoite;Käyntikerrat (kpl);Yksikköhinta (€);Veroton summa (ALV 0 %);ALV 25.5 %;Yhteensä (sis. ALV 25.5 %)\r\n';
+
+        data.items.forEach(item => {
+            csv += '"' + item.propertyName.replace(/"/g, '""') + '";"' + item.address.replace(/"/g, '""') + '";' + item.visits + ';' + item.unitPrice.toFixed(2).replace('.', ',') + ';' + item.net.toFixed(2).replace('.', ',') + ';' + item.vat.toFixed(2).replace('.', ',') + ';' + item.gross.toFixed(2).replace('.', ',') + '\r\n';
+        });
+
+        csv += 'YHTEENSÄ;;' + data.totalVisits + ';;' + data.grandNet.toFixed(2).replace('.', ',') + ';' + data.grandVat.toFixed(2).replace('.', ',') + ';' + data.grandTotal.toFixed(2).replace('.', ',') + '\r\n';
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const dateStr = new Date().toISOString().slice(0, 10);
+        a.download = 'YardFlow_laskuerittely_' + dateStr + '.csv';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        showStatus('Laskuerittely ladattu CSV/Excel-tiedostona! ✓', 'success');
+    }
+    window.exportBillingCSV = exportBillingCSV;
+
+    // ---------- PDF-vientilogiikka (html2pdf) ----------
+    function exportWorkHistoryPDF() {
+        const logs = getFilteredWorkLogs();
+        if (logs.length === 0) {
+            alert('Ei raportoitavia töitä valitulla aikavälillä.');
+            return;
+        }
+
+        if (typeof html2pdf === 'undefined') {
+            alert('PDF-kirjasto latautuu, yritä hetken kuluttua uudelleen.');
+            return;
+        }
+
+        const now = new Date();
+        const dateStr = now.toISOString().slice(0, 10);
+        const start = document.getElementById('historyStartDate')?.value || '';
+        const end = document.getElementById('historyEndDate')?.value || '';
+        const periodText = getPeriodLabel(currentHistoryPeriod, start, end);
+        const totalValue = logs.reduce((acc, l) => acc + (Number(l.price) || 0), 0);
+        const geofenceCount = logs.filter(l => l.method === 'Geofence').length;
+        const geofencePct = logs.length > 0 ? Math.round((geofenceCount / logs.length) * 100) : 0;
+
+        const printEl = document.getElementById('pdf-print-template');
+        printEl.innerHTML = '<div style="font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, Arial, sans-serif; color: #0f172a; line-height: 1.4;">' +
+            '<div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #1e293b; padding-bottom: 12px; margin-bottom: 16px;">' +
+                '<div>' +
+                    '<h1 style="margin: 0; font-size: 24px; color: #0f172a; font-weight: 800; letter-spacing: -0.02em;">YardFlow</h1>' +
+                    '<div style="font-size: 13px; color: #475569; font-weight: 600; margin-top: 2px;">Työraportti &amp; Suoritetut työt</div>' +
+                '</div>' +
+                '<div style="text-align: right; font-size: 11px; color: #64748b;">' +
+                    '<div><strong>Aikaväli:</strong> ' + esc(periodText) + '</div>' +
+                    '<div><strong>Luotu:</strong> ' + esc(fmtDateTime(now.toISOString())) + '</div>' +
+                    '<div><strong>Yhteensä:</strong> ' + logs.length + ' kpl (' + geofencePct + ' % Geofence)</div>' +
+                '</div>' +
+            '</div>' +
+            '<div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px 14px; margin-bottom: 16px; display: flex; justify-content: space-between; font-size: 12px;">' +
+                '<div><strong>Suoritettuja töitä:</strong> ' + logs.length + ' käyntiä</div>' +
+                '<div><strong>Geofence-varmennettu:</strong> ' + geofenceCount + ' kpl (' + geofencePct + ' %)</div>' +
+                '<div><strong>Töiden arvo (ALV 0 %):</strong> ' + totalValue.toFixed(2).replace('.', ',') + ' €</div>' +
+            '</div>' +
+            '<table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 24px;">' +
+                '<thead>' +
+                    '<tr style="background: #1e293b; color: #ffffff;">' +
+                        '<th style="padding: 6px 8px; text-align: left;">Pvm &amp; Klo</th>' +
+                        '<th style="padding: 6px 8px; text-align: left;">Kiinteistö &amp; Osoite</th>' +
+                        '<th style="padding: 6px 8px; text-align: left;">Työ</th>' +
+                        '<th style="padding: 6px 8px; text-align: center;">Tapa</th>' +
+                        '<th style="padding: 6px 8px; text-align: right;">Hinta (ALV 0%)</th>' +
+                    '</tr>' +
+                '</thead>' +
+                '<tbody>' +
+                    logs.map((l, i) => '<tr style="border-bottom: 1px solid #e2e8f0; background: ' + (i % 2 === 0 ? '#ffffff' : '#f8fafc') + ';">' +
+                        '<td style="padding: 6px 8px; white-space: nowrap; font-weight: 600;">' + esc(fmtDateTime(l.completedAt)) + '</td>' +
+                        '<td style="padding: 6px 8px;">' +
+                            '<strong>' + esc(l.propertyName) + '</strong><br>' +
+                            '<span style="color: #64748b; font-size: 10px;">' + esc(l.address) + '</span>' +
+                        '</td>' +
+                        '<td style="padding: 6px 8px;">' + esc(l.workType || 'Auraus') + '</td>' +
+                        '<td style="padding: 6px 8px; text-align: center;">' +
+                            '<span style="font-weight: 600; color: ' + (l.method === 'Geofence' ? '#059669' : '#d97706') + ';">' +
+                                esc(l.method || 'Geofence') +
+                            '</span>' +
+                            (l.overrideReason ? '<div style="font-size: 9px; color: #b45309;">' + esc(l.overrideReason) + '</div>' : '') +
+                        '</td>' +
+                        '<td style="padding: 6px 8px; text-align: right; font-weight: 700;">' + (Number(l.price) || 0).toFixed(2).replace('.', ',') + ' €</td>' +
+                    '</tr>').join('') +
+                '</tbody>' +
+            '</table>' +
+            '<div style="margin-top: 36px; display: flex; justify-content: space-between; font-size: 11px; color: #334155; page-break-inside: avoid;">' +
+                '<div style="width: 45%; border-top: 1px solid #94a3b8; padding-top: 6px;">' +
+                    '<strong>Kuljettaja / Toimenpiteen suorittaja</strong><br><br>' +
+                    'Allekirjoitus: _____________________________' +
+                '</div>' +
+                '<div style="width: 45%; border-top: 1px solid #94a3b8; padding-top: 6px;">' +
+                    '<strong>Työnjohto / Vastaanottaja</strong><br><br>' +
+                    'Allekirjoitus: _____________________________' +
+                '</div>' +
+            '</div>' +
+        '</div>';
+
+        showStatus('Luodaan työraportti-PDF...', 'info');
+
+        html2pdf().set({
+            margin: 10,
+            filename: 'YardFlow_tyoraportti_' + dateStr + '.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        }).from(printEl).save().then(() => {
+            showStatus('Työraportti ladattu PDF-tiedostona! ✓', 'success');
+        }).catch(err => {
+            console.error('PDF-virhe:', err);
+            alert('PDF:n luonti epäonnistui: ' + err.message);
+        });
+    }
+    window.exportWorkHistoryPDF = exportWorkHistoryPDF;
+
+    function exportBillingPDF() {
+        const data = getGroupedBillingData();
+        if (data.items.length === 0) {
+            alert('Ei laskutettavia töitä valitulla jaksolla.');
+            return;
+        }
+
+        if (typeof html2pdf === 'undefined') {
+            alert('PDF-kirjasto latautuu, yritä hetken kuluttua uudelleen.');
+            return;
+        }
+
+        const now = new Date();
+        const dateStr = now.toISOString().slice(0, 10);
+        const printEl = document.getElementById('pdf-print-template');
+
+        printEl.innerHTML = '<div style="font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, Arial, sans-serif; color: #0f172a; line-height: 1.4;">' +
+            '<div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #1e293b; padding-bottom: 12px; margin-bottom: 16px;">' +
+                '<div>' +
+                    '<h1 style="margin: 0; font-size: 24px; color: #0f172a; font-weight: 800; letter-spacing: -0.02em;">YardFlow</h1>' +
+                    '<div style="font-size: 13px; color: #475569; font-weight: 600; margin-top: 2px;">Laskuerittely &amp; Yhteenveto</div>' +
+                '</div>' +
+                '<div style="text-align: right; font-size: 11px; color: #64748b;">' +
+                    '<div><strong>Laskutusjakso:</strong> ' + esc(data.periodLabel) + '</div>' +
+                    '<div><strong>Luontipäivämäärä:</strong> ' + esc(fmtDateTime(now.toISOString())) + '</div>' +
+                    '<div><strong>Kohteita:</strong> ' + data.totalProperties + ' kpl (' + data.totalVisits + ' käyntiä)</div>' +
+                '</div>' +
+            '</div>' +
+            '<table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 20px;">' +
+                '<thead>' +
+                    '<tr style="background: #1e293b; color: #ffffff;">' +
+                        '<th style="padding: 7px 8px; text-align: left;">Kiinteistö / Asiakas</th>' +
+                        '<th style="padding: 7px 8px; text-align: left;">Osoite</th>' +
+                        '<th style="padding: 7px 8px; text-align: center; width: 60px;">Käynnit</th>' +
+                        '<th style="padding: 7px 8px; text-align: right; width: 85px;">à Hinta (€)</th>' +
+                        '<th style="padding: 7px 8px; text-align: right; width: 95px;">Veroton (ALV 0%)</th>' +
+                        '<th style="padding: 7px 8px; text-align: right; width: 85px;">ALV 25,5%</th>' +
+                        '<th style="padding: 7px 8px; text-align: right; width: 105px;">Yht. (sis. ALV)</th>' +
+                    '</tr>' +
+                '</thead>' +
+                '<tbody>' +
+                    data.items.map((item, i) => '<tr style="border-bottom: 1px solid #e2e8f0; background: ' + (i % 2 === 0 ? '#ffffff' : '#f8fafc') + ';">' +
+                        '<td style="padding: 6px 8px; font-weight: 700;">' + esc(item.propertyName) + '</td>' +
+                        '<td style="padding: 6px 8px; color: #64748b;">' + esc(item.address) + '</td>' +
+                        '<td style="padding: 6px 8px; text-align: center; font-weight: 600;">' + item.visits + ' kpl</td>' +
+                        '<td style="padding: 6px 8px; text-align: right;">' + item.unitPrice.toFixed(2).replace('.', ',') + ' €</td>' +
+                        '<td style="padding: 6px 8px; text-align: right; font-weight: 600;">' + item.net.toFixed(2).replace('.', ',') + ' €</td>' +
+                        '<td style="padding: 6px 8px; text-align: right; color: #64748b;">' + item.vat.toFixed(2).replace('.', ',') + ' €</td>' +
+                        '<td style="padding: 6px 8px; text-align: right; font-weight: 800; color: #0f172a;">' + item.gross.toFixed(2).replace('.', ',') + ' €</td>' +
+                    '</tr>').join('') +
+                '</tbody>' +
+            '</table>' +
+            '<div style="margin-top: 14px; margin-left: auto; width: 280px; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px 14px; background: #f8fafc; font-size: 11px;">' +
+                '<div style="display: flex; justify-content: space-between; margin-bottom: 4px;">' +
+                    '<span>Veroton summa (ALV 0 %):</span>' +
+                    '<strong>' + data.grandNet.toFixed(2).replace('.', ',') + ' €</strong>' +
+                '</div>' +
+                '<div style="display: flex; justify-content: space-between; margin-bottom: 6px; color: #64748b;">' +
+                    '<span>Arvonlisävero (25,5 %):</span>' +
+                    '<strong>' + data.grandVat.toFixed(2).replace('.', ',') + ' €</strong>' +
+                '</div>' +
+                '<div style="border-top: 1px solid #cbd5e1; padding-top: 6px; display: flex; justify-content: space-between; font-size: 13px; font-weight: 800; color: #0f172a;">' +
+                    '<span>Yhteensä (sis. ALV):</span>' +
+                    '<span style="color: #059669;">' + data.grandTotal.toFixed(2).replace('.', ',') + ' €</span>' +
+                '</div>' +
+            '</div>' +
+            '<div style="margin-top: 24px; font-size: 10px; color: #94a3b8; text-align: center;">' +
+                'Tämä dokumentti on YardFlow-toiminnanohjausjärjestelmän automaattisesti generoima laskuerittely.' +
+            '</div>' +
+        '</div>';
+
+        showStatus('Luodaan laskuerittely-PDF...', 'info');
+
+        html2pdf().set({
+            margin: 10,
+            filename: 'YardFlow_laskuerittely_' + dateStr + '.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        }).from(printEl).save().then(() => {
+            showStatus('Laskuerittely ladattu PDF-tiedostona! ✓', 'success');
+        }).catch(err => {
+            console.error('PDF-virhe:', err);
+            alert('PDF:n luonti epäonnistui: ' + err.message);
+        });
+    }
+    window.exportBillingPDF = exportBillingPDF;
+
 
     // ---------- Tietojen lataus ----------
     let tasks = JSON.parse(localStorage.getItem('pihatyot_tasks_v4')) ||
@@ -5532,7 +6698,7 @@
     // ---------- Varmuuskopio ----------
     function exportBackup() {
         const data = { version: 8, exported: new Date().toISOString(), tasks, depot, routes, currentRouteId,
-                       returnToDepot: returnCheckbox.checked, customers };
+                       returnToDepot: returnCheckbox.checked, customers, yardflow_work_logs: getStoredWorkLogs() };
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
@@ -5560,6 +6726,10 @@
                     customers = data.customers;
                     persistCustomers();
                     renderCustomers();
+                }
+                if (Array.isArray(data.yardflow_work_logs)) {
+                    saveStoredWorkLogs(data.yardflow_work_logs);
+                    updateWorkHistoryBadge();
                 }
                 if (Array.isArray(data.routes)) {
                     routes = data.routes;
@@ -7613,6 +8783,8 @@
     renderTasks();
     renderRoutes();
     renderCustomers();
+    ensureInitialWorkLogs();
+    updateWorkHistoryBadge();
     updateCustomerBadges();
     updatePhotoCounts();
     initYardSatelliteMap();
