@@ -1028,6 +1028,41 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
 </head>
 <body>
 
+<!-- SISÄÄNKIRJAUTUMISNÄKYMÄ (#view-login) -->
+<div id="view-login" class="login-view" style="display: none; min-height: 100vh; position: fixed; inset: 0; z-index: 99999; background: var(--bg-main, #0f172a); align-items: center; justify-content: center; padding: 20px; overflow-y: auto;">
+    <div class="login-card card" style="max-width: 420px; width: 100%; padding: 36px 28px; border-radius: 20px; background: var(--bg-card, #1e293b); border: 1px solid var(--border, rgba(255,255,255,0.1)); box-shadow: 0 16px 40px rgba(0,0,0,0.45); text-align: center;">
+        <div class="logo-mark" style="width: 56px; height: 56px; margin: 0 auto 16px auto; display: flex; align-items: center; justify-content: center; border-radius: 16px; background: linear-gradient(135deg, #0ea5e9, #2563eb); color: white; box-shadow: 0 4px 14px rgba(14,165,233,0.35);">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+        </div>
+        <h1 style="margin: 0; font-size: 1.95rem; font-weight: 800; letter-spacing: -0.02em; color: var(--fg, #fff);">Yard<span style="color: var(--accent, #0ea5e9);">Flow</span></h1>
+        <p style="margin: 6px 0 26px 0; font-size: 0.92rem; color: var(--muted, #94a3b8); font-weight: 500;">Työnohjaus &amp; Kenttänhallinta</p>
+
+        <form id="loginForm" onsubmit="handleLoginSubmit(event)" style="display: flex; flex-direction: column; gap: 16px; text-align: left;">
+            <div>
+                <label for="loginUsername" style="font-size: 0.84rem; font-weight: 700; color: var(--fg, #f8fafc); margin-bottom: 6px; display: block;">Käyttäjätunnus tai sähköposti:</label>
+                <input type="text" id="loginUsername" placeholder="admin tai sähköposti" required autocomplete="username" style="width: 100%; min-height: 46px; padding: 10px 14px; font-size: 0.95rem; border-radius: var(--radius-md, 8px); background: var(--input-bg, #0b1120); border: 1px solid var(--input-border, rgba(255,255,255,0.14)); color: var(--fg, #fff); box-sizing: border-box;">
+            </div>
+
+            <div>
+                <label for="loginPassword" style="font-size: 0.84rem; font-weight: 700; color: var(--fg, #f8fafc); margin-bottom: 6px; display: block;">Salasana:</label>
+                <input type="password" id="loginPassword" placeholder="Salasana" required autocomplete="current-password" style="width: 100%; min-height: 46px; padding: 10px 14px; font-size: 0.95rem; border-radius: var(--radius-md, 8px); background: var(--input-bg, #0b1120); border: 1px solid var(--input-border, rgba(255,255,255,0.14)); color: var(--fg, #fff); box-sizing: border-box;">
+            </div>
+
+            <div id="loginErrorMessage" style="display: none; padding: 10px 14px; border-radius: 8px; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4); color: #f87171; font-size: 0.85rem; font-weight: 600;"></div>
+
+            <button type="submit" id="btn-login" class="btn-primary" style="margin-top: 6px; width: 100%; min-height: 48px; padding: 12px; font-size: 1rem; font-weight: 800; border-radius: var(--radius-md, 8px); display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;">
+                <span>🚀</span> <span>Kirjaudu sisään</span>
+            </button>
+        </form>
+
+        <div style="margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 0.78rem; color: var(--muted, #94a3b8); line-height: 1.5;">
+            🔑 <strong>Pääkäyttäjän pikatuki:</strong> Tunnus <code>Admin</code> ja salasana <code>Admin</code>
+        </div>
+    </div>
+</div>
+
 <!-- VASEN YLÄVALIKKO & DRAWER (#app-drawer / .side-menu) -->
 <div id="drawer-backdrop" class="drawer-backdrop" onclick="closeAppDrawer()" aria-hidden="true"></div>
 
@@ -1124,6 +1159,13 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         <!-- Yhteensopivuuspiilotettu id nav-field-mode -->
         <button type="button" id="nav-field-mode" style="display: none;" onclick="toggleFieldModeFromDrawer()" aria-hidden="true"></button>
     </nav>
+
+    <!-- ULOSKIRJAUTUMINEN (Logout) -->
+    <div style="padding: 12px 14px; border-top: 1px solid var(--border);">
+        <button type="button" id="btn-logout" class="btn-danger" style="width: 100%; min-height: 44px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 14px; border-radius: var(--radius-md); font-weight: 700; background: var(--danger, #ef4444); color: #fff; border: none; cursor: pointer; font-size: 0.92rem; transition: opacity 0.2s ease;" onclick="logoutUser()" title="Kirjaudu ulos järjestelmästä">
+            <span>🚪</span> <span>Kirjaudu ulos</span>
+        </button>
+    </div>
 
     <div class="drawer-footer">
         <span style="font-size: 0.76rem; color: var(--muted);">YardFlow v2.4 • Suomen Talvityöt</span>
@@ -1855,15 +1897,22 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                         <input type="tel" id="driverInputPhone" placeholder="esim. 040 123 4567" required style="margin-bottom: 0;">
                     </div>
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px;">
                     <div>
                         <label for="driverInputEmail">Sähköposti:</label>
                         <input type="email" id="driverInputEmail" placeholder="esim. pekka@auraus.fi" style="margin-bottom: 0;">
                     </div>
                     <div>
-                        <label for="driverInputVehicle">Ajoneuvo / Kalusto:</label>
-                        <input type="text" id="driverInputVehicle" placeholder="esim. Valtra N174 + lumiaura, Wille, Avant" style="margin-bottom: 0;">
+                        <label for="driverInputPassword">Aloitus-salasana tai PIN-koodi:</label>
+                        <input type="text" id="driverInputPassword" placeholder="esim. Kuski2026 tai 1234" style="margin-bottom: 0;">
+                        <div style="font-size: 0.75rem; color: var(--muted); margin-top: 2px;">
+                            Käyttäjän salasana kirjautumista varten.
+                        </div>
                     </div>
+                </div>
+                <div style="margin-bottom: 14px;">
+                    <label for="driverInputVehicle">Ajoneuvo / Kalusto:</label>
+                    <input type="text" id="driverInputVehicle" placeholder="esim. Valtra N174 + lumiaura, Wille, Avant" style="margin-bottom: 0;">
                 </div>
 
                 <!-- 2. Roolipohja & Määräaikaisuus -->
@@ -9547,6 +9596,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         const nameInput = document.getElementById('driverInputName');
         const phoneInput = document.getElementById('driverInputPhone');
         const emailInput = document.getElementById('driverInputEmail');
+        const passwordInput = document.getElementById('driverInputPassword');
         const vehicleInput = document.getElementById('driverInputVehicle');
         const roleSelect = document.getElementById('driverRoleSelect');
         const expiresInput = document.getElementById('driverInputExpiresAt');
@@ -9560,6 +9610,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                 if (nameInput) nameInput.value = d.name || '';
                 if (phoneInput) phoneInput.value = d.phone || '';
                 if (emailInput) emailInput.value = d.email || '';
+                if (passwordInput) passwordInput.value = d.password || '';
                 if (vehicleInput) vehicleInput.value = d.vehicle || '';
                 const role = d.role || 'driver';
                 if (roleSelect) roleSelect.value = role;
@@ -9583,6 +9634,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             if (nameInput) nameInput.value = '';
             if (phoneInput) phoneInput.value = '';
             if (emailInput) emailInput.value = '';
+            if (passwordInput) passwordInput.value = '';
             if (vehicleInput) vehicleInput.value = '';
             if (roleSelect) roleSelect.value = 'driver';
             if (expiresInput) expiresInput.value = '';
@@ -9605,6 +9657,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         const name = document.getElementById('driverInputName')?.value.trim();
         const phone = document.getElementById('driverInputPhone')?.value.trim();
         const email = document.getElementById('driverInputEmail')?.value.trim();
+        const password = document.getElementById('driverInputPassword')?.value.trim();
         const vehicle = document.getElementById('driverInputVehicle')?.value.trim();
         const role = document.getElementById('driverRoleSelect')?.value || 'driver';
         const expiresAt = document.getElementById('driverInputExpiresAt')?.value || null;
@@ -9621,6 +9674,8 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         });
 
         const drivers = getStoredDrivers();
+        let targetDriverId = editId;
+
         if (editId) {
             const idx = drivers.findIndex(x => String(x.id) === String(editId));
             if (idx >= 0) {
@@ -9629,6 +9684,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                     name,
                     phone,
                     email,
+                    password: password || drivers[idx].password || null,
                     vehicle,
                     role,
                     expires_at: expiresAt,
@@ -9637,17 +9693,61 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                 };
             }
         } else {
+            targetDriverId = 'drv_' + Date.now();
             drivers.push({
-                id: 'drv_' + Date.now(),
+                id: targetDriverId,
                 name,
                 phone,
                 email,
+                password: password || null,
                 vehicle,
                 role,
                 expires_at: expiresAt,
                 permissions,
                 created_at: new Date().toISOString()
             });
+        }
+
+        // Supabase Auth & profiles taustaluonti ilman sähköpostivahvistuspakkoa
+        if (password) {
+            const client = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : null) || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+            if (client && client.auth) {
+                const authEmail = email || `${name.toLowerCase().replace(/[^a-z0-9]/g, '') || 'kayttaja'}@yardflow.fi`;
+                client.auth.signUp({
+                    email: authEmail,
+                    password: password,
+                    options: {
+                        data: {
+                            name: name,
+                            phone: phone,
+                            vehicle: vehicle,
+                            role: role,
+                            permissions: permissions
+                        }
+                    }
+                }).then(async (res) => {
+                    const sbUser = res?.data?.user;
+                    if (client.from) {
+                        try {
+                            await client.from('profiles').upsert({
+                                id: sbUser?.id || targetDriverId,
+                                email: authEmail,
+                                name: name,
+                                phone: phone,
+                                vehicle: vehicle,
+                                role: role,
+                                permissions: permissions,
+                                expires_at: expiresAt,
+                                updated_at: new Date().toISOString()
+                            });
+                        } catch (e) {
+                            console.warn('Supabase profiles upsert error:', e);
+                        }
+                    }
+                }).catch(err => {
+                    console.warn('Supabase auth.signUp error:', err);
+                });
+            }
         }
 
         persistDrivers(drivers);
@@ -9736,6 +9836,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                                 ${preset.badge}
                             </span>
                             ${isActiveUser ? `<span class="badge" style="background: rgba(16,185,129,0.2); color: #10b981; border: 1px solid rgba(16,185,129,0.4); font-size: 0.78rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-pill);">⭐ Aktiivinen profiili</span>` : ''}
+                            ${d.password ? `<span class="badge" style="background: rgba(14,165,233,0.18); color: #38bdf8; border: 1px solid rgba(14,165,233,0.35); font-size: 0.74rem; font-weight: 700; padding: 2px 7px; border-radius: var(--radius-pill);">🔑 Salasana asetettu</span>` : ''}
                             ${expired ? `<span class="badge" style="background: rgba(239,68,68,0.2); color: #ef4444; border: 1px solid rgba(239,68,68,0.4); font-size: 0.76rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-pill);">⚠️ Päättynyt ${new Date(d.expires_at).toLocaleString('fi-FI')}</span>` : (d.expires_at ? `<span class="badge" style="background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid rgba(245,158,11,0.4); font-size: 0.76rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-pill);">⏱️ Voimassa: ${new Date(d.expires_at).toLocaleString('fi-FI')}</span>` : '')}
                         </div>
                         <div style="font-size: 1.15rem; font-weight: 800; color: var(--fg); display: flex; align-items: center; gap: 8px;">
@@ -9815,6 +9916,303 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         }).join('');
     }
     window.renderDriversView = renderDriversView;
+
+    // ============================================================
+    // 🔐 SISÄÄNKIRJAUTUMINEN, ULOSKIRJAUTUMINEN & ISTUNTO (AUTH)
+    // ============================================================
+    function showLoginView() {
+        const loginView = document.getElementById('view-login');
+        if (loginView) {
+            loginView.style.display = 'flex';
+        }
+        const topBar = document.getElementById('top-bar');
+        if (topBar) topBar.style.display = 'none';
+        const appContainer = document.getElementById('app-container');
+        if (appContainer) appContainer.style.display = 'none';
+    }
+    window.showLoginView = showLoginView;
+
+    function hideLoginView() {
+        const loginView = document.getElementById('view-login');
+        if (loginView) {
+            loginView.style.display = 'none';
+        }
+        const topBar = document.getElementById('top-bar');
+        if (topBar) topBar.style.display = 'flex';
+        const appContainer = document.getElementById('app-container');
+        if (appContainer) appContainer.style.display = 'block';
+    }
+    window.hideLoginView = hideLoginView;
+
+    function isLoggedIn() {
+        try {
+            const raw = localStorage.getItem('yardflow_auth_session');
+            if (raw) {
+                const s = JSON.parse(raw);
+                return !!(s && s.user);
+            }
+        } catch (e) {}
+        return false;
+    }
+    window.isLoggedIn = isLoggedIn;
+
+    function restoreUserSession(user) {
+        if (!user) return;
+        let role = user.role || 'driver';
+
+        if (user.id && user.id !== 'admin_master') {
+            const drivers = getStoredDrivers();
+            const found = drivers.find(d => String(d.id) === String(user.id) || (user.email && d.email && d.email.toLowerCase() === user.email.toLowerCase()));
+            if (found) {
+                role = found.role || role;
+                try { localStorage.setItem('yardflow_active_user_id', String(found.id)); } catch (e) {}
+            }
+        } else if (user.id === 'admin_master') {
+            try { localStorage.removeItem('yardflow_active_user_id'); } catch (e) {}
+            role = 'admin';
+        }
+
+        if (role === 'admin' || role === 'supervisor') {
+            setAppMode('admin');
+            switchTab('dashboard');
+        } else {
+            setAppMode('field');
+            switchTab('routes');
+        }
+
+        if (typeof applyPermissionsToUi === 'function') {
+            applyPermissionsToUi();
+        }
+    }
+    window.restoreUserSession = restoreUserSession;
+
+    function checkAuthSession() {
+        try {
+            const raw = localStorage.getItem('yardflow_auth_session');
+            if (raw) {
+                const s = JSON.parse(raw);
+                if (s && s.user) {
+                    hideLoginView();
+                    restoreUserSession(s.user);
+                    return true;
+                }
+            }
+        } catch (e) {}
+
+        const client = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : null) || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+        if (client && client.auth) {
+            client.auth.getSession().then(({ data }) => {
+                if (data && data.session && data.session.user) {
+                    const sbUser = data.session.user;
+                    const sessionUser = {
+                        id: sbUser.id,
+                        name: sbUser.user_metadata?.name || sbUser.email,
+                        email: sbUser.email,
+                        role: sbUser.user_metadata?.role || 'driver'
+                    };
+                    localStorage.setItem('yardflow_auth_session', JSON.stringify({
+                        user: sessionUser,
+                        logged_in_at: new Date().toISOString()
+                    }));
+                    hideLoginView();
+                    restoreUserSession(sessionUser);
+                } else if (!localStorage.getItem('yardflow_auth_session')) {
+                    showLoginView();
+                }
+            }).catch(() => {
+                if (!localStorage.getItem('yardflow_auth_session')) {
+                    showLoginView();
+                }
+            });
+            return false;
+        }
+
+        showLoginView();
+        return false;
+    }
+    window.checkAuthSession = checkAuthSession;
+
+    async function handleLoginSubmit(event) {
+        if (event && event.preventDefault) event.preventDefault();
+        const usernameInput = document.getElementById('loginUsername');
+        const passwordInput = document.getElementById('loginPassword');
+        const errBox = document.getElementById('loginErrorMessage');
+        const btnLogin = document.getElementById('btn-login');
+
+        const username = usernameInput ? usernameInput.value.trim() : '';
+        const password = passwordInput ? passwordInput.value : '';
+
+        if (errBox) {
+            errBox.style.display = 'none';
+            errBox.textContent = '';
+        }
+
+        if (!username || !password) {
+            if (errBox) {
+                errBox.textContent = 'Syötä käyttäjätunnus ja salasana.';
+                errBox.style.display = 'block';
+            }
+            return;
+        }
+
+        if (btnLogin) {
+            btnLogin.disabled = true;
+            btnLogin.innerHTML = '<span>⏳</span> <span>Kirjaudutaan...</span>';
+        }
+
+        try {
+            // 1. PÄÄKÄYTTÄJÄN PIKATUKI: Admin / Admin
+            const isQuickAdmin = (username.toLowerCase() === 'admin' && (password.toLowerCase() === 'admin'));
+            if (isQuickAdmin) {
+                const adminSession = {
+                    id: 'admin_master',
+                    name: 'Pääkäyttäjä (Admin)',
+                    email: 'admin@yardflow.fi',
+                    role: 'admin',
+                    permissions: { ...ROLE_PRESETS.admin.permissions }
+                };
+
+                // Taustalla yritetään kirjautua myös Supabaseen jos mahdollista
+                const client = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : null) || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+                if (client && client.auth) {
+                    client.auth.signInWithPassword({
+                        email: 'admin@yardflow.fi',
+                        password: password
+                    }).catch(() => {});
+                }
+
+                localStorage.setItem('yardflow_auth_session', JSON.stringify({
+                    user: adminSession,
+                    logged_in_at: new Date().toISOString()
+                }));
+                try { localStorage.removeItem('yardflow_active_user_id'); } catch (e) {}
+
+                hideLoginView();
+                setAppMode('admin');
+                switchTab('dashboard');
+                if (typeof applyPermissionsToUi === 'function') applyPermissionsToUi();
+                if (typeof showStatus === 'function') showStatus('Tervetuloa, Pääkäyttäjä!', 'success');
+                return;
+            }
+
+            // 2. TARKISTETAAN PAIKALLISET KULJETTAJAT / KÄYTTÄJÄT
+            const drivers = getStoredDrivers();
+            const matchedDriver = drivers.find(d => {
+                const emailMatch = d.email && d.email.toLowerCase() === username.toLowerCase();
+                const nameMatch = d.name && d.name.toLowerCase() === username.toLowerCase();
+                const phoneMatch = d.phone && d.phone.replace(/[^0-9]/g, '') === username.replace(/[^0-9]/g, '');
+                return emailMatch || nameMatch || phoneMatch;
+            });
+
+            if (matchedDriver && matchedDriver.password && matchedDriver.password === password) {
+                const sessionUser = {
+                    id: matchedDriver.id,
+                    name: matchedDriver.name,
+                    email: matchedDriver.email || `${matchedDriver.id}@yardflow.fi`,
+                    role: matchedDriver.role || 'driver'
+                };
+
+                localStorage.setItem('yardflow_auth_session', JSON.stringify({
+                    user: sessionUser,
+                    logged_in_at: new Date().toISOString()
+                }));
+                try { localStorage.setItem('yardflow_active_user_id', String(matchedDriver.id)); } catch (e) {}
+
+                hideLoginView();
+                if (matchedDriver.role === 'admin' || matchedDriver.role === 'supervisor') {
+                    setAppMode('admin');
+                    switchTab('dashboard');
+                } else {
+                    setAppMode('field');
+                    switchTab('routes');
+                }
+                if (typeof applyPermissionsToUi === 'function') applyPermissionsToUi();
+                if (typeof showStatus === 'function') showStatus(`Tervetuloa, ${matchedDriver.name}!`, 'success');
+                return;
+            }
+
+            // 3. TARKISTETAAN SUPABASE AUTH
+            const client = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : null) || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+            if (client && client.auth) {
+                const loginEmail = username.includes('@') ? username : `${username.toLowerCase()}@yardflow.fi`;
+                const { data, error } = await client.auth.signInWithPassword({
+                    email: loginEmail,
+                    password: password
+                });
+
+                if (!error && data && data.user) {
+                    const sbUser = data.user;
+                    const role = sbUser.user_metadata?.role || 'driver';
+                    const sessionUser = {
+                        id: sbUser.id,
+                        name: sbUser.user_metadata?.name || username,
+                        email: sbUser.email,
+                        role: role
+                    };
+
+                    localStorage.setItem('yardflow_auth_session', JSON.stringify({
+                        user: sessionUser,
+                        logged_in_at: new Date().toISOString()
+                    }));
+
+                    hideLoginView();
+                    restoreUserSession(sessionUser);
+                    if (typeof showStatus === 'function') showStatus(`Kirjauduttu sisään: ${sessionUser.name}`, 'success');
+                    return;
+                }
+            }
+
+            // 4. JOS MIKÄÄN EI TÄSMÄNNYT -> VIRHEILMOITUS
+            if (errBox) {
+                errBox.textContent = 'Virheellinen käyttäjätunnus tai salasana.';
+                errBox.style.display = 'block';
+            }
+        } catch (err) {
+            console.warn('Kirjautumisvirhe:', err);
+            if (errBox) {
+                errBox.textContent = err?.message || 'Kirjautuminen epäonnistui. Tarkista tunnukset.';
+                errBox.style.display = 'block';
+            }
+        } finally {
+            if (btnLogin) {
+                btnLogin.disabled = false;
+                btnLogin.innerHTML = '<span>🚀</span> <span>Kirjaudu sisään</span>';
+            }
+        }
+    }
+    window.handleLoginSubmit = handleLoginSubmit;
+
+    async function logoutUser() {
+        const client = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : null) || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+        if (client && client.auth) {
+            try {
+                await client.auth.signOut();
+            } catch (e) {
+                console.warn('Supabase signOut warning:', e);
+            }
+        }
+
+        try {
+            localStorage.removeItem('yardflow_auth_session');
+            localStorage.removeItem('yardflow_active_user_id');
+        } catch (e) {}
+
+        if (typeof closeAppDrawer === 'function') closeAppDrawer();
+
+        const passInput = document.getElementById('loginPassword');
+        if (passInput) passInput.value = '';
+        const errBox = document.getElementById('loginErrorMessage');
+        if (errBox) {
+            errBox.style.display = 'none';
+            errBox.textContent = '';
+        }
+
+        showLoginView();
+        if (typeof showStatus === 'function') {
+            showStatus('Olet kirjautunut ulos.', 'info');
+        }
+    }
+    window.logoutUser = logoutUser;
 
     // ============================================================
     // 🛣️ REITTIEN HALLINTA & LISTAUS (#view-routes / ROUTES MANAGEMENT)
@@ -13605,6 +14003,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     applyDashboardPrefs();
     updateDrawerBadges();
     if (typeof applyPermissionsToUi === 'function') applyPermissionsToUi();
+    if (typeof checkAuthSession === 'function') checkAuthSession();
     restorePanelCollapseStates();
     setTimeout(() => {
         setWorkHistoryPeriod('month');
@@ -13622,6 +14021,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         if (navigator.onLine) syncPendingLogs();
         restorePanelCollapseStates();
         if (typeof updateMapSettingsUi === 'function') updateMapSettingsUi();
+        if (typeof checkAuthSession === 'function') checkAuthSession();
 
         // Varmistetaan reitin poistonapin tapahtumankäsittely ja stopPropagation delegoituna
         document.addEventListener('click', (e) => {
