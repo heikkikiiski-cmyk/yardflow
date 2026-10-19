@@ -23,13 +23,18 @@ function runTest() {
     assert(html.includes('YardFlow'), 'Otsikko YardFlow löytyy');
     assert(html.includes('Työnohjaus &amp; Kenttänhallinta'), 'Alaotsikko Työnohjaus & Kenttänhallinta löytyy');
     assert(html.includes('id="loginUsername"'), '#loginUsername kenttä löytyy');
-    assert(html.includes('placeholder="admin tai sähköposti"'), 'loginUsername placeholder oikein');
+    assert(html.includes('placeholder="Käyttäjätunnus tai sähköposti"'), 'loginUsername placeholder oikein');
     assert(html.includes('id="loginPassword"'), '#loginPassword kenttä löytyy');
+    assert(html.includes('placeholder="Salasana"'), 'loginPassword placeholder oikein');
     assert(html.includes('type="password"'), 'loginPassword type="password"');
     assert(html.includes('id="btn-login"'), 'Kirjautumisnappi #btn-login löytyy');
     assert(html.includes('Kirjaudu sisään'), 'Nappi sisältää tekstin Kirjaudu sisään');
     assert(html.includes('id="loginErrorMessage"'), 'Virheilmoitusalue #loginErrorMessage löytyy');
-    console.log('✅ Login View markup, fields and error box verified');
+    
+    // Varmistetaan, että mitään oletussalasanoja tai pääkäyttäjävihjeitä ei näytetä UI:ssa
+    assert(!html.includes('Pääkäyttäjän pikatuki'), 'Pääkäyttäjän pikatukiteksti poistettu UI:sta');
+    assert(!html.includes('Tunnus Admin ja salasana Admin'), 'Tunnus Admin ja salasana Admin poistettu UI:sta');
+    console.log('✅ Login View markup, fields, neutral placeholders and clean UI verified (no credential hints)');
 
     // 2. Logout Button in Drawer
     console.log('\n--- 2. Testing Logout Button in Drawer ---');
