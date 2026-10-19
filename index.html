@@ -1046,7 +1046,10 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             </div>
 
             <div>
-                <label for="loginPassword" style="font-size: 0.84rem; font-weight: 700; color: var(--fg, #f8fafc); margin-bottom: 6px; display: block;">Salasana:</label>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <label for="loginPassword" style="font-size: 0.84rem; font-weight: 700; color: var(--fg, #f8fafc); margin-bottom: 0;">Salasana:</label>
+                    <a href="javascript:void(0)" onclick="handleForgotPasswordClick()" style="font-size: 0.78rem; color: var(--accent, #38bdf8); text-decoration: none; font-weight: 600;">Unohditko salasanan?</a>
+                </div>
                 <input type="password" id="loginPassword" placeholder="Salasana" required autocomplete="current-password" style="width: 100%; min-height: 46px; padding: 10px 14px; font-size: 0.95rem; border-radius: var(--radius-md, 8px); background: var(--input-bg, #0b1120); border: 1px solid var(--input-border, rgba(255,255,255,0.14)); color: var(--fg, #fff); box-sizing: border-box;">
             </div>
 
@@ -9970,9 +9973,8 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             // 2. Lähetetään sähköpostikutsu / aktivointilinkki jos sähköposti on annettu
             if (client.auth && email) {
                 try {
-                    const redirectUrl = (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : 'https://yardflow.fi';
-                    const { error: inviteError } = await client.auth.resetPasswordForEmail(email, {
-                        redirectTo: redirectUrl
+                    const { data, error: inviteError } = await client.auth.resetPasswordForEmail(email, {
+                        redirectTo: 'https://yardflow.vercel.app'
                     });
 
                     if (inviteError) {
@@ -10502,6 +10504,47 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         }
     }
     window.logoutUser = logoutUser;
+
+    async function requestPasswordReset(emailAddress) {
+        const email = (emailAddress || '').trim();
+        if (!email) return { error: { message: 'Sähköpostiosoite puuttuu' } };
+        const client = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : null) || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+        if (!client || !client.auth) return { error: { message: 'Supabase-yhteys ei ole käytettävissä' } };
+        return await client.auth.resetPasswordForEmail(email, {
+            redirectTo: 'https://yardflow.vercel.app'
+        });
+    }
+    window.requestPasswordReset = requestPasswordReset;
+
+    async function handleForgotPasswordClick() {
+        const usernameInput = document.getElementById('loginUsername');
+        let email = usernameInput ? usernameInput.value.trim() : '';
+        if (!email || !email.includes('@')) {
+            email = prompt('Anna sähköpostiosoitteesi salasanan palautuslinkin vastaanottamiseksi:', email || '');
+            if (!email || !email.trim()) return;
+            email = email.trim();
+        }
+
+        const client = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : null) || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+        if (!client || !client.auth) {
+            alert('Supabase-yhteys ei ole käytettävissä.');
+            return;
+        }
+
+        try {
+            const { data, error } = await client.auth.resetPasswordForEmail(email, {
+                redirectTo: 'https://yardflow.vercel.app'
+            });
+            if (error) {
+                alert(`Salasanan nollauspyyntö epäonnistui: ${error.message}`);
+            } else {
+                alert(`Salasanan palautuslinkki on lähetetty osoitteeseen ${email}. Tarkista sähköpostisi!`);
+            }
+        } catch (e) {
+            alert(`Virhe salasanan palautuksessa: ${e.message}`);
+        }
+    }
+    window.handleForgotPasswordClick = handleForgotPasswordClick;
 
     // ============================================================
     // 🔑 SALASANAN ASETUS & RECOVERY (#modal-set-password)

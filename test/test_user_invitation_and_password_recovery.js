@@ -151,6 +151,7 @@ function runTest() {
     return sandbox.saveDriverFromForm().then(() => {
         assert(resetPasswordEmailSent !== null, 'resetPasswordForEmail kutsuttu');
         assert.strictEqual(resetPasswordEmailSent.email, 'teemu@auraus.fi', 'Sähköpostiosoite oikein');
+        assert.strictEqual(resetPasswordEmailSent.opts && resetPasswordEmailSent.opts.redirectTo, 'https://yardflow.vercel.app', 'redirectTo on suora tuotanto-osoite https://yardflow.vercel.app');
         assert.strictEqual(profilesUpserted.email, 'teemu@auraus.fi', 'Profiilitiedot tallennettu Supabaseen');
         assert(lastStatus.includes('aktivointilinkki lähetetty'), 'Statusviestissä maininta aktivointilinkistä');
         assert.strictEqual(lastStatusType, 'success');
