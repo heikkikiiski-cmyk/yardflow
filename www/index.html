@@ -333,10 +333,11 @@
         /* ---- Apple Segmented Control Tabs ---- */
         .nav-tabs {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 3px;
             margin: 0 auto 20px auto;
-            max-width: 620px;
+            max-width: 680px;
+            width: 100%;
             background: var(--segmented-bg);
             padding: 3px;
             border-radius: 14px;
@@ -1719,7 +1720,8 @@
 
             .nav-tabs {
                 margin: 8px 16px 8px 16px;
-                max-width: 520px;
+                max-width: 680px;
+                width: calc(100% - 32px);
                 align-self: flex-start;
                 flex-shrink: 0;
             }
@@ -1737,7 +1739,8 @@
             #viewRoutes[style*="display: none"],
             #viewCustomers[style*="display: none"],
             #viewLogs[style*="display: none"],
-            #viewBilling[style*="display: none"] {
+            #viewBilling[style*="display: none"],
+            #viewSettings[style*="display: none"] {
                 display: none !important;
             }
 
@@ -1791,6 +1794,7 @@
 
             #viewCustomers, #viewLogs, #viewBilling, #viewSettings {
                 height: 100%;
+                width: 100%;
                 overflow-y: auto;
                 padding: 20px;
                 max-width: 900px;
@@ -2085,6 +2089,19 @@
                 </button>
             </div>
 
+            <!-- Pika-toiminnot: Työkirjaus, Raportti PDF, Laskutus -->
+            <div class="toolbar-row" style="margin-bottom: 12px; display: flex; gap: 6px;">
+                <button type="button" class="drawer-toggle-btn" onclick="openNewLogModal()" style="flex: 1;" title="Kirjaa tehty työ tai lisätyö manuaalisesti">
+                    ➕ Uusi työkirjaus
+                </button>
+                <button type="button" class="drawer-toggle-btn" onclick="generateAndPrintPDF(false)" style="flex: 1;" title="Luo ja tulosta työraportti PDF-muodossa">
+                    📄 Luo PDF
+                </button>
+                <button type="button" class="drawer-toggle-btn" onclick="switchTab('billing')" style="flex: 1;" title="Siirry laskutuksen yhteenvetoon ja koosteisiin">
+                    💰 Laskutus
+                </button>
+            </div>
+
             <!-- Kompaktit lisätyökalut (avaavat lomakkeen tai asetukset vain tarvittaessa) -->
             <div class="toolbar-row admin-only">
                 <button type="button" class="drawer-toggle-btn" id="btnToggleAddTask" onclick="toggleDrawer('addTaskDrawer', this)">
@@ -2234,7 +2251,9 @@
             </div>
 
             <div id="property-list-container">
-                <div id="taskList"></div>
+                <div id="property-list" class="property-list">
+                    <div id="taskList"></div>
+                </div>
             </div>
         </div>
 
@@ -2313,12 +2332,19 @@
     <!-- NÄKYMÄ 2: ASIAKASLISTA / ASIAKASREKISTERI (Lista ja haku heti ylhäällä!) -->
     <div id="viewCustomers" style="display: none;">
         <div class="card">
-            <h3>
-                <span>👥 Asiakkaat (<span id="customerCountTitle">0</span>)</span>
-                <button type="button" class="btn-primary" id="btnToggleAddCustomer" style="width: auto; min-height: 38px; padding: 7px 14px; font-size: 0.82rem;" onclick="toggleDrawer('addCustomerDrawer', this)">
-                    ➕ Uusi asiakas
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+                <button type="button" class="btn-outline" style="min-height: 38px; padding: 6px 14px; font-weight: 600; font-size: 0.85rem;" onclick="switchTab('routes')">
+                    ← Takaisin kartalle
                 </button>
-            </h3>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <h3 style="margin: 0;">
+                        <span>👥 Asiakkaat (<span id="customerCountTitle">0</span>)</span>
+                    </h3>
+                    <button type="button" class="btn-primary" id="btnToggleAddCustomer" style="width: auto; min-height: 38px; padding: 7px 14px; font-size: 0.82rem;" onclick="toggleDrawer('addCustomerDrawer', this)">
+                        ➕ Uusi asiakas
+                    </button>
+                </div>
+            </div>
 
             <!-- AVATTAVA LOMAKE: Uusi asiakas rekisteriin -->
             <div id="addCustomerDrawer" class="drawer-panel" style="display: none;">
@@ -2439,10 +2465,17 @@
     <!-- NÄKYMÄ 3: TYÖLOKI & RAPORTIT -->
     <div id="viewLogs" style="display: none;">
         <div class="card">
-            <h3>
-                <span>📋 Työloki (<span id="logCountHeader">0</span>)</span>
-                <button class="btn-primary" type="button" style="width: auto; min-height: 38px; padding: 7px 14px; font-size: 0.82rem;" onclick="openNewLogModal()">➕ Uusi merkintä</button>
-            </h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+                <button type="button" class="btn-outline" style="min-height: 38px; padding: 6px 14px; font-weight: 600; font-size: 0.85rem;" onclick="switchTab('routes')">
+                    ← Takaisin kartalle
+                </button>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <h3 style="margin: 0;">
+                        <span>📋 Työloki (<span id="logCountHeader">0</span>)</span>
+                    </h3>
+                    <button class="btn-primary" type="button" style="width: auto; min-height: 38px; padding: 7px 14px; font-size: 0.82rem;" onclick="openNewLogModal()">➕ Uusi merkintä</button>
+                </div>
+            </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
                 <div>
@@ -2484,10 +2517,17 @@
     <!-- NÄKYMÄ 4: LASKUTUS & HINNASTO -->
     <div id="viewBilling" style="display: none;">
         <div class="card">
-            <h3>
-                <span>💰 Laskutettavat työt &amp; Erittely</span>
-                <button type="button" class="tiny-btn" onclick="openDefaultPricingModal()" title="Määritä oletushinnat ja ALV">⚙️ Oletushinnasto</button>
-            </h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+                <button type="button" class="btn-outline" style="min-height: 38px; padding: 6px 14px; font-weight: 600; font-size: 0.85rem;" onclick="switchTab('routes')">
+                    ← Takaisin kartalle
+                </button>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <h3 style="margin: 0;">
+                        <span>💰 Laskutettavat työt &amp; Erittely</span>
+                    </h3>
+                    <button type="button" class="tiny-btn" onclick="openDefaultPricingModal()" title="Määritä oletushinnat ja ALV">⚙️ Oletushinnasto</button>
+                </div>
+            </div>
 
             <label for="billingCustomerSelect">Valitse laskutettava asiakas:</label>
             <select id="billingCustomerSelect" onchange="generateBillingDraft()">
@@ -2599,9 +2639,14 @@
     <!-- NÄKYMÄ 5: ASETUKSET & KUSTOMOINTI -->
     <div id="viewSettings" style="display: none;">
         <div class="card" style="max-width: 800px; margin: 0 auto;">
-            <h3 style="margin-bottom: 14px;">
-                <span>⚙️ Järjestelmä- ja näkymäasetukset</span>
-            </h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                <button type="button" id="btn-back-from-settings" class="btn-outline" style="min-height: 42px; padding: 6px 16px; font-weight: 600; font-size: 0.9rem;" onclick="returnToMainViewFromSettings()">
+                    ← Takaisin päänäkymään
+                </button>
+                <h3 style="margin: 0;">
+                    <span>⚙️ Järjestelmä- ja näkymäasetukset</span>
+                </h3>
+            </div>
 
             <!-- Käyttötilan valinta (Kenttä vs. Hallinta) -->
             <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 18px;">
@@ -2809,43 +2854,44 @@
 
     <!-- Kohteen muokkausdialogi -->
     <dialog id="editDialog" class="app-dialog">
-        <form method="dialog" class="dialog-content">
-            <h3>Muokkaa kohdetta</h3>
-            <label for="editName">Asiakkaan / kohteen nimi:</label>
-            <input type="text" id="editName" required>
+        <form id="property-edit-form" method="dialog" class="dialog-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+                <h3 style="margin: 0; font-size: 1.15rem;">✏️ Muokkaa kohdetta</h3>
+                <button type="button" class="tiny-btn" onclick="document.getElementById('editDialog').close('cancel')">✕ Sulje</button>
+            </div>
+
+            <label for="editName">Kohteen nimi:</label>
+            <input type="text" id="editName" placeholder="esim. Asunto Oy Esimerkki" required>
 
             <label for="editAddress">Katuosoite ja kaupunki:</label>
             <div style="display: flex; gap: 6px; align-items: center; margin-bottom: 12px;">
-                <input type="text" id="editAddress" required style="margin-bottom: 0; flex: 1;">
+                <input type="text" id="editAddress" required placeholder="esim. Kauppakatu 10, Tampere" style="margin-bottom: 0; flex: 1;">
                 <button type="button" class="btn-outline" style="white-space: nowrap; padding: 0 12px; min-height: 44px; font-size: 0.82rem;" onclick="enableMapPinDropMode('editTask')" title="Valitse kohteen tarkka sijainti kartalta klikkaamalla">📍 Valitse kartalta</button>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <div>
                     <label for="editTaskPhone">Puhelinnumero:</label>
-                    <input type="tel" id="editTaskPhone">
+                    <input type="tel" id="editTaskPhone" placeholder="040 123 4567">
                 </div>
                 <div>
                     <label for="editTaskEmail">Sähköposti:</label>
-                    <input type="email" id="editTaskEmail">
+                    <input type="email" id="editTaskEmail" placeholder="matti@yritys.fi">
                 </div>
             </div>
 
             <label for="editType">Työn tyyppi:</label>
             <select id="editType"></select>
 
-            <label for="editNotes">Kuljettajan lisätiedot / huomiot:</label>
-            <textarea id="editNotes" rows="2"></textarea>
-
-            <div class="geofence-settings-box">
-                <div class="geofence-settings-title">
-                    <span>🛰️ Paikkatodennus (Geofence / Proof of Presence)</span>
+            <div class="geofence-settings-box" style="margin: 12px 0; padding: 12px; background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border); border-radius: 8px;">
+                <div class="geofence-settings-title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-weight: 600;">🛰️ Paikkatodennus (Geofence)</span>
+                    <label class="check-row" style="margin: 0; font-size: 0.82rem;">
+                        <input type="checkbox" id="editTaskGeofenceEnabled" checked>
+                        Vaadi paikkatodennus kohteessa
+                    </label>
                 </div>
-                <label class="check-row" style="margin-bottom: 10px;">
-                    <input type="checkbox" id="editTaskGeofenceEnabled" checked>
-                    Vaadi paikkatodennus kohteessa
-                </label>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px;">
                     <div>
                         <label for="editTaskGeofenceType">Aluetyyppi:</label>
                         <select id="editTaskGeofenceType" style="margin-bottom: 0;">
@@ -2854,15 +2900,21 @@
                         </select>
                     </div>
                     <div>
-                        <label for="editTaskGeofenceRadius">Säde: <span id="editTaskGeofenceRadiusVal">80</span> m (+50 m GPS-tol.):</label>
-                        <input type="range" id="editTaskGeofenceRadius" min="30" max="300" step="5" value="80" style="margin-bottom: 0; padding: 6px 0;" oninput="document.getElementById('editTaskGeofenceRadiusVal').textContent = this.value; previewGeofenceRadiusFromDialog('task', this.value)">
+                        <label for="editTaskGeofenceRadius">Geofence-säde: <strong id="editTaskGeofenceRadiusVal" style="color: var(--accent-blue);">80</strong> m</label>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <input type="range" id="editTaskGeofenceRadius" min="20" max="300" step="5" value="80" style="flex: 1; margin: 0; padding: 6px 0;" oninput="syncEditGeofenceRadius(this.value)">
+                            <input type="number" id="editTaskGeofenceRadiusNumber" min="20" max="500" value="80" style="width: 75px; margin: 0; padding: 6px 8px; font-size: 0.85rem;" oninput="syncEditGeofenceRadius(this.value)">
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="dialog-actions">
-                <button type="button" class="btn-outline" onclick="document.getElementById('editDialog').close('cancel')">Peruuta</button>
-                <button type="submit" value="ok" class="btn-primary" style="width: auto; padding: 10px 20px;">Tallenna muutokset</button>
+            <label for="editNotes">Kuskin lisäohjeet / huomiot:</label>
+            <textarea id="editNotes" rows="2" placeholder="esim. Varo kaivonkantta, auraus vain sisäpihalle"></textarea>
+
+            <div class="dialog-actions" style="display: flex; gap: 10px; margin-top: 14px;">
+                <button type="button" class="btn-outline" style="flex: 1;" onclick="document.getElementById('editDialog').close('cancel')">Peruuta</button>
+                <button type="submit" id="btn-save-property-edits" value="ok" class="btn-primary" style="flex: 1.5; padding: 10px 20px; font-weight: 700;">💾 Tallenna muutokset</button>
             </div>
         </form>
     </dialog>
@@ -3478,6 +3530,76 @@
         if (tab === 'billing') initBillingTab();
         if (tab === 'settings') applyHomeWidgetVisibility();
     }
+    window.switchTab = switchTab;
+
+    function returnToMainViewFromSettings() {
+        switchTab('routes');
+        if (typeof yardMap !== 'undefined' && yardMap) {
+            yardMap.invalidateSize();
+            setTimeout(() => {
+                yardMap.invalidateSize();
+            }, 60);
+        }
+    }
+    window.returnToMainViewFromSettings = returnToMainViewFromSettings;
+
+    function showToast(msg) {
+        let toast = document.getElementById('appToast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'appToast';
+            toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#10b981;color:#fff;font-weight:700;padding:12px 24px;border-radius:24px;box-shadow:0 10px 25px rgba(0,0,0,0.4);z-index:99999;font-size:0.95rem;transition:opacity 0.3s ease;pointer-events:none;';
+            document.body.appendChild(toast);
+        }
+        toast.textContent = msg;
+        toast.style.opacity = '1';
+        toast.style.display = 'block';
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => { toast.style.display = 'none'; }, 300);
+        }, 2200);
+    }
+    window.showToast = showToast;
+
+    function openLogsForTask(taskId) {
+        const t = tasks.find(x => x.id === taskId);
+        switchTab('logs');
+        if (t) {
+            const custSel = document.getElementById('logFilterCustomer');
+            if (custSel && t.name) {
+                for (let i = 0; i < custSel.options.length; i++) {
+                    if (custSel.options[i].text.toLowerCase().includes(t.name.toLowerCase())) {
+                        custSel.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+            const sInput = document.getElementById('logSearchInput');
+            if (sInput) {
+                sInput.value = t.name || '';
+            }
+            renderWorkLogs();
+        }
+    }
+    window.openLogsForTask = openLogsForTask;
+
+    function openBillingForTask(taskId) {
+        const t = tasks.find(x => x.id === taskId);
+        switchTab('billing');
+        if (t) {
+            const bCustSel = document.getElementById('billingCustomerSelect');
+            if (bCustSel && t.name) {
+                for (let i = 0; i < bCustSel.options.length; i++) {
+                    if (bCustSel.options[i].text.toLowerCase().includes(t.name.toLowerCase())) {
+                        bCustSel.selectedIndex = i;
+                        break;
+                    }
+                }
+                generateBillingDraft();
+            }
+        }
+    }
+    window.openBillingForTask = openBillingForTask;
 
     // ---------- Hinnoittelu & Laskutus ----------
     let defaultPricing = JSON.parse(localStorage.getItem('pihatyot_default_pricing_v2'));
@@ -3544,6 +3666,12 @@
         const endInput = document.getElementById('billingEndDate');
         if (!startInput.value || !endInput.value) {
             setBillingPeriod('thisMonth');
+        }
+        if (!custSel.value && customers.length > 0) {
+            custSel.value = customers[0].id;
+        }
+        if (custSel.value) {
+            generateBillingDraft();
         }
         persistDefaultPricing();
     }
@@ -5204,6 +5332,7 @@
     let tasks = JSON.parse(localStorage.getItem('pihatyot_tasks_v4')) ||
                 JSON.parse(localStorage.getItem('pihatyot_tasks_v3')) ||
                 JSON.parse(localStorage.getItem('pihatyot_tasks')) || [];
+    window.tasks = tasks;
 
     function normalizeGeofenceFields(obj) {
         if (!obj) return obj;
@@ -6878,7 +7007,38 @@
     const editAddress = document.getElementById('editAddress');
     document.getElementById('editType').innerHTML = document.getElementById('type').innerHTML;
 
+    function syncEditGeofenceRadius(val) {
+        const num = Math.max(10, Math.min(1000, Number(val) || 80));
+        const slider = document.getElementById('editTaskGeofenceRadius');
+        const numInput = document.getElementById('editTaskGeofenceRadiusNumber');
+        const valSpan = document.getElementById('editTaskGeofenceRadiusVal');
+        if (slider) slider.value = num;
+        if (numInput) numInput.value = num;
+        if (valSpan) valSpan.textContent = num;
+        if (typeof previewGeofenceRadiusFromDialog === 'function') {
+            previewGeofenceRadiusFromDialog('task', num);
+        }
+    }
+    window.syncEditGeofenceRadius = syncEditGeofenceRadius;
+
+    function openPropertyEditForm(id) {
+        editTask(id);
+    }
+    window.openPropertyEditForm = openPropertyEditForm;
+
+    function savePropertyEditForm() {
+        const editDlg = document.getElementById('editDialog');
+        if (editDlg && editDlg.open) {
+            editDlg.close('ok');
+        }
+    }
+    window.savePropertyEditForm = savePropertyEditForm;
+
     function editTask(id) {
+        if (window.tasks && Array.isArray(window.tasks) && window.tasks !== tasks) {
+            tasks = window.tasks;
+        }
+        window.tasks = tasks;
         const t = tasks.find(x => x.id === id);
         if (!t) return;
         normalizeGeofenceFields(t);
@@ -6891,22 +7051,28 @@
         if (emailEl) emailEl.value = t.email || '';
         ['lat', 'lon', 'geo', 'addr'].forEach(k => delete editAddress.dataset[k]);
         const typeSel = document.getElementById('editType');
-        if (![...typeSel.options].some(o => o.value === t.type)) typeSel.add(new Option(t.type, t.type));
-        typeSel.value = t.type;
+        if (typeSel) {
+            if (![...typeSel.options].some(o => o.value === t.type)) typeSel.add(new Option(t.type, t.type));
+            typeSel.value = t.type;
+        }
         document.getElementById('editNotes').value = t.notes || '';
 
         const gfEn = document.getElementById('editTaskGeofenceEnabled');
         const gfType = document.getElementById('editTaskGeofenceType');
         const gfRad = document.getElementById('editTaskGeofenceRadius');
+        const gfRadNum = document.getElementById('editTaskGeofenceRadiusNumber');
         const gfRadVal = document.getElementById('editTaskGeofenceRadiusVal');
         if (gfEn) gfEn.checked = t.geofence_enabled !== false;
         if (gfType) gfType.value = t.geofence_type || 'radius';
-        if (gfRad) gfRad.value = t.geofence_radius || 80;
-        if (gfRadVal) gfRadVal.textContent = t.geofence_radius || 80;
+        const rad = t.geofence_radius || 80;
+        if (gfRad) gfRad.value = rad;
+        if (gfRadNum) gfRadNum.value = rad;
+        if (gfRadVal) gfRadVal.textContent = rad;
 
         editDlg.returnValue = '';
         editDlg.showModal();
     }
+    window.editTask = editTask;
 
     editDlg.addEventListener('close', () => {
         const id = editingId;
@@ -6924,15 +7090,17 @@
         if (phoneEl) t.phone = phoneEl.value.trim();
         const emailEl = document.getElementById('editTaskEmail');
         if (emailEl) t.email = emailEl.value.trim();
-        t.type = document.getElementById('editType').value;
+        const typeSel = document.getElementById('editType');
+        if (typeSel) t.type = typeSel.value;
         t.notes = document.getElementById('editNotes').value.trim();
 
         const gfEn = document.getElementById('editTaskGeofenceEnabled');
         const gfType = document.getElementById('editTaskGeofenceType');
         const gfRad = document.getElementById('editTaskGeofenceRadius');
+        const gfRadNum = document.getElementById('editTaskGeofenceRadiusNumber');
         t.geofence_enabled = gfEn ? gfEn.checked : true;
         t.geofence_type = gfType ? gfType.value : 'radius';
-        t.geofence_radius = gfRad ? Number(gfRad.value) || 80 : 80;
+        t.geofence_radius = gfRadNum ? (Number(gfRadNum.value) || 80) : (gfRad ? (Number(gfRad.value) || 80) : 80);
 
         // Synkronoidaan myös asiakasrekisteriin, jos sama kohde löytyy sieltä
         const cust = customers.find(c =>
@@ -6956,11 +7124,15 @@
             } else {
                 t.lat = null; t.lon = null; t.geoName = '';
                 saveAndRender();
+                showStatus('Tallennettu!', 'success');
+                showToast('Tallennettu!');
                 geocodeTask(t.id);
                 return;
             }
         }
         saveAndRender();
+        showStatus('Tallennettu!', 'success');
+        showToast('Tallennettu!');
         if (typeof syncYardMapGeofenceControls === 'function') syncYardMapGeofenceControls();
         if (typeof renderYardGeofenceCircle === 'function') renderYardGeofenceCircle();
     });
@@ -7529,7 +7701,12 @@
     window.selectActiveProperty = selectActiveProperty;
 
     function renderTasks() {
+        if (window.tasks && Array.isArray(window.tasks) && window.tasks !== tasks) {
+            tasks = window.tasks;
+        }
+        window.tasks = tasks;
         const listEl = document.getElementById('taskList');
+        if (!listEl) return;
         listEl.innerHTML = '';
 
         const pending = tasks.filter(t => !t.done);
@@ -7593,14 +7770,14 @@
 
             let headerBadge = '';
             if (isBlocked) {
-                headerBadge = `<span class="badge" style="background: rgba(239, 68, 68, 0.22); color: #f43f5e; border: 1px solid rgba(239, 68, 68, 0.5);" title="Kohteeseen ei päästy: ${esc(task.blocked_reason || '')}">🚫 Ei päästy tekemään</span>`;
+                headerBadge = `<span class="badge" style="background: rgba(239, 68, 68, 0.22); color: #f43f5e; border: 1px solid rgba(239, 68, 68, 0.5);" title="Kohteeseen ei päästy: ${esc(task.blocked_reason || '')}">🚫 Estynyt</span>`;
             } else if (isManualOverride) {
                 const reasonTip = task.override_reason ? `Kuskin perustelu: ${task.override_reason}` : 'Kuitattu manuaalisesti geofence-alueen ulkopuolelta';
                 headerBadge = `<span class="badge" style="background: rgba(245, 158, 11, 0.22); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.5);" title="${esc(reasonTip)}">⚠️ Kuitattu manuaalisesti</span>`;
             } else if (task.done) {
-                headerBadge = `<span class="badge badge-done">✓ Valmis</span>`;
+                headerBadge = `<span class="badge badge-done" style="background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4);">✓ Kuitattu</span>`;
             } else {
-                headerBadge = `<span class="badge badge-active">${esc(task.type)}</span>`;
+                headerBadge = `<span class="badge badge-pending" style="background: rgba(100, 116, 139, 0.22); color: #94a3b8; border: 1px solid rgba(100, 116, 139, 0.4);">Auraamatta</span>`;
             }
 
             let locPill = '';
@@ -7659,33 +7836,41 @@
             }
 
             item.innerHTML = `
-                <div class="task-header">
-                    <span class="task-title yard-title" style="margin-bottom: 0;">${shown}. ${esc(task.name)}</span>
-                    ${headerBadge}
-                </div>
-
-                <div class="task-address-row">
-                    <a href="${mapsUrl}" target="_blank" rel="noopener" class="yard-address">📍 ${esc(task.address)}</a>
-                    <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
-                        ${locPill}
-                        ${gfPill}
-                        ${task.phone ? `<a href="tel:${esc(task.phone)}" class="contact-link" title="Soita asiakkaalle">📞 ${esc(task.phone)}</a>` : ''}
+                <!-- Ylärivi: Kohteen nimi lihavoituna ja nykyinen status (Badge: esim. "Auraamatta" / "Kuitattu") -->
+                <div class="task-header" style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                    <span class="task-title yard-title" style="margin-bottom: 0; font-weight: 700; font-size: 1.05rem;">${shown}. ${esc(task.name)}</span>
+                    <div style="display: flex; gap: 6px; align-items: center;">
+                        <span class="badge badge-active" style="font-size: 0.72rem; padding: 2px 7px;">${esc(task.type || 'Auraus')}</span>
+                        ${headerBadge}
                     </div>
                 </div>
 
-                ${approxLocation(task) ? `<div class="task-warn">ℹ️ Sijainti kadun tarkkuudella (voit halutessasi tallentaa tarkan 📍 GPS-pisteen kohteessa).</div>` : ''}
-                ${task.notes ? `<div class="task-notes">⚠️ ${esc(task.notes)}</div>` : ''}
+                <!-- Keskirivi: Osoite ja mahdolliset lisätiedot kuskille -->
+                <div class="task-address-row" style="display: flex; flex-direction: column; gap: 4px; margin-top: 4px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
+                        <a href="${mapsUrl}" target="_blank" rel="noopener" class="yard-address" style="color: var(--text-muted); font-size: 0.85rem; text-decoration: none; margin-bottom: 0;">📍 ${esc(task.address)}</a>
+                        <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                            ${locPill}
+                            ${gfPill}
+                            ${task.phone ? `<a href="tel:${esc(task.phone)}" class="contact-link" title="Soita asiakkaalle">📞 ${esc(task.phone)}</a>` : ''}
+                        </div>
+                    </div>
+                    ${task.notes ? `<div class="task-notes" style="font-size: 0.8rem; color: #cbd5e1; line-height: 1.35; padding: 6px 10px; background: rgba(15, 23, 42, 0.45); border-radius: 6px; border-left: 3px solid var(--accent-blue); margin-top: 2px;">ℹ️ <b>Kuskiohje:</b> ${esc(task.notes)}</div>` : ''}
+                </div>
+
+                ${approxLocation(task) ? `<div class="task-warn" style="font-size: 0.75rem;">ℹ️ Sijainti kadun tarkkuudella (voit halutessasi tallentaa tarkan 📍 GPS-pisteen kohteessa).</div>` : ''}
                 ${verificationBannerHtml}
 
                 ${isMovingThisPin ? `
-                <div style="background: rgba(245, 158, 11, 0.16); border: 1px solid rgba(245, 158, 11, 0.5); border-radius: var(--radius-sm); padding: 8px 10px; font-size: 0.82rem; color: var(--accent-amber); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                <div style="background: rgba(245, 158, 11, 0.16); border: 1px solid rgba(245, 158, 11, 0.5); border-radius: var(--radius-sm); padding: 8px 10px; font-size: 0.82rem; color: var(--accent-amber); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
                     <span>📍 <b>Sijainti avattu siirrettäväksi:</b> Klikkaa kartalta uusi kohta tai raahaa merkkiä.</span>
                     <button type="button" class="tiny-btn" style="background: var(--accent-amber); color: #000; font-weight: 700; white-space: nowrap; padding: 4px 10px; margin: 0;" onclick="toggleMoveCardPin(${task.id}, event)">Valmis ✓</button>
                 </div>
                 ` : ''}
 
-                <div class="task-action-row">
-                    <button type="button" class="${completeBtnClass}" onclick="handleCompleteTaskClick(${task.id}, this)" title="${task.done ? 'Klikkaa palauttaaksesi kohteen tekemättömäksi' : 'Tarkistaa GPS-sijainnin ja kuittaa pihan valmiiksi'}">
+                <!-- Kuittaus ja este-painikkeet -->
+                <div class="task-action-row" style="display: flex; gap: 8px; margin-top: 4px;">
+                    <button type="button" class="${completeBtnClass}" style="flex: 1;" onclick="handleCompleteTaskClick(${task.id}, this)" title="${task.done ? 'Klikkaa palauttaaksesi kohteen tekemättömäksi' : 'Tarkistaa GPS-sijainnin ja kuittaa pihan valmiiksi'}">
                         ${isBlocked ? '✓ Kuittaa valmiiksi (este poistunut)' : completeBtnText}
                     </button>
                     ${!task.done ? `
@@ -7695,20 +7880,28 @@
                     ` : ''}
                 </div>
 
-                <div class="task-tools-row">
-                    <div class="task-tools-group admin-only">
-                        <button class="order-btn" title="Siirrä ylöspäin" onclick="moveTask(${index}, -1)" ${index === 0 ? 'disabled' : ''}>▲</button>
-                        <button class="order-btn" title="Siirrä alaspäin" onclick="moveTask(${index}, 1)" ${index === tasks.length - 1 ? 'disabled' : ''}>▼</button>
+                <!-- Toimintonapit kortin alaosaan: [📍 Kartalle] (keskittää kartan kohteeseen), [✏️ Muokkaa] (avaa kohteen muokkauksen) -->
+                <div class="task-tools-row" style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; border-top: 1px solid var(--border); padding-top: 8px; gap: 6px; flex-wrap: wrap;">
+                    <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                        <button class="tiny-btn btn-primary" type="button" style="background: var(--accent-blue); color: #fff; font-weight: 600; padding: 6px 12px; font-size: 0.82rem;" onclick="selectActiveProperty(${task.id}, true)" title="Keskitä kartta kohteeseen">
+                            📍 Kartalle
+                        </button>
+                        <button class="tiny-btn" type="button" style="background: var(--bg-card); border: 1px solid var(--border); color: var(--fg); font-weight: 600; padding: 6px 12px; font-size: 0.82rem;" onclick="openPropertyEditForm(${task.id})" title="Avaa kohteen muokkaus">
+                            ✏️ Muokkaa
+                        </button>
                     </div>
-                    <div class="task-tools-group">
+
+                    <div style="display: flex; gap: 4px; align-items: center; flex-wrap: wrap;">
                         <button class="tiny-btn" type="button" onclick="openTaskOnYardMap(${task.id})" title="Avaa satelliittikartta ja piirrä kone-/käsityöalueet sekä geofence-ympyrä">🛰️ Pihakartta</button>
                         <button class="tiny-btn admin-only ${isMovingThisPin ? 'active' : ''}" style="${isMovingThisPin ? 'background: var(--accent-amber); color: #000; font-weight: 700; border-color: var(--accent-amber);' : ''}" type="button" onclick="toggleMoveCardPin(${task.id}, event)" title="${isMovingThisPin ? 'Tallenna ja lukitse kohteen sijainti' : 'Siirrä tämän kohteen sijaintipistettä kartalla'}">${isMovingThisPin ? '✓ Sijainti OK' : '📍 Siirrä sijaintia'}</button>
-                        <button class="tiny-btn" type="button" onclick="openStreetViewForTask(${task.id})" title="Avaa kohde Google Street View -katunäkymässä">🛣️ Avaa Street View</button>
-                        <button class="tiny-btn" type="button" onclick="quickSnapPhoto(${task.id})" title="Ota valokuva kohteesta">📷 Ota kuva</button>
+                        <button class="tiny-btn" type="button" onclick="openStreetViewForTask(${task.id})" title="Avaa kohde Google Street View -katunäkymässä">🛣️ Street View</button>
+                        <button class="tiny-btn" type="button" onclick="quickSnapPhoto(${task.id})" title="Ota valokuva kohteesta">📷 Kuva</button>
                         <button class="photo-btn" type="button" onclick="openCustomerPhotos(${task.customerId ? task.customerId : `'${esc(task.name)}'`})" title="Näytä kohteen valokuvat">🖼️ <span data-photo-count-for="${task.customerId || esc(task.name)}">${photoCounts[String(task.customerId || task.name)] || 0}</span></button>
-                        <button class="tiny-btn admin-only" type="button" onclick="setTaskGPS(${task.id})" title="Tallenna nykyinen GPS-sijaintisi tämän kohteen sijainniksi">📍 GPS</button>
-                        <button class="tiny-btn admin-only" type="button" onclick="editTask(${task.id})" title="Muokkaa kohteen tietoja ja geofence-asetuksia">✎</button>
-                        <button class="tiny-btn danger admin-only" type="button" onclick="deleteTask(${task.id})" title="Poista kohde ajolistalta">✕</button>
+                        <div class="task-tools-group admin-only" style="display: inline-flex; gap: 2px;">
+                            <button class="order-btn" title="Siirrä ylöspäin" onclick="moveTask(${index}, -1)" ${index === 0 ? 'disabled' : ''}>▲</button>
+                            <button class="order-btn" title="Siirrä alaspäin" onclick="moveTask(${index}, 1)" ${index === tasks.length - 1 ? 'disabled' : ''}>▼</button>
+                            <button class="tiny-btn danger admin-only" type="button" onclick="deleteTask(${task.id})" title="Poista kohde ajolistalta">✕</button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -9043,6 +9236,8 @@
             zoom: 18,
             maxZoom: 21
         });
+        window.map = yardMap;
+        window.yardMap = yardMap;
 
         L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
             maxNativeZoom: 19,
