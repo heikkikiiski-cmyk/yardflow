@@ -18,6 +18,7 @@
     <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.17.0/dist/leaflet-geoman.min.js" crossorigin=""></script>
     <script src="https://unpkg.com/@turf/turf@6.5.0/turf.min.js" crossorigin=""></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/exifr@7.1.3/dist/lite.umd.js" crossorigin="anonymous"></script>
     <script>
         (function() {
             try {
@@ -1999,6 +2000,7 @@
                 <div id="photoPreviewBox" style="display: none; margin-top: 10px; border-radius: 10px; overflow: hidden; border: 1px solid var(--accent); max-height: 220px; background: #000;">
                     <img id="photoPreviewImg" style="width: 100%; max-height: 220px; object-fit: contain;" alt="Esikatselu">
                 </div>
+                <div id="photoMetaTimeInfo" style="display: none; margin-top: 8px; font-size: 0.82rem; color: var(--accent); font-weight: 600;"></div>
             </div>
 
             <label>Kuvan tilanne / luokittelu:</label>
@@ -3191,6 +3193,165 @@
 
     let pendingPhotoContext = null;
     let currentPhotoBase64 = null;
+    let currentPhotoCapturedAt = null;
+    let currentPhotoTimeSource = '';
+
+    function parseExifDateString(val) {
+        if (!val) return null;
+        if (val instanceof Date && !isNaN(val.getTime())) {
+            return val.toISOString();
+        }
+        const s = String(val).trim();
+        // EXIF-muoto: "YYYY:MM:DD HH:MM:SS" tai ISO-muoto
+        const m = s.match(/^(\d{4})[:\-](\d{2})[:\-](\d{2})[ T](\d{2}):(\d{2}):(\d{2})/);
+        if (m) {
+            const d = new Date(
+                Number(m[1]),
+                Number(m[2]) - 1,
+                Number(m[3]),
+                Number(m[4]),
+                Number(m[5]),
+                Number(m[6])
+            );
+            if (!isNaN(d.getTime())) return d.toISOString();
+        }
+        const parsed = new Date(s);
+        if (!isNaN(parsed.getTime())) return parsed.toISOString();
+        return null;
+    }
+
+    function parseJpegExifDateFromBuffer(arrayBuffer) {
+        try {
+            const view = new DataView(arrayBuffer);
+            if (view.byteLength < 12 || view.getUint16(0, false) !== 0xFFD8) return null;
+
+            let offset = 2;
+            while (offset + 4 <= view.byteLength) {
+                const marker = view.getUint16(offset, false);
+                offset += 2;
+                if (marker === 0xFFDA || marker === 0xFFD9) break;
+                const segLen = view.getUint16(offset, false);
+                if (segLen < 2 || offset + segLen > view.byteLength) break;
+
+                // APP1 (0xFFE1) ja "Exif\0\0"
+                if (marker === 0xFFE1 && segLen >= 14) {
+                    const exifHeader = view.getUint32(offset + 2, false);
+                    const exifZero = view.getUint16(offset + 6, false);
+                    if (exifHeader === 0x45786966 && exifZero === 0x0000) {
+                        const tiffStart = offset + 8;
+                        const byteOrder = view.getUint16(tiffStart, false);
+                        const littleEndian = (byteOrder === 0x4949);
+                        if (!littleEndian && byteOrder !== 0x4D4D) return null;
+
+                        const readAsciiTag = (ifdOffset, targetTag) => {
+                            if (ifdOffset + 2 > view.byteLength) return null;
+                            const entries = view.getUint16(ifdOffset, littleEndian);
+                            for (let i = 0; i < entries; i++) {
+                                const entryOffset = ifdOffset + 2 + i * 12;
+                                if (entryOffset + 12 > view.byteLength) break;
+                                const tag = view.getUint16(entryOffset, littleEndian);
+                                const type = view.getUint16(entryOffset + 2, littleEndian);
+                                const count = view.getUint32(entryOffset + 4, littleEndian);
+                                if (tag === targetTag && type === 2 && count >= 10 && count < 64) {
+                                    const valOffset = tiffStart + view.getUint32(entryOffset + 8, littleEndian);
+                                    if (valOffset + count <= view.byteLength) {
+                                        let str = '';
+                                        for (let c = 0; c < count - 1; c++) {
+                                            const ch = view.getUint8(valOffset + c);
+                                            if (ch === 0) break;
+                                            str += String.fromCharCode(ch);
+                                        }
+                                        return str;
+                                    }
+                                }
+                            }
+                            return null;
+                        };
+
+                        const findSubIfdOffset = (ifdOffset, subTag) => {
+                            if (ifdOffset + 2 > view.byteLength) return null;
+                            const entries = view.getUint16(ifdOffset, littleEndian);
+                            for (let i = 0; i < entries; i++) {
+                                const entryOffset = ifdOffset + 2 + i * 12;
+                                if (entryOffset + 12 > view.byteLength) break;
+                                const tag = view.getUint16(entryOffset, littleEndian);
+                                if (tag === subTag) {
+                                    return tiffStart + view.getUint32(entryOffset + 8, littleEndian);
+                                }
+                            }
+                            return null;
+                        };
+
+                        const ifd0Offset = tiffStart + view.getUint32(tiffStart + 4, littleEndian);
+                        const exifIfdOffset = findSubIfdOffset(ifd0Offset, 0x8769);
+
+                        if (exifIfdOffset) {
+                            const dtOrig = readAsciiTag(exifIfdOffset, 0x9003);
+                            if (dtOrig) {
+                                const iso = parseExifDateString(dtOrig);
+                                if (iso) return iso;
+                            }
+                            const dtDig = readAsciiTag(exifIfdOffset, 0x9004);
+                            if (dtDig) {
+                                const iso = parseExifDateString(dtDig);
+                                if (iso) return iso;
+                            }
+                        }
+
+                        const dt0 = readAsciiTag(ifd0Offset, 0x0132);
+                        if (dt0) {
+                            const iso = parseExifDateString(dt0);
+                            if (iso) return iso;
+                        }
+                    }
+                }
+                offset += segLen;
+            }
+        } catch (e) {
+            console.warn('EXIF-luku epäonnistui:', e);
+        }
+        return null;
+    }
+
+    async function extractPhotoCaptureTimestamp(file) {
+        if (!file) return { iso: new Date().toISOString(), source: 'Nykyhetki' };
+
+        // 1. Kokeillaan exifr-kirjastoa (tukee JPEG, HEIC, WebP, PNG, TIFF)
+        if (typeof exifr !== 'undefined' && typeof exifr.parse === 'function') {
+            try {
+                const meta = await exifr.parse(file, ['DateTimeOriginal', 'CreateDate', 'DateTimeDigitized', 'DateTime']);
+                if (meta) {
+                    const raw = meta.DateTimeOriginal || meta.CreateDate || meta.DateTimeDigitized || meta.DateTime;
+                    const iso = parseExifDateString(raw);
+                    if (iso) return { iso, source: 'EXIF-metatieto' };
+                }
+            } catch (e) {}
+        }
+
+        // 2. Sisäänrakennettu binäärinen JPEG EXIF -lukija (toimii 100 % offline)
+        if (typeof file.arrayBuffer === 'function') {
+            try {
+                const buf = await file.arrayBuffer();
+                const iso = parseJpegExifDateFromBuffer(buf);
+                if (iso) return { iso, source: 'EXIF-metatieto' };
+            } catch (e) {}
+        }
+
+        // 3. Tiedoston oma luonti-/muokkausaika laitteella (file.lastModified)
+        if (typeof file.lastModified === 'number' && file.lastModified > 0) {
+            const d = new Date(file.lastModified);
+            if (!isNaN(d.getTime())) {
+                return { iso: d.toISOString(), source: 'Kuvatiedoston metatieto' };
+            }
+        }
+
+        return { iso: new Date().toISOString(), source: 'Kuvaushetki' };
+    }
+
+    function getPhotoCaptureIso(photo) {
+        if (!photo) return '';
+        return photo.capturedAt || photo.timestamp || '';
+    }
 
     function quickSnapPhoto(taskId) {
         const t = tasks.find(x => x.id === taskId);
@@ -3206,6 +3367,8 @@
     function openPhotoCapture(context) {
         pendingPhotoContext = context || {};
         currentPhotoBase64 = null;
+        currentPhotoCapturedAt = null;
+        currentPhotoTimeSource = '';
         const title = pendingPhotoContext.customerName
             ? `📷 Valokuva: ${pendingPhotoContext.customerName}`
             : '📷 Lisää valokuva kohteesta';
@@ -3215,6 +3378,11 @@
         document.getElementById('photoPreviewBox').style.display = 'none';
         document.getElementById('photoPreviewImg').src = '';
         document.getElementById('photoFileInput').value = '';
+        const metaInfo = document.getElementById('photoMetaTimeInfo');
+        if (metaInfo) {
+            metaInfo.style.display = 'none';
+            metaInfo.textContent = '';
+        }
 
         const firstRadio = document.querySelector('input[name="photoTag"][value="Valmis auraus"]');
         if (firstRadio) firstRadio.checked = true;
@@ -3227,15 +3395,28 @@
     async function handlePhotoFileSelected(e) {
         const file = e.target.files && e.target.files[0];
         if (!file) return;
-        showStatus('Käsitellään ja pakataan kuvaa...', 'loading');
+        showStatus('Käsitellään kuvaa ja luetaan kuvausaika metadatasta...', 'loading');
         try {
-            const compressed = await compressImage(file, 1280, 0.75);
+            const [metaResult, compressed] = await Promise.all([
+                extractPhotoCaptureTimestamp(file),
+                compressImage(file, 1280, 0.75)
+            ]);
             currentPhotoBase64 = compressed;
+            currentPhotoCapturedAt = metaResult.iso;
+            currentPhotoTimeSource = metaResult.source;
+
             const previewBox = document.getElementById('photoPreviewBox');
             const previewImg = document.getElementById('photoPreviewImg');
             previewImg.src = compressed;
             previewBox.style.display = 'block';
-            showStatus('Kuva ladattu onnistuneesti!', 'success');
+
+            const metaInfo = document.getElementById('photoMetaTimeInfo');
+            if (metaInfo) {
+                metaInfo.textContent = `🕒 Kuvan ottoaika: ${fmtDateTime(currentPhotoCapturedAt)} (${currentPhotoTimeSource})`;
+                metaInfo.style.display = 'block';
+            }
+
+            showStatus('Kuva ja sen ottoaika ladattu onnistuneesti!', 'success');
         } catch (err) {
             console.error(err);
             showStatus('Kuvan käsittely epäonnistui: ' + esc(err.message), 'info');
@@ -3249,10 +3430,14 @@
         }
         const tag = document.querySelector('input[name="photoTag"]:checked')?.value || 'Valmis auraus';
         const notes = document.getElementById('photoNotesInput').value.trim();
+        const captureIso = currentPhotoCapturedAt || new Date().toISOString();
 
         const photoObj = {
             id: newId(),
-            timestamp: new Date().toISOString(),
+            timestamp: captureIso,
+            capturedAt: captureIso,
+            addedAt: new Date().toISOString(),
+            timeSource: currentPhotoTimeSource || 'Metatieto',
             customerId: pendingPhotoContext.customerId || null,
             customerName: pendingPhotoContext.customerName || '',
             address: pendingPhotoContext.address || '',
@@ -3274,7 +3459,7 @@
             if (document.getElementById('viewLogs').style.display !== 'none') {
                 renderWorkLogs();
             }
-            showStatus(`Valokuva tallennettu kohteelle "${esc(photoObj.customerName)}"! 📷`, 'success');
+            showStatus(`Valokuva tallennettu (ottoaika: ${fmtDateTime(captureIso)})! 📷`, 'success');
         } catch (err) {
             console.error(err);
             alert('Kuvan tallennus epäonnistui: ' + err.message);
@@ -3327,7 +3512,7 @@
             return String(p.customerId) === String(cidOrName) ||
                    (p.customerName && p.customerName.toLowerCase() === String(cidOrName).toLowerCase());
         });
-        photos.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        photos.sort((a, b) => new Date(getPhotoCaptureIso(b)) - new Date(getPhotoCaptureIso(a)));
 
         if (photos.length === 0) {
             grid.innerHTML = '<p class="empty-state">Tälle kohteelle ei ole vielä tallennettu valokuvia. Ota uusi kuva yllä olevasta painikkeesta!</p>';
@@ -3335,6 +3520,7 @@
         }
 
         grid.innerHTML = photos.map(p => {
+            const shotTime = fmtDateTime(getPhotoCaptureIso(p));
             return `
                 <div class="photo-card">
                     <div class="photo-thumb-wrap" onclick="openLightbox(${p.id})">
@@ -3342,7 +3528,7 @@
                         <span class="photo-tag-badge">${esc(p.tag)}</span>
                     </div>
                     <div class="photo-body">
-                        <div class="photo-time">${esc(fmtDateTime(p.timestamp))}</div>
+                        <div class="photo-time">📷 Kuvausaika: ${esc(shotTime)}</div>
                         ${p.notes ? `<div class="photo-notes">${esc(p.notes)}</div>` : ''}
                         <div class="photo-actions">
                             <button class="tiny-btn" type="button" onclick="openLightbox(${p.id})">🔎 Avaa</button>
@@ -3361,9 +3547,10 @@
         if (!photo) return;
         currentLightboxPhoto = photo;
 
+        const shotTime = fmtDateTime(getPhotoCaptureIso(photo));
         document.getElementById('lightboxImg').src = photo.dataUrl;
         document.getElementById('lightboxTag').textContent = `${photo.tag} · ${photo.customerName || ''}`;
-        document.getElementById('lightboxTime').textContent = `${fmtDateTime(photo.timestamp)} · ${photo.address || ''}`;
+        document.getElementById('lightboxTime').textContent = `📷 Kuvausaika: ${shotTime} · ${photo.address || ''}`;
         document.getElementById('lightboxNotes').textContent = photo.notes || '';
         document.getElementById('lightboxModal').style.display = 'flex';
     }
@@ -3387,16 +3574,17 @@
 
     async function sharePhoto(photo) {
         if (!photo || !photo.dataUrl) return;
+        const shotIso = getPhotoCaptureIso(photo);
         try {
             const res = await fetch(photo.dataUrl);
             const blob = await res.blob();
-            const filename = `auraus-${(photo.customerName || 'kuva').replace(/[^a-z0-9]/gi, '_')}-${photo.timestamp.slice(0, 10)}.jpg`;
+            const filename = `auraus-${(photo.customerName || 'kuva').replace(/[^a-z0-9]/gi, '_')}-${shotIso.slice(0, 10)}.jpg`;
             const file = new File([blob], filename, { type: 'image/jpeg' });
 
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
                 await navigator.share({
                     title: `Aurauskuva: ${photo.customerName || ''}`,
-                    text: `${photo.tag || 'Auraustyö'} - ${photo.customerName || ''} (${photo.address || ''}) ${new Date(photo.timestamp).toLocaleString('fi-FI')}. ${photo.notes || ''}`,
+                    text: `${photo.tag || 'Auraustyö'} - ${photo.customerName || ''} (${photo.address || ''}) Kuvausaika: ${fmtDateTime(shotIso)}. ${photo.notes || ''}`,
                     files: [file]
                 });
                 showStatus('Kuva jaettu onnistuneesti!', 'success');
@@ -3413,9 +3601,10 @@
     }
 
     function downloadPhoto(photo) {
+        const shotIso = getPhotoCaptureIso(photo);
         const a = document.createElement('a');
         a.href = photo.dataUrl;
-        a.download = `auraus-${(photo.customerName || 'kuva').replace(/[^a-z0-9]/gi, '_')}-${photo.timestamp.slice(0, 10)}.jpg`;
+        a.download = `auraus-${(photo.customerName || 'kuva').replace(/[^a-z0-9]/gi, '_')}-${shotIso.slice(0, 10)}.jpg`;
         document.body.appendChild(a);
         a.click();
         a.remove();
@@ -3610,11 +3799,14 @@
             const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(log.address)}`;
             const logPhotos = allPhotos.filter(p => {
                 if (p.logId && String(p.logId) === String(log.id)) return true;
+                const pShotDay = getPhotoCaptureIso(p).slice(0, 10);
+                const pAddedDay = (p.addedAt || '').slice(0, 10);
+                const lDay = (log.timestamp || '').slice(0, 10);
                 if (p.customerId && log.customerId && String(p.customerId) === String(log.customerId)) {
-                    return p.timestamp && log.timestamp && p.timestamp.slice(0, 10) === log.timestamp.slice(0, 10);
+                    return lDay && (pShotDay === lDay || pAddedDay === lDay);
                 }
                 if (p.customerName && log.customerName && p.customerName.toLowerCase() === log.customerName.toLowerCase()) {
-                    return p.timestamp && log.timestamp && p.timestamp.slice(0, 10) === log.timestamp.slice(0, 10);
+                    return lDay && (pShotDay === lDay || pAddedDay === lDay);
                 }
                 return false;
             });
@@ -3622,9 +3814,12 @@
             const photosHtml = logPhotos.length > 0 ? `
                 <div style="margin-top: 6px;">
                     <div style="font-size: 0.72rem; color: var(--muted); margin-bottom: 4px;">📷 Liitetyt valokuvat (${logPhotos.length} kpl):</div>
-                    <div class="log-photos">
+                    <div class="log-photos" style="display: flex; gap: 10px; flex-wrap: wrap;">
                         ${logPhotos.map(p => `
-                            <img src="${p.dataUrl}" class="log-photo-mini" title="${esc(p.tag)} - ${esc(p.notes || '')}" onclick="openLightbox(${p.id})">
+                            <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px;">
+                                <img src="${p.dataUrl}" class="log-photo-mini" title="${esc(p.tag)} (${esc(fmtDateTime(getPhotoCaptureIso(p)))}) - ${esc(p.notes || '')}" onclick="openLightbox(${p.id})">
+                                <span style="font-size: 0.68rem; color: var(--muted);">🕒 ${esc(fmtDateTime(getPhotoCaptureIso(p)))}</span>
+                            </div>
                         `).join('')}
                     </div>
                 </div>` : '';
@@ -3754,18 +3949,21 @@
             if (custFilterVal) {
                 return (p.customerName && p.customerName.toLowerCase() === custFilterVal.toLowerCase());
             }
+            const pShotDay = getPhotoCaptureIso(p).slice(0, 10);
+            const pAddedDay = (p.addedAt || '').slice(0, 10);
             return filteredLogs.some(l => {
                 if (p.logId && String(p.logId) === String(l.id)) return true;
+                const lDay = (l.timestamp || '').slice(0, 10);
                 if (p.customerId && l.customerId && String(p.customerId) === String(l.customerId)) {
-                    return p.timestamp && l.timestamp && p.timestamp.slice(0, 10) === l.timestamp.slice(0, 10);
+                    return lDay && (pShotDay === lDay || pAddedDay === lDay);
                 }
                 if (p.customerName && l.customerName && p.customerName.toLowerCase() === l.customerName.toLowerCase()) {
-                    return p.timestamp && l.timestamp && p.timestamp.slice(0, 10) === l.timestamp.slice(0, 10);
+                    return lDay && (pShotDay === lDay || pAddedDay === lDay);
                 }
                 return false;
             });
         });
-        relevantPhotos.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        relevantPhotos.sort((a, b) => new Date(getPhotoCaptureIso(a)) - new Date(getPhotoCaptureIso(b)));
 
         const totalVisits = filteredLogs.length;
         const plowingCount = filteredLogs.filter(l => (l.type || '').toLowerCase().includes('auraus')).length;
@@ -3858,7 +4056,7 @@
                             <div class="print-photo-card">
                                 <img src="${p.dataUrl}" alt="${esc(p.tag)}">
                                 <div class="print-photo-caption">
-                                    <div><strong>[${esc(p.tag)}]</strong> · ${esc(fmtDateTime(p.timestamp))}</div>
+                                    <div><strong>[${esc(p.tag)}]</strong> · 📷 Kuvausaika: ${esc(fmtDateTime(getPhotoCaptureIso(p)))}</div>
                                     <div><strong>Kohde:</strong> ${esc(p.customerName || '')} (${esc(p.address || '')})</div>
                                     ${p.notes ? `<div><strong>Huomio:</strong> ${esc(p.notes)}</div>` : ''}
                                 </div>
