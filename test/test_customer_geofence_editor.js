@@ -18,22 +18,36 @@ function runTest() {
     // 1. DOM Elements
     console.log('\n--- 1. Testing Dialog and Map Markup ---');
     assert(html.includes('id="customerGeofenceDialog"'), '#customerGeofenceDialog elementti löytyy');
+    assert(html.includes('modal-geofence'), 'modal-geofence luokka löytyy');
     assert(html.includes('id="customerGeofenceMap"'), '#customerGeofenceMap elementti löytyy');
     assert(html.includes('id="btnGfMapSat"'), 'Satelliittikartan pikavaihtonappi #btnGfMapSat löytyy');
     assert(html.includes('id="btnGfMapStreet"'), 'Peruskartan pikavaihtonappi #btnGfMapStreet löytyy');
     assert(html.includes('id="gfCustCoordInfo"'), 'Koordinaattinäyttö #gfCustCoordInfo löytyy');
     assert(html.includes('id="gfCustPolygonNotice"'), 'Polygon-tilan ohje #gfCustPolygonNotice löytyy');
-    console.log('✅ Dialog markup, map container and layer toggle buttons verified');
+    
+    // Yläkulman Sulje-nappi poistettu, vain alareunan painikepari
+    assert(!html.includes('onclick="closeCustomerGeofenceDialog()">✕ Sulje</button>'), 'Yläkulman Sulje-nappi poistettu');
+    assert(html.includes('onclick="closeCustomerGeofenceDialog()">✕ Peruuta</button>'), 'Alareunan [✕ Peruuta] painike löytyy');
+    assert(html.includes('💾 Tallenna</button>'), 'Alareunan [💾 Tallenna] painike löytyy');
+    console.log('✅ Dialog markup, uniform action buttons, map container and layer toggle buttons verified');
 
-    // 2. Tile Layer Independence & Initialization
-    console.log('\n--- 2. Testing Tile Layer Isolation & Map Resizing ---');
+    // 2. Dynamic Title & No Hardcoded Test Names
+    console.log('\n--- 2. Testing Dynamic Title & Clean Labels ---');
+    assert(html.includes("Määritä geofence: ${property.name || 'Nimetön kohde'}"), 'Otsikko asettaa dynaamisesti kohteen nimen');
+    assert(!html.includes('Asiakas 2'), 'Ei kovakoodattua Asiakas 2 -testinimeä');
+    console.log('✅ Dynamic property title and clean labels verified');
+
+    // 3. Tile Layer Independence & Initialization
+    console.log('\n--- 3. Testing Tile Layer Isolation & Map Resizing ---');
     assert(html.includes('function createCustomerGfTileLayer('), 'createCustomerGfTileLayer funktio luo oman erillisen tiilitason');
     assert(html.includes('function setCustomerGeofenceMapBase('), 'setCustomerGeofenceMapBase funktio mahdollistaa karttapohjan vaihdon');
-    assert(html.includes('custGfMap.invalidateSize()'), 'custGfMap.invalidateSize() kutsutaan useasti kartan renderöitymiseksi modalissa');
-    console.log('✅ Independent tile layers and invalidateSize calls verified');
+    assert(html.includes('geofenceMap.invalidateSize()'), 'geofenceMap.invalidateSize() kutsutaan viiveellä kartan renderöitymiseksi');
+    assert(html.includes('geofenceMap.setView([currentPropertyCoords.lat, currentPropertyCoords.lon], 16)'), 'Kartta keskitetään kohteeseen zoomilla 16');
+    assert(html.includes('window.geofenceMap = custGfMap'), 'window.geofenceMap asetetaan oikein');
+    console.log('✅ Independent tile layers, invalidateSize and zoom 16 centering verified');
 
-    // 3. Interactive Movement (Map click & Marker drag)
-    console.log('\n--- 3. Testing Interactive Geofence Movement ---');
+    // 4. Interactive Movement (Map click & Marker drag)
+    console.log('\n--- 4. Testing Interactive Geofence Movement ---');
     assert(html.includes('function updateCustomerGeofencePosition('), 'updateCustomerGeofencePosition funktio löytyy');
     assert(html.includes("custGfMap.on('click',"), 'Kartan klikkaus siirtää geofence-alueen keskipisteen');
     assert(html.includes("custGfCircle.on('click',"), 'Ympyrän klikkaus siirtää geofence-alueen keskipisteen');
@@ -42,8 +56,8 @@ function runTest() {
     assert(html.includes('custGfPolygonGroup'), 'Piirretyt piha-alueet visualisoidaan kartalla');
     console.log('✅ Map click, circle click, marker drag and polygon overlay verified');
 
-    // 4. Persistence
-    console.log('\n--- 4. Testing Save and State Synchronization ---');
+    // 5. Persistence
+    console.log('\n--- 5. Testing Save and State Synchronization ---');
     assert(html.includes('saveAndRender()'), 'saveCustomerGeofence kutsuu saveAndRender()');
     assert(html.includes('persistCustomers()'), 'saveCustomerGeofence kutsuu persistCustomers()');
     assert(html.includes('t.gps = true;'), 'Uudet koordinaatit merkitään GPS-vahvistetuiksi tehtävissä');

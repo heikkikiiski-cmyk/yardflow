@@ -2922,14 +2922,13 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     </dialog>
 
     <!-- ASIAKKAAN / KOHTEEN GEOFENCE-MÄÄRITYSDIALOGI (#customerGeofenceDialog) -->
-    <dialog id="customerGeofenceDialog" class="app-dialog modal-property" style="max-width: 680px; width: 95%;">
+    <dialog id="customerGeofenceDialog" class="app-dialog modal-property modal-geofence" data-modal-id="modal-geofence" style="max-width: 680px; width: 95%;">
         <form method="dialog" class="dialog-content" style="max-width: 680px;" onsubmit="event.preventDefault(); saveCustomerGeofence();">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
                 <h3 style="margin: 0; font-size: 1.15rem; display: flex; align-items: center; gap: 8px;">
                     <span>📍</span>
-                    <span id="gfCustDialogTitle">Määritä geofence-alue</span>
+                    <span id="gfCustDialogTitle">Määritä geofence: Nimetön kohde</span>
                 </h3>
-                <button type="button" class="tiny-btn" onclick="closeCustomerGeofenceDialog()">✕ Sulje</button>
             </div>
             <input type="hidden" id="gfCustId" value="">
 
@@ -2961,8 +2960,8 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                 </div>
 
                 <!-- Kohdistettu karttanäkymä vain tälle kiinteistölle -->
-                <div style="height: 340px; width: 100%; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border); margin-bottom: 8px; position: relative; background: #0f172a;">
-                    <div id="customerGeofenceMap" style="width: 100%; height: 100%; min-height: 340px;"></div>
+                <div style="height: 350px; width: 100%; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border); margin-bottom: 8px; position: relative; background: #0f172a;">
+                    <div id="customerGeofenceMap" style="width: 100%; height: 100%; min-height: 350px;"></div>
                     <div style="position: absolute; top: 10px; right: 10px; z-index: 1000; display: flex; gap: 4px;">
                         <button type="button" class="tiny-btn" id="btnGfMapSat" onclick="setCustomerGeofenceMapBase('satellite')" style="background: rgba(15,23,42,0.88); backdrop-filter: blur(4px); font-size: 0.74rem;">🛰️ Satelliitti</button>
                         <button type="button" class="tiny-btn" id="btnGfMapStreet" onclick="setCustomerGeofenceMapBase('street')" style="background: rgba(15,23,42,0.88); backdrop-filter: blur(4px); font-size: 0.74rem;">🗺️ Kartta</button>
@@ -11831,6 +11830,8 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         const nLat = Number(lat);
         const nLon = Number(lon);
         const latLng = [nLat, nLon];
+        const currentPropertyCoords = { lat: nLat, lon: nLon };
+        window.currentPropertyCoords = currentPropertyCoords;
 
         if (custGfMarker) custGfMarker.setLatLng(latLng);
         if (custGfCircle) custGfCircle.setLatLng(latLng);
@@ -11851,20 +11852,29 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     }
     window.updateCustomerGeofencePosition = updateCustomerGeofencePosition;
 
-    function openGeofenceEditorForCustomer(customerId) {
-        const c = customers.find(x => String(x.id) === String(customerId));
-        if (!c) {
+    function openGeofenceEditorForCustomer(propertyOrId) {
+        const property = (typeof propertyOrId === 'object' && propertyOrId !== null)
+            ? propertyOrId
+            : (customers.find(x => String(x.id) === String(propertyOrId)) || (typeof tasks !== 'undefined' ? tasks.find(x => String(x.id) === String(propertyOrId)) : null));
+        if (!property) {
             alert('Asiakasta ei löytynyt.');
             return;
         }
+        const c = property;
         activeGfCustomer = c;
         normalizeGeofenceFields(c);
 
-        const dlg = document.getElementById('customerGeofenceDialog');
+        const dlg = document.getElementById('customerGeofenceDialog') || document.getElementById('modal-geofence');
         if (!dlg) return;
 
-        document.getElementById('gfCustId').value = c.id;
-        document.getElementById('gfCustDialogTitle').textContent = `Määritä geofence: ${c.name || 'Kohde'}`;
+        const idEl = document.getElementById('gfCustId');
+        if (idEl) idEl.value = c.id || '';
+
+        const titleEl = document.getElementById('gfCustDialogTitle');
+        if (titleEl) {
+            titleEl.textContent = `Määritä geofence: ${property.name || 'Nimetön kohde'}`;
+        }
+
         const enabledCheck = document.getElementById('gfCustEnabled');
         if (enabledCheck) enabledCheck.checked = c.geofence_enabled !== false;
 
@@ -11880,9 +11890,27 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         toggleGfCustFields();
         onGfCustTypeChange();
 
+        let propLat = c.lat;
+        let propLon = c.lon;
+        if (!propLat || !propLon) {
+            const matchTask = (typeof tasks !== 'undefined') ? tasks.find(t => (t.name === c.name || t.address === c.address) && t.lat && t.lon) : null;
+            if (matchTask) {
+                propLat = matchTask.lat;
+                propLon = matchTask.lon;
+            } else if (typeof depot !== 'undefined' && depot && depot.lat && depot.lon) {
+                propLat = depot.lat;
+                propLon = depot.lon;
+            } else {
+                propLat = 61.4978;
+                propLon = 23.7610;
+            }
+        }
+        const currentPropertyCoords = { lat: Number(propLat), lon: Number(propLon) };
+        window.currentPropertyCoords = currentPropertyCoords;
+
         const coordEl = document.getElementById('gfCustCoordInfo');
         if (coordEl) {
-            coordEl.textContent = (c.lat && c.lon) ? `${Number(c.lat).toFixed(5)}, ${Number(c.lon).toFixed(5)}` : 'Haetaan sijaintia...';
+            coordEl.textContent = (c.lat && c.lon) ? `${Number(c.lat).toFixed(5)}, ${Number(c.lon).toFixed(5)}` : `${currentPropertyCoords.lat.toFixed(5)}, ${currentPropertyCoords.lon.toFixed(5)}`;
         }
 
         if (typeof dlg.showModal === 'function') {
@@ -11893,18 +11921,27 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
 
         // Alustetaan kartta välittömästi sekä viiveellä, jotta dialogin DOM-mitat ovat asettuneet
         initCustomerGeofenceMap(c);
+        const geofenceMap = custGfMap;
+        window.geofenceMap = custGfMap;
+
         setTimeout(() => {
             if (custGfMap) {
                 custGfMap.invalidateSize();
             }
         }, 80);
+
         setTimeout(() => {
-            if (custGfMap) {
-                custGfMap.invalidateSize();
+            if (geofenceMap) {
+                geofenceMap.invalidateSize();
+                // Keskitetään kartta kohteen pisteeseen ja varmistetaan oikea zoomi
+                if (currentPropertyCoords) {
+                    geofenceMap.setView([currentPropertyCoords.lat, currentPropertyCoords.lon], 16);
+                }
             }
-        }, 220);
+        }, 200);
     }
     window.openGeofenceEditorForCustomer = openGeofenceEditorForCustomer;
+    window.openGeofenceModal = openGeofenceEditorForCustomer;
 
     function toggleGfCustFields() {
         const enabled = document.getElementById('gfCustEnabled')?.checked;
@@ -11979,14 +12016,17 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         }
 
         const centerCoords = [Number(lat), Number(lon)];
+        const currentPropertyCoords = { lat: Number(lat), lon: Number(lon) };
+        window.currentPropertyCoords = currentPropertyCoords;
 
         if (!custGfMap) {
             custGfMap = L.map('customerGeofenceMap', {
                 center: centerCoords,
-                zoom: 18,
+                zoom: 16,
                 maxZoom: 21,
                 attributionControl: false
             });
+            window.geofenceMap = custGfMap;
 
             custGfTileLayer = createCustomerGfTileLayer(custGfMapBase);
             custGfTileLayer.addTo(custGfMap);
@@ -12000,7 +12040,8 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                 }
             });
         } else {
-            custGfMap.setView(centerCoords, 18);
+            custGfMap.setView(centerCoords, 16);
+            window.geofenceMap = custGfMap;
             if (!custGfTileLayer || !custGfMap.hasLayer(custGfTileLayer)) {
                 custGfTileLayer = createCustomerGfTileLayer(custGfMapBase);
                 custGfTileLayer.addTo(custGfMap);
@@ -12141,8 +12182,9 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         saveAndRender();
         if (typeof renderYardGeofenceCircle === 'function') renderYardGeofenceCircle();
 
+        const savedName = (activeGfCustomer && activeGfCustomer.name) ? activeGfCustomer.name : 'Kohde';
         closeCustomerGeofenceDialog();
-        showStatus(`Geofence-alue tallennettu kohteelle "${activeGfCustomer.name}"!`, 'success');
+        showStatus(`Geofence-alue tallennettu kohteelle "${savedName}"!`, 'success');
     }
     window.saveCustomerGeofence = saveCustomerGeofence;
 
