@@ -725,6 +725,65 @@
         .btn-driver-obstacle:hover { background: rgba(245, 158, 11, 0.25); }
         .btn-driver-obstacle:active { transform: scale(0.98); }
 
+        /* Selauspainikkeet: Edellinen & Seuraava kohde */
+        .hud-step-nav-btn {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-main, #f8fafc);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 5px 11px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: var(--transition);
+            user-select: none;
+        }
+        .hud-step-nav-btn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.16);
+            border-color: #38bdf8;
+        }
+        .hud-step-nav-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* Valmis-tilan purkupainike (Punainen / Varoittava) */
+        .btn-driver-uncomplete {
+            flex: 2.2;
+            min-height: 60px;
+            background: #dc2626;
+            color: #ffffff;
+            border: none;
+            border-radius: var(--radius-lg);
+            font-size: 1.05rem;
+            font-weight: 800;
+            letter-spacing: 0.01em;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4);
+            transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.15s ease;
+            user-select: none;
+        }
+        .btn-driver-uncomplete:hover { background: #b91c1c; }
+        .btn-driver-uncomplete:active { transform: scale(0.98); }
+
+        /* Kuittauksen vihreä vilkahdusanimaatio */
+        @keyframes hudSuccessFlash {
+            0% { background-color: rgba(16, 185, 129, 0.45); border-color: #10b981; transform: scale(1.008); }
+            50% { background-color: rgba(16, 185, 129, 0.2); border-color: #10b981; }
+            100% { background-color: var(--bg-card); border-color: var(--border); transform: scale(1); }
+        }
+        .hud-flash-success {
+            animation: hudSuccessFlash 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
         /* Asiakaskortin lisätyylit */
         .customer-business-id { display: inline-block; font-size: 0.78rem; font-weight: 600; color: var(--muted); margin-left: 6px; }
         .customer-linked-yards { font-size: 0.82rem; color: #38bdf8; margin-top: 4px; display: flex; align-items: center; gap: 6px; }
@@ -1462,15 +1521,25 @@
             <div id="driver-hud-top" class="driver-hud-top current-property-card">
                 <div id="current-property-card" style="display:none;" aria-hidden="true"></div>
                 <div class="driver-hud-header-row">
-                    <div class="driver-hud-badge">
-                        <span class="hud-pulse-dot"></span>
-                        <span id="driverHudStep">SEURAAVA KOHDE</span>
-                        <span id="driverHudCounter" class="hud-counter-badge">0 / 0</span>
+                    <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                        <button type="button" id="btn-prev-property" class="hud-step-nav-btn" onclick="navigateActiveProperty(-1)" title="Edellinen kohde reitillä" disabled>
+                            <span>⏮️</span> <span>Edellinen</span>
+                        </button>
+                        <div class="driver-hud-badge">
+                            <span class="hud-pulse-dot"></span>
+                            <span id="driverHudStep">SEURAAVA KOHDE</span>
+                            <span id="driverHudCounter" class="hud-counter-badge">0 / 0</span>
+                        </div>
+                        <button type="button" id="btn-next-property" class="hud-step-nav-btn" onclick="navigateActiveProperty(1)" title="Seuraava kohde reitillä" disabled>
+                            <span>Seuraava</span> <span>⏭️</span>
+                        </button>
                     </div>
-                    <div id="driverHudRouteInfo" style="font-size: 0.76rem; color: var(--accent-light, #38bdf8); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 140px;" title="Aktiivinen reitti ja kuljettaja"></div>
-                    <button type="button" class="driver-nav-quick-btn" onclick="navigateToNextYard()" title="Avaa navigointi Google Mapsissa">
-                        🧭 Navigoi
-                    </button>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div id="driverHudRouteInfo" style="font-size: 0.76rem; color: var(--accent-light, #38bdf8); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 140px;" title="Aktiivinen reitti ja kuljettaja"></div>
+                        <button type="button" class="driver-nav-quick-btn" onclick="navigateToNextYard()" title="Avaa navigointi Google Mapsissa">
+                            🧭 Navigoi
+                        </button>
+                    </div>
                 </div>
                 <div id="driverHudName" class="driver-hud-title">Valitse kohde reitiltä</div>
                 <div id="driverHudAddress" class="driver-hud-address">📍 Osoite</div>
@@ -1572,6 +1641,10 @@
                 <button type="button" id="btn-driver-complete" class="btn-driver-complete" onclick="completeNextYard()">
                     <span>✓</span>
                     <span id="btnDriverCompleteText">KUITTAA TEHDYKSI</span>
+                </button>
+                <button type="button" id="btn-uncomplete-property" class="btn-driver-uncomplete" onclick="uncompleteActiveYard()" style="display: none;" title="Ota valmis-tila pois ja palauta kohde tekemättömäksi">
+                    <span>↩️</span>
+                    <span>Ota valmis-tila pois / Avaa uudelleen</span>
                 </button>
                 <button type="button" id="btn-driver-obstacle" class="btn-driver-obstacle" onclick="reportNextYardObstacle()" title="Ilmoita este tai syy, miksi kohdetta ei voida tehdä">
                     ⚠️ Ilmoita esteestä
@@ -3371,12 +3444,39 @@
     window.optimizeDriverRoute = optimizeDriverRoute;
 
     // ---------- KULJETTAJAN KENTTÄTILAN HUD-TOIMINNOT ----------
+    function getActiveOrNextTask() {
+        if (!tasks || tasks.length === 0) return null;
+        if (activeSelectedTaskId != null) {
+            const found = tasks.find(t => String(t.id) === String(activeSelectedTaskId));
+            if (found) return found;
+        }
+        return tasks.find(t => !t.done && !t.blocked) || tasks.find(t => !t.done) || tasks[0] || null;
+    }
+    window.getActiveOrNextTask = getActiveOrNextTask;
+
+    function navigateActiveProperty(delta) {
+        if (!tasks || tasks.length === 0) return;
+        const currentTask = getActiveOrNextTask();
+        let curIdx = currentTask ? tasks.findIndex(t => String(t.id) === String(currentTask.id)) : 0;
+        if (curIdx === -1) curIdx = 0;
+
+        const newIdx = curIdx + delta;
+        if (newIdx < 0 || newIdx >= tasks.length) return;
+
+        const nextT = tasks[newIdx];
+        if (!nextT) return;
+
+        selectActiveProperty(nextT.id, true);
+        updateDriverHud();
+        renderDriverQueue();
+    }
+    window.navigateActiveProperty = navigateActiveProperty;
+
     function updateDriverHud() {
         if (!tasks) return;
         const total = tasks.length;
         const doneList = tasks.filter(t => t.done);
         const done = doneList.length;
-        const nextTask = tasks.find(t => !t.done && !t.blocked) || tasks.find(t => !t.done);
 
         const hudStep = document.getElementById('driverHudStep');
         const hudCounter = document.getElementById('driverHudCounter');
@@ -3386,35 +3486,86 @@
         const hudNoteText = document.getElementById('driverHudNoteText');
         const btnCompleteText = document.getElementById('btnDriverCompleteText');
         const btnComplete = document.getElementById('btn-driver-complete');
+        const btnUncomplete = document.getElementById('btn-uncomplete-property');
+        const btnPrev = document.getElementById('btn-prev-property');
+        const btnNext = document.getElementById('btn-next-property');
 
         if (hudCounter) hudCounter.textContent = `${done} / ${total}`;
 
-        if (!nextTask) {
-            if (hudStep) hudStep.textContent = 'REITTI VALMIS';
-            if (hudName) hudName.textContent = 'Kaikki kohteet kuitattu! 🎉';
-            if (hudAddress) hudAddress.textContent = 'Päivän ajoreitti suoritettu onnistuneesti.';
-            if (hudNote) hudNote.style.display = 'none';
-            if (btnCompleteText) btnCompleteText.textContent = '✓ KAIKKI VALMISTA';
-            if (btnComplete) {
-                btnComplete.style.opacity = '0.6';
-                btnComplete.disabled = true;
+        if (total === 0) {
+            if (hudStep) {
+                hudStep.textContent = 'EI REITTIÄ';
+                hudStep.style.color = '#94a3b8';
             }
+            if (hudName) hudName.textContent = 'Ei kohteita ajolistalla';
+            if (hudAddress) hudAddress.textContent = 'Valitse tai luo reitti hallintapaneelista.';
+            if (hudNote) hudNote.style.display = 'none';
+            if (btnComplete) {
+                btnComplete.style.display = 'inline-flex';
+                btnComplete.disabled = true;
+                btnComplete.style.opacity = '0.5';
+            }
+            if (btnUncomplete) btnUncomplete.style.display = 'none';
+            if (btnPrev) btnPrev.disabled = true;
+            if (btnNext) btnNext.disabled = true;
             return;
         }
 
-        if (btnComplete) {
-            btnComplete.style.opacity = '1';
-            btnComplete.disabled = false;
+        const currentTask = getActiveOrNextTask();
+        const taskIndex = currentTask ? tasks.findIndex(t => String(t.id) === String(currentTask.id)) : -1;
+
+        // Päivitetään Edellinen / Seuraava -painikkeiden tilat
+        if (btnPrev) {
+            btnPrev.disabled = (taskIndex <= 0);
+        }
+        if (btnNext) {
+            btnNext.disabled = (taskIndex === -1 || taskIndex >= total - 1);
         }
 
-        const taskIndex = tasks.findIndex(t => t.id === nextTask.id);
-        if (hudStep) hudStep.textContent = `KOHDE ${taskIndex >= 0 ? taskIndex + 1 : done + 1}`;
-        if (hudName) hudName.textContent = nextTask.name || 'Nimetön kohde';
-        if (hudAddress) hudAddress.textContent = `📍 ${nextTask.address || 'Ei osoitetta'}`;
+        // Jos kaikki on tehty eikä mitään kohdetta ole erikseen valittu
+        if (total > 0 && done === total && (!currentTask || activeSelectedTaskId == null)) {
+            if (hudStep) {
+                hudStep.textContent = 'REITTI VALMIS';
+                hudStep.style.color = '#10b981';
+            }
+            if (hudName) hudName.textContent = 'Kaikki kohteet kuitattu! 🎉';
+            if (hudAddress) hudAddress.textContent = 'Päivän ajoreitti suoritettu onnistuneesti.';
+            if (hudNote) hudNote.style.display = 'none';
+            if (btnComplete) {
+                btnComplete.style.display = 'inline-flex';
+                btnComplete.style.opacity = '0.6';
+                btnComplete.disabled = true;
+            }
+            if (btnCompleteText) btnCompleteText.textContent = '✓ KAIKKI VALMISTA';
+            if (btnUncomplete) btnUncomplete.style.display = 'none';
+            return;
+        }
 
-        if (nextTask.notes && nextTask.notes.trim()) {
+        if (!currentTask) return;
+
+        const isDone = !!currentTask.done;
+        const isBlocked = !!currentTask.blocked;
+        const stepNum = taskIndex >= 0 ? taskIndex + 1 : 1;
+
+        if (hudStep) {
+            if (isDone) {
+                hudStep.textContent = `KOHDE ${stepNum} (VALMIS ✓)`;
+                hudStep.style.color = '#10b981';
+            } else if (isBlocked) {
+                hudStep.textContent = `KOHDE ${stepNum} (ESTE ⚠️)`;
+                hudStep.style.color = '#f59e0b';
+            } else {
+                hudStep.textContent = `KOHDE ${stepNum}`;
+                hudStep.style.color = '#38bdf8';
+            }
+        }
+
+        if (hudName) hudName.textContent = currentTask.name || 'Nimetön kohde';
+        if (hudAddress) hudAddress.textContent = `📍 ${currentTask.address || 'Ei osoitetta'}`;
+
+        if (currentTask.notes && currentTask.notes.trim()) {
             if (hudNote) hudNote.style.display = 'flex';
-            if (hudNoteText) hudNoteText.textContent = nextTask.notes.trim();
+            if (hudNoteText) hudNoteText.textContent = currentTask.notes.trim();
         } else {
             if (hudNote) hudNote.style.display = 'none';
         }
@@ -3432,20 +3583,35 @@
             }
         }
 
-        if (btnCompleteText) {
-            btnCompleteText.textContent = nextTask.blocked ? '✓ KUITTAA (ESTE ILMOITETTU)' : 'KUITTAA TEHDYKSI';
+        // Pääpainikkeen tila: jos valmis -> purkupainike, jos tekemättä -> vihreä kuittaus
+        if (isDone) {
+            if (btnComplete) btnComplete.style.display = 'none';
+            if (btnUncomplete) {
+                btnUncomplete.style.display = 'inline-flex';
+                btnUncomplete.disabled = false;
+            }
+        } else {
+            if (btnUncomplete) btnUncomplete.style.display = 'none';
+            if (btnComplete) {
+                btnComplete.style.display = 'inline-flex';
+                btnComplete.style.opacity = '1';
+                btnComplete.disabled = false;
+                if (btnCompleteText) {
+                    btnCompleteText.textContent = isBlocked ? '✓ KUITTAA (ESTE ILMOITETTU)' : 'KUITTAA TEHDYKSI';
+                }
+            }
         }
     }
     window.updateDriverHud = updateDriverHud;
 
     function reportNextYardObstacle() {
-        const nextTask = tasks.find(t => !t.done && !t.blocked) || tasks.find(t => !t.done);
-        if (!nextTask) {
+        const targetTask = getActiveOrNextTask();
+        if (!targetTask) {
             alert('Ei aktiivisia kohteita reitillä.');
             return;
         }
         if (typeof openTaskObstacleModal === 'function') {
-            openTaskObstacleModal(nextTask.id);
+            openTaskObstacleModal(targetTask.id);
         } else {
             alert('Esteen ilmoitus ei ole käytettävissä.');
         }
@@ -3453,16 +3619,16 @@
     window.reportNextYardObstacle = reportNextYardObstacle;
 
     function navigateToNextYard() {
-        const nextTask = tasks.find(t => !t.done && !t.blocked) || tasks.find(t => !t.done);
-        if (!nextTask) {
-            alert('Ei tekemättömiä kohteita reitillä.');
+        const targetTask = getActiveOrNextTask();
+        if (!targetTask) {
+            alert('Ei kohteita valittuna reitiltä.');
             return;
         }
         let url;
-        if (nextTask.lat && nextTask.lon) {
-            url = `https://www.google.com/maps/dir/?api=1&destination=${nextTask.lat},${nextTask.lon}`;
-        } else if (nextTask.address || nextTask.name) {
-            url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(nextTask.address || nextTask.name)}`;
+        if (targetTask.lat && targetTask.lon) {
+            url = `https://www.google.com/maps/dir/?api=1&destination=${targetTask.lat},${targetTask.lon}`;
+        } else if (targetTask.address || targetTask.name) {
+            url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(targetTask.address || targetTask.name)}`;
         } else {
             alert('Kohteelta puuttuu osoite ja koordinaatit.');
             return;
@@ -3472,15 +3638,143 @@
     window.navigateToNextYard = navigateToNextYard;
 
     function completeNextYard() {
-        const nextTask = tasks.find(t => !t.done && !t.blocked) || tasks.find(t => !t.done);
-        if (!nextTask) {
-            alert('Ei tekemättömiä kohteita reitillä.');
+        const targetTask = getActiveOrNextTask();
+        if (!targetTask) {
+            alert('Ei aktiivisia kohteita reitillä.');
             return;
         }
-        handleCompleteTaskClick(nextTask.id);
-        setTimeout(() => updateDriverHud(), 150);
+        if (targetTask.done) {
+            uncompleteActiveYard(targetTask.id);
+            return;
+        }
+        handleCompleteTaskClick(targetTask.id, document.getElementById('btn-driver-complete'));
     }
     window.completeNextYard = completeNextYard;
+
+    async function uncompleteActiveYard(taskId = null) {
+        const id = taskId || (activeSelectedTaskId != null ? activeSelectedTaskId : (getActiveOrNextTask()?.id));
+        if (!id) return;
+
+        const t = tasks.find(x => String(x.id) === String(id));
+        if (!t) return;
+
+        if (!confirm(`Haluatko ottaa valmis-tilan pois kohteelta "${t.name}" ja palauttaa sen tekemättömäksi?`)) {
+            return;
+        }
+
+        // 1. Paikallisen tilan palautus tekemättömäksi (status: pending)
+        t.done = false;
+        t.completed = false;
+        t.status = 'pending';
+        t.verified_on_site = false;
+        t.manual_override = false;
+        t.override_reason = null;
+        t.override_distance_meters = null;
+        t.completed_at = null;
+        t.completedAt = null;
+        t.manager_alert = false;
+
+        // 2. Päivitetään asiakasrekisterin kortti jos linkitetty
+        const cust = customers.find(c =>
+            (t.customerId && String(c.id) === String(t.customerId)) ||
+            (c.name && t.name && c.name.toLowerCase() === t.name.toLowerCase())
+        );
+        if (cust) {
+            cust.completed_at = null;
+            cust.manager_alert = false;
+            cust.manual_override = false;
+            persistCustomers();
+        }
+
+        // 3. Poistetaan / perutaan työloki paikallisesti ja syncQueuesta
+        try {
+            let syncQueue = JSON.parse(localStorage.getItem('yardflow_sync_queue') || '[]');
+            syncQueue = syncQueue.filter(q =>
+                String(q.propertyId) !== String(t.id) &&
+                String(q.propertyName || '').trim().toLowerCase() !== String(t.name || '').trim().toLowerCase()
+            );
+            localStorage.setItem('yardflow_sync_queue', JSON.stringify(syncQueue));
+
+            let workLogs = JSON.parse(localStorage.getItem('yardflow_work_logs') || '[]');
+            workLogs = workLogs.filter(l =>
+                String(l.propertyId) !== String(t.id) &&
+                String(l.propertyName || '').trim().toLowerCase() !== String(t.name || '').trim().toLowerCase()
+            );
+            localStorage.setItem('yardflow_work_logs', JSON.stringify(workLogs));
+        } catch (e) {
+            console.warn('Virhe paikallisen työlokin poistossa:', e);
+        }
+
+        // 4. Supabase: poistetaan tai päivitetään tila pilvestä
+        try {
+            const client = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : null) || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+            if (client && navigator.onLine) {
+                client.from('work_logs')
+                    .delete()
+                    .eq('property_name', t.name)
+                    .then(({ error }) => {
+                        if (error) console.warn('Supabase work_log poistovirhe:', error);
+                    })
+                    .catch(err => console.warn('Supabase work_log delete caught:', err));
+            }
+        } catch (e) {
+            console.warn('Supabase poistoyritys virhe:', e);
+        }
+
+        // 5. Tallennus ja näkymien päivitys
+        activeSelectedTaskId = t.id;
+        saveAndRender();
+        updateDriverHud();
+        renderDriverQueue();
+        renderRoutePolyline();
+        renderRouteAnalytics();
+        if (typeof updateConnectionStatus === 'function') updateConnectionStatus();
+
+        showStatus(`Kohde "${esc(t.name)}" palautettu tekemättömäksi (status: pending).`, 'info');
+    }
+    window.uncompleteActiveYard = uncompleteActiveYard;
+
+    function triggerTaskCompletedTransition(completedTask) {
+        if (!completedTask || !tasks || tasks.length === 0) return;
+
+        // 1. Visuaalinen vahvistus (vihreä vilkahdus HUD-kortissa)
+        const hudTop = document.getElementById('driver-hud-top');
+        if (hudTop) {
+            hudTop.classList.remove('hud-flash-success');
+            void hudTop.offsetWidth;
+            hudTop.classList.add('hud-flash-success');
+            setTimeout(() => {
+                if (hudTop) hudTop.classList.remove('hud-flash-success');
+            }, 1000);
+        }
+
+        // 2. Etsitään seuraava tekemätön kohde
+        const currentIdx = tasks.findIndex(t => String(t.id) === String(completedTask.id));
+        let nextTask = null;
+        if (currentIdx !== -1) {
+            nextTask = tasks.slice(currentIdx + 1).find(t => !t.done && !t.blocked) ||
+                       tasks.slice(currentIdx + 1).find(t => !t.done);
+        }
+        if (!nextTask) {
+            nextTask = tasks.find(t => !t.done && !t.blocked) || tasks.find(t => !t.done);
+        }
+
+        // 3. Automaattinen siirtyminen viiveellä (700 ms)
+        setTimeout(() => {
+            if (nextTask) {
+                selectActiveProperty(nextTask.id, true);
+                updateDriverHud();
+                renderDriverQueue();
+                showStatus(`✓ Kuitattu! Seuraava kohde: "${esc(nextTask.name)}"`, 'success');
+            } else {
+                activeSelectedTaskId = null;
+                updateDriverHud();
+                renderDriverQueue();
+                showStatus('🎉 Reitti ajettu valmiiksi! Kaikki kohteet kuitattu.', 'success');
+            }
+        }, 700);
+    }
+    window.triggerTaskCompletedTransition = triggerTaskCompletedTransition;
 
     // ---------- Välilehtien vaihto ----------
     
@@ -7141,6 +7435,9 @@
         { const _cv = document.getElementById('customers-view') || document.getElementById('viewCustomers'); if (_cv && _cv.style.display !== 'none') renderCustomers(); }
         const distInfo = task.override_distance_meters != null ? ` (etäisyys ${task.override_distance_meters} m)` : '';
         showStatus(`🛰️ Paikkatodennus onnistui! "${esc(task.name)}" kuitattu valmiiksi ✓${distInfo}.`, 'success');
+        if (typeof triggerTaskCompletedTransition === 'function') {
+            triggerTaskCompletedTransition(task);
+        }
     }
 
     async function handleCompleteTaskClick(id, btnEl) {
@@ -7148,20 +7445,11 @@
         if (!t) return;
         normalizeGeofenceFields(t);
 
-        // Jos kohde on jo kuitattu valmiiksi, tarjotaan palautusta tekemättömäksi
+        // Jos kohde on jo kuitattu valmiiksi, ohjataan valmis-tilan purkamiseen
         if (t.done) {
-            if (!confirm(`Palautetaanko kohde "${t.name}" takaisin tilaan "Tekemättä"?`)) return;
-            t.done = false;
-            t.completed = false;
-            t.verified_on_site = false;
-            t.manual_override = false;
-            t.override_reason = null;
-            t.override_distance_meters = null;
-            t.completed_at = null;
-            t.completedAt = null;
-            t.manager_alert = false;
-            saveAndRender();
-            showStatus(`Kohde "${esc(t.name)}" palautettu tekemättömäksi.`, 'info');
+            if (typeof uncompleteActiveYard === 'function') {
+                uncompleteActiveYard(t.id);
+            }
             return;
         }
 
@@ -7393,6 +7681,9 @@
         saveAndRender();
         { const _cv = document.getElementById('customers-view') || document.getElementById('viewCustomers'); if (_cv && _cv.style.display !== 'none') renderCustomers(); }
         showStatus(`⚠️ "${esc(t.name)}" kuitattu manuaalisesti (${esc(finalReason)}). Merkintä tallennettu esimiehelle.`, 'info');
+        if (typeof triggerTaskCompletedTransition === 'function') {
+            triggerTaskCompletedTransition(t);
+        }
     }
     window.confirmGeofenceManualOverride = confirmGeofenceManualOverride;
 
@@ -9321,6 +9612,10 @@
             yardMap.flyTo([task.lat, task.lon], 18, { duration: 1.2 });
         } else if (flyTo && yardMap && task.address) {
             centerMapOnTarget(key);
+        }
+
+        if (typeof updateDriverHud === 'function') {
+            updateDriverHud();
         }
     }
     window.selectActiveProperty = selectActiveProperty;
