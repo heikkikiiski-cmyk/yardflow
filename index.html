@@ -20,6 +20,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://unpkg.com/exifr@7.1.3/dist/lite.umd.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet-path-transform@1.1.3/dist/L.Path.Transform.js" crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         (function() {
             try {
@@ -3232,21 +3233,42 @@
         const isOnline = navigator.onLine !== false;
         const pill = document.getElementById('connectionStatusIndicator');
         const drawerBadge = document.getElementById('drawerConnectionBadge');
+        let queueCount = 0;
+        try {
+            const q = JSON.parse(localStorage.getItem('yardflow_sync_queue') || '[]');
+            queueCount = Array.isArray(q) ? q.length : 0;
+        } catch (e) {}
+
         if (pill) {
             pill.classList.toggle('offline', !isOnline);
             const textEl = pill.querySelector('.connection-status-text');
-            if (textEl) textEl.textContent = isOnline ? '☁️ Online' : '⚠️ Offline';
-            pill.title = isOnline ? 'Yhteystila: Online (Käytettävissä)' : 'Yhteystila: Offline (Toimii paikallisesti)';
+            if (textEl) {
+                if (!isOnline) {
+                    textEl.textContent = '⚠️ Offline';
+                } else if (queueCount > 0) {
+                    textEl.textContent = `☁️ Synk (${queueCount})`;
+                } else {
+                    textEl.textContent = '☁️ Online';
+                }
+            }
+            pill.title = isOnline
+                ? (queueCount > 0 ? `Yhteystila: Online (${queueCount} odottaa Supabase-synkronointia)` : 'Yhteystila: Online (Supabase yhdistetty)')
+                : 'Yhteystila: Offline (Toimii paikallisesti)';
         }
         if (drawerBadge) {
-            drawerBadge.textContent = isOnline ? '● Online' : '○ Offline';
-            drawerBadge.style.color = isOnline ? '#10b981' : '#f59e0b';
+            drawerBadge.textContent = isOnline ? (queueCount > 0 ? `● Synk (${queueCount})` : '● Online') : '○ Offline';
+            drawerBadge.style.color = isOnline ? (queueCount > 0 ? '#38bdf8' : '#10b981') : '#f59e0b';
         }
         if (notify && typeof showToast === 'function') {
-            showToast(isOnline ? '☁️ Yhteys kunnossa (Online)' : '⚠️ Laitteesi on offline-tilassa (Toimii paikallisesti)');
+            showToast(isOnline ? `☁️ Yhteys kunnossa (Online)${queueCount > 0 ? ` – ${queueCount} jonossa` : ''}` : '⚠️ Laitteesi on offline-tilassa (Toimii paikallisesti)');
         }
     }
     window.checkNetworkConnection = checkNetworkConnection;
+
+    function updateConnectionStatus() {
+        checkNetworkConnection(false);
+    }
+    window.updateConnectionStatus = updateConnectionStatus;
 
     function startTourShortcut() {
         setAppMode('field');
@@ -4190,42 +4212,150 @@
     window.getStoredWorkLogs = getStoredWorkLogs;
     window.saveStoredWorkLogs = saveStoredWorkLogs;
 
-    // Pilvisynkronointi: merkitsee paikalliset työlokit synkronoiduiksi pilveen
-    function syncWorkLogsWithCloud(showToast = true) {
-        const logs = getStoredWorkLogs();
-        const unsynced = logs.filter(l => l.synced === false);
-        if (unsynced.length === 0) {
-            if (showToast) showStatus('Kaikki työlokit ovat jo synkronoitu pilveen ✓', 'info');
-            return;
+    // =========================================================================
+    // ☁️ SUPABASE PILVIINTEGRAATIO & AUTOMAATTINEN TAUSTASYNKRONOINTI
+    // =========================================================================
+    const SUPABASE_URL = 'https://eiegvrbkytdunmzqiebt.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_NPXIOznFtzOTfALljbXh7w_TRbpLM0q';
+    const supabaseClient = (typeof window !== 'undefined' && window.supabase && typeof window.supabase.createClient === 'function')
+        ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+        : null;
+    window.SUPABASE_URL = SUPABASE_URL;
+    window.SUPABASE_KEY = SUPABASE_KEY;
+    window.supabaseClient = supabaseClient;
+
+    function getSupabaseClient() {
+        if (window.supabaseClient) return window.supabaseClient;
+        if (typeof window !== 'undefined' && window.supabase && typeof window.supabase.createClient === 'function') {
+            window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            return window.supabaseClient;
+        }
+        return null;
+    }
+
+    function enqueueWorkLogForSync(record) {
+        if (!record || record.synced === true) return;
+        try {
+            let queue = JSON.parse(localStorage.getItem('yardflow_sync_queue') || '[]');
+            if (!queue.some(q => String(q.id) === String(record.id))) {
+                queue.push(record);
+                localStorage.setItem('yardflow_sync_queue', JSON.stringify(queue));
+            }
+            if (typeof updateConnectionStatus === 'function') {
+                updateConnectionStatus();
+            }
+        } catch (e) {}
+    }
+    window.enqueueWorkLogForSync = enqueueWorkLogForSync;
+
+    function populateSyncQueueFromPendingLogs() {
+        try {
+            const logs = getStoredWorkLogs();
+            let queue = JSON.parse(localStorage.getItem('yardflow_sync_queue') || '[]');
+            let changed = false;
+            logs.forEach(l => {
+                if (l.synced === false && !queue.some(q => String(q.id) === String(l.id))) {
+                    queue.push(l);
+                    changed = true;
+                }
+            });
+            if (changed) {
+                localStorage.setItem('yardflow_sync_queue', JSON.stringify(queue));
+                if (typeof updateConnectionStatus === 'function') {
+                    updateConnectionStatus();
+                }
+            }
+        } catch (e) {}
+    }
+    window.populateSyncQueueFromPendingLogs = populateSyncQueueFromPendingLogs;
+
+    // Supabase taustasynkronointifunktio (syncPendingLogs)
+    async function syncPendingLogs() {
+        const client = getSupabaseClient() || supabaseClient;
+        if (!navigator.onLine || !client) return;
+        let queue = JSON.parse(localStorage.getItem('yardflow_sync_queue') || '[]');
+        if (queue.length === 0) return;
+
+        const remainingQueue = [];
+        let anySynced = false;
+
+        for (const item of queue) {
+            try {
+                const { error } = await client.from('work_logs').upsert({
+                    id: String(item.id || ('log_' + Date.now())),
+                    property_id: item.propertyId ? Number(item.propertyId) : null,
+                    property_name: item.propertyName || 'Nimetön kohde',
+                    completed_at: item.completedAt || new Date().toISOString(),
+                    latitude: item.coordinates ? item.coordinates.lat : null,
+                    longitude: item.coordinates ? item.coordinates.lon : null,
+                    method: item.method || 'Manuaalinen',
+                    status: 'completed'
+                });
+
+                if (error) {
+                    console.error('Virhe Supabase-synkronoinnissa:', error);
+                    remainingQueue.push(item);
+                } else {
+                    // Merkitään paikallisessa lokissa synkronoiduksi
+                    anySynced = true;
+                    const logs = JSON.parse(localStorage.getItem('yardflow_work_logs') || '[]');
+                    const idx = logs.findIndex(l => String(l.id) === String(item.id));
+                    if (idx !== -1) {
+                        logs[idx].synced = true;
+                        localStorage.setItem('yardflow_work_logs', JSON.stringify(logs));
+                    }
+                }
+            } catch (err) {
+                console.error('Verkkovirhe synkronoinnissa:', err);
+                remainingQueue.push(item);
+            }
         }
 
-        let changed = false;
-        const updated = logs.map(l => {
-            if (l.synced === false) {
-                changed = true;
-                return { ...l, synced: true };
-            }
-            return l;
-        });
-
-        if (changed) {
-            saveStoredWorkLogs(updated);
+        localStorage.setItem('yardflow_sync_queue', JSON.stringify(remainingQueue));
+        if (typeof updateConnectionStatus === 'function') {
+            updateConnectionStatus();
+        }
+        if (anySynced) {
             const historyView = document.getElementById('work-history-view');
-            if (historyView && historyView.style.display !== 'none') {
+            if (historyView && historyView.style.display !== 'none' && typeof renderWorkHistory === 'function') {
                 renderWorkHistory();
             }
             if (typeof renderDashboardView === 'function') {
                 renderDashboardView();
             }
-            if (showToast) {
-                showStatus(`☁️ ${unsynced.length} työlokia synkronoitu pilveen onnistuneesti! ✓`, 'success');
+        }
+    }
+    window.syncPendingLogs = syncPendingLogs;
+
+    // Pilvisynkronointi: käynnistää Supabase-synkronoinnin ja ilmoittaa käyttäjälle
+    async function syncWorkLogsWithCloud(showToast = true) {
+        populateSyncQueueFromPendingLogs();
+        const client = getSupabaseClient() || supabaseClient;
+        if (client && navigator.onLine) {
+            await syncPendingLogs();
+        } else if (!client) {
+            // Varajärjestelmä paikallisille lokeille jos Supabase-asiakas ei ole ladattavissa
+            const logs = getStoredWorkLogs();
+            const unsynced = logs.filter(l => l.synced === false);
+            if (unsynced.length > 0) {
+                const updated = logs.map(l => ({ ...l, synced: true }));
+                saveStoredWorkLogs(updated);
             }
+        }
+        const queue = JSON.parse(localStorage.getItem('yardflow_sync_queue') || '[]');
+        if (queue.length === 0) {
+            if (showToast) showStatus('Kaikki työlokit ovat synkronoitu pilveen (Supabase) ✓', 'success');
+        } else {
+            if (showToast) showStatus(`⏳ ${queue.length} työlokia jonossa Supabase-synkronointia varten.`, 'info');
+        }
+        if (typeof updateConnectionStatus === 'function') {
+            updateConnectionStatus();
         }
     }
     window.syncWorkLogsWithCloud = syncWorkLogsWithCloud;
 
     window.addEventListener('online', () => {
-        syncWorkLogsWithCloud(true);
+        syncPendingLogs();
     });
 
     function getPropertyDefaultPrice(propertyId, propertyName) {
@@ -4541,6 +4671,9 @@
 
         logs.unshift(record);
         saveStoredWorkLogs(logs);
+        if (!record.synced) {
+            enqueueWorkLogForSync(record);
+        }
         updateWorkHistoryBadge();
         populateCustomerFilterSelects();
         if (typeof renderDashboardView === 'function') renderDashboardView();
@@ -4555,11 +4688,11 @@
             renderBillingSummary();
         }
 
-        // Jos verkkoyhteys on päällä, simuloidaan pilvisynkronointi automaattisesti taustalla
+        // Käynnistetään Supabase-taustasynkronointi automaattisesti
         if (navigator.onLine) {
             setTimeout(() => {
-                syncWorkLogsWithCloud(false);
-            }, 800);
+                syncPendingLogs();
+            }, 50);
         }
 
         return record;
@@ -9862,8 +9995,11 @@
         window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(console.error));
     }
 
-    // Verkkoyhteyden tila (Online / Offline)
-    window.addEventListener('online', () => checkNetworkConnection(false));
+    // Verkkoyhteyden tila (Online / Offline) & automaattisynkronointi
+    window.addEventListener('online', () => {
+        checkNetworkConnection(false);
+        syncPendingLogs();
+    });
     window.addEventListener('offline', () => checkNetworkConnection(false));
     checkNetworkConnection(false);
 
@@ -9875,6 +10011,16 @@
         setWorkHistoryPeriod('month');
         setBillingPeriod('month');
     }, 50);
+
+    // Supabase automaattinen taustasynkronointi käynnistyksessä
+    populateSyncQueueFromPendingLogs();
+    if (navigator.onLine) {
+        setTimeout(() => syncPendingLogs(), 200);
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+        populateSyncQueueFromPendingLogs();
+        if (navigator.onLine) syncPendingLogs();
+    });
 </script>
 </body>
 </html>
