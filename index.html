@@ -2850,6 +2850,9 @@
                     </div>
                 </div>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button type="button" class="btn-outline" onclick="switchTab('routes')" style="min-height: 40px; padding: 0 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;" title="Palaa karttanäkymään">
+                        ← Takaisin kartalle
+                    </button>
                     <button type="button" class="btn-primary" id="btn-add-customer" onclick="toggleDrawer('addCustomerDrawer', this)" style="min-height: 40px; padding: 0 16px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
                         ➕ Lisää uusi asiakas
                     </button>
@@ -3008,6 +3011,9 @@
                     </div>
                 </div>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button type="button" class="btn-outline" onclick="switchTab('routes')" style="display: inline-flex; align-items: center; gap: 6px; min-height: 42px; padding: 0 14px; font-weight: 600;" title="Palaa karttanäkymään">
+                        ← Takaisin kartalle
+                    </button>
                     <button type="button" class="btn-primary" id="btn-export-work-pdf" onclick="exportWorkHistoryPDF()" style="display: inline-flex; align-items: center; gap: 6px; min-height: 42px; padding: 0 16px; font-weight: 600;">
                         📄 Lataa työraportti (PDF)
                     </button>
@@ -3100,6 +3106,9 @@
                     </div>
                 </div>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button type="button" class="btn-outline" onclick="switchTab('routes')" style="display: inline-flex; align-items: center; gap: 6px; min-height: 42px; padding: 0 14px; font-weight: 600;" title="Palaa karttanäkymään">
+                        ← Takaisin kartalle
+                    </button>
                     <button type="button" class="btn-primary" id="btn-export-billing-pdf" onclick="exportBillingPDF()" style="display: inline-flex; align-items: center; gap: 6px; min-height: 42px; padding: 0 16px; font-weight: 600;">
                         📄 Lataa laskuerittely (PDF)
                     </button>
@@ -3183,9 +3192,10 @@
     <div id="viewSettings" style="display: none;">
         <div class="card" style="max-width: 800px; margin: 0 auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
-                <button type="button" id="btn-back-from-settings" class="btn-outline" style="min-height: 42px; padding: 6px 16px; font-weight: 600; font-size: 0.9rem;" onclick="returnToMainViewFromSettings()">
-                    ← Takaisin päänäkymään
+                <button type="button" id="btn-back-from-settings" data-alias-id="btn-back-to-home" class="btn-outline" style="min-height: 42px; padding: 6px 16px; font-weight: 600; font-size: 0.9rem;" onclick="returnToMainViewFromSettings()">
+                ← Takaisin päänäkymään
                 </button>
+                <button type="button" id="btn-back-to-home" style="display: none;" onclick="returnToMainViewFromSettings()" aria-hidden="true"></button>
                 <h3 style="margin: 0;">
                     <span>⚙️ Järjestelmä- ja näkymäasetukset</span>
                 </h3>
@@ -5819,10 +5829,65 @@
     window.exportBillingPDF = exportBillingPDF;
 
 
+    const DEFAULT_SAMPLE_TASKS = [
+        {
+            id: 1,
+            name: 'As Oy Hämeenkatu 14',
+            address: 'Hämeenkatu 14, Tampere',
+            lat: 61.4975,
+            lon: 23.7620,
+            type: 'Auraus & Hiekoitus',
+            notes: 'Auraus sisäpihalle, lumenkasaus itäkulmaan. Varo pyörätelineitä.',
+            phone: '040 123 4567',
+            email: 'isannointi@hameenkatu14.fi',
+            geofence_enabled: true,
+            geofence_type: 'radius',
+            geofence_radius: 80,
+            defaultPrice: 48.00,
+            done: false
+        },
+        {
+            id: 2,
+            name: 'Kiinteistö Oy Kauppakatu 10',
+            address: 'Kauppakatu 10, Tampere',
+            lat: 61.4982,
+            lon: 23.7585,
+            type: 'Auraus',
+            notes: 'Puomit aukeavat koodilla 1234. Jalankulkuväylä pidettävä avoimena.',
+            phone: '050 987 6543',
+            email: 'huolto@kauppakatu10.fi',
+            geofence_enabled: true,
+            geofence_type: 'radius',
+            geofence_radius: 80,
+            defaultPrice: 55.00,
+            done: false
+        },
+        {
+            id: 3,
+            name: 'As Oy Aleksanterinkatu 22',
+            address: 'Aleksanterinkatu 22, Tampere',
+            lat: 61.4960,
+            lon: 23.7680,
+            type: 'Hiekoitus',
+            notes: 'Sepeli porttikongin viereisestä laatikosta. Rappusten edustat käsin.',
+            phone: '045 222 3344',
+            email: 'hallitus@aleksanteri22.fi',
+            geofence_enabled: true,
+            geofence_type: 'radius',
+            geofence_radius: 75,
+            defaultPrice: 42.00,
+            done: false
+        }
+    ];
+
     // ---------- Tietojen lataus ----------
     let tasks = JSON.parse(localStorage.getItem('pihatyot_tasks_v4')) ||
                 JSON.parse(localStorage.getItem('pihatyot_tasks_v3')) ||
                 JSON.parse(localStorage.getItem('pihatyot_tasks')) || [];
+    if (tasks.length === 0) {
+        tasks = JSON.parse(JSON.stringify(DEFAULT_SAMPLE_TASKS));
+        try { localStorage.setItem('pihatyot_tasks_v4', JSON.stringify(tasks)); } catch(e) {}
+    }
     window.tasks = tasks;
 
     function normalizeGeofenceFields(obj) {
@@ -7886,6 +7951,7 @@
     }
 
     function attachAutocomplete(input, onPick) {
+        if (!input || !input.parentNode) return;
         const wrap = document.createElement('div');
         wrap.className = 'ac-wrap';
         input.parentNode.insertBefore(wrap, input);
@@ -10083,7 +10149,7 @@
     attachAutocomplete(document.getElementById('editAddress'));
     attachAutocomplete(document.getElementById('custAddress'));
     attachAutocomplete(document.getElementById('editCustAddress'));
-    attachAutocomplete(document.getElementById('manualLogAddress'));
+    attachAutocomplete(document.getElementById('manualWorkLogAddress'));
     attachAutocomplete(depotInput, pick => {
         depot.address = pick.address;
         depot.lat = pick.lat;
