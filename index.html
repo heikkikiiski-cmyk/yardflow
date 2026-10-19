@@ -3134,19 +3134,32 @@
             </div>
 
             <!-- Suodattimet -->
-            <div class="history-filter-bar">
-                <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
-                    <span style="font-size: 0.82rem; font-weight: 600; color: var(--muted); margin-right: 4px;">Aikaväli:</span>
-                    <button type="button" class="history-period-btn active" data-period="today" onclick="setWorkHistoryPeriod('today')">Tänään</button>
-                    <button type="button" class="history-period-btn" data-period="week" onclick="setWorkHistoryPeriod('week')">Tämä viikko</button>
-                    <button type="button" class="history-period-btn" data-period="month" onclick="setWorkHistoryPeriod('month')">Tämä kuukausi</button>
-                    <button type="button" class="history-period-btn" data-period="all" onclick="setWorkHistoryPeriod('all')">Kaikki</button>
-                    <button type="button" class="history-period-btn" data-period="custom" onclick="setWorkHistoryPeriod('custom')">Valitse pvm-väli</button>
+            <div class="history-filter-bar" id="history-filter-bar" style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px; margin-bottom: 16px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; align-items: end; margin-bottom: 12px;">
+                    <div>
+                        <label for="filter-customer" style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--muted); margin-bottom: 4px;">👥 Asiakas:</label>
+                        <select id="filter-customer" class="filter-customer-select" onchange="handleHistoryCustomerChange(this.value)" style="margin: 0; width: 100%; font-size: 0.88rem; min-height: 40px;">
+                            <option value="">Kaikki asiakkaat</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="filter-start-date" style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--muted); margin-bottom: 4px;">📅 Alkupäivämäärä:</label>
+                        <input type="date" id="filter-start-date" class="filter-start-date" onchange="handleHistoryDateChange()" style="margin: 0; width: 100%; font-size: 0.88rem; min-height: 40px;">
+                        <input type="date" id="historyStartDate" style="display: none;" aria-hidden="true">
+                    </div>
+                    <div>
+                        <label for="filter-end-date" style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--muted); margin-bottom: 4px;">📅 Loppupäivämäärä:</label>
+                        <input type="date" id="filter-end-date" class="filter-end-date" onchange="handleHistoryDateChange()" style="margin: 0; width: 100%; font-size: 0.88rem; min-height: 40px;">
+                        <input type="date" id="historyEndDate" style="display: none;" aria-hidden="true">
+                    </div>
                 </div>
-                <div id="historyCustomDates" style="display: none; align-items: center; gap: 6px; margin-top: 8px;">
-                    <input type="date" id="historyStartDate" onchange="renderWorkHistory()" style="margin: 0; width: auto; font-size: 0.84rem;">
-                    <span style="color: var(--muted); font-size: 0.82rem;">–</span>
-                    <input type="date" id="historyEndDate" onchange="renderWorkHistory()" style="margin: 0; width: auto; font-size: 0.84rem;">
+
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; border-top: 1px solid var(--border); padding-top: 10px;">
+                    <span style="font-size: 0.82rem; font-weight: 600; color: var(--muted); margin-right: 4px;">Pikavalinta:</span>
+                    <button type="button" class="history-period-btn" data-period="week" onclick="setWorkHistoryPeriod('week')">Tämä viikko</button>
+                    <button type="button" class="history-period-btn active" data-period="month" onclick="setWorkHistoryPeriod('month')">Tämä kuukausi</button>
+                    <button type="button" class="history-period-btn" data-period="lastMonth" onclick="setWorkHistoryPeriod('lastMonth')">Edellinen kuukausi</button>
+                    <button type="button" class="history-period-btn" data-period="all" onclick="setWorkHistoryPeriod('all')">Kaikki</button>
                 </div>
             </div>
 
@@ -3209,19 +3222,32 @@
             </div>
 
             <!-- Aikavälisuodatus laskutukselle -->
-            <div class="history-filter-bar">
-                <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
-                    <span style="font-size: 0.82rem; font-weight: 600; color: var(--muted); margin-right: 4px;">Laskutusjakso:</span>
-                    <button type="button" class="billing-period-btn active" data-period="month" onclick="setBillingPeriod('month')">Tämä kuukausi</button>
-                    <button type="button" class="billing-period-btn" data-period="lastMonth" onclick="setBillingPeriod('lastMonth')">Edellinen kk</button>
-                    <button type="button" class="billing-period-btn" data-period="week" onclick="setBillingPeriod('week')">Tämä viikko</button>
-                    <button type="button" class="billing-period-btn" data-period="today" onclick="setBillingPeriod('today')">Tänään</button>
-                    <button type="button" class="billing-period-btn" data-period="custom" onclick="setBillingPeriod('custom')">Valitse pvm-väli</button>
+            <div class="history-filter-bar" id="billing-filter-bar" style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px; margin-bottom: 16px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; align-items: end; margin-bottom: 12px;">
+                    <div>
+                        <label for="billing-filter-customer" style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--muted); margin-bottom: 4px;">👥 Asiakas:</label>
+                        <select id="billing-filter-customer" name="billing-filter-customer" class="filter-customer-select" onchange="handleBillingCustomerChange(this.value)" style="margin: 0; width: 100%; font-size: 0.88rem; min-height: 40px;">
+                            <option value="">Kaikki asiakkaat</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="billing-filter-start-date" style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--muted); margin-bottom: 4px;">📅 Alkupäivämäärä:</label>
+                        <input type="date" id="billing-filter-start-date" name="billing-filter-start-date" class="filter-start-date" onchange="handleBillingDateChange()" style="margin: 0; width: 100%; font-size: 0.88rem; min-height: 40px;">
+                        <input type="date" id="billingStartDate" style="display: none;" aria-hidden="true">
+                    </div>
+                    <div>
+                        <label for="billing-filter-end-date" style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--muted); margin-bottom: 4px;">📅 Loppupäivämäärä:</label>
+                        <input type="date" id="billing-filter-end-date" name="billing-filter-end-date" class="filter-end-date" onchange="handleBillingDateChange()" style="margin: 0; width: 100%; font-size: 0.88rem; min-height: 40px;">
+                        <input type="date" id="billingEndDate" style="display: none;" aria-hidden="true">
+                    </div>
                 </div>
-                <div id="billingCustomDates" style="display: none; align-items: center; gap: 6px; margin-top: 8px;">
-                    <input type="date" id="billingStartDate" onchange="renderBillingSummary()" style="margin: 0; width: auto; font-size: 0.84rem;">
-                    <span style="color: var(--muted); font-size: 0.82rem;">–</span>
-                    <input type="date" id="billingEndDate" onchange="renderBillingSummary()" style="margin: 0; width: auto; font-size: 0.84rem;">
+
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; border-top: 1px solid var(--border); padding-top: 10px;">
+                    <span style="font-size: 0.82rem; font-weight: 600; color: var(--muted); margin-right: 4px;">Pikavalinta:</span>
+                    <button type="button" class="billing-period-btn" data-period="week" onclick="setBillingPeriod('week')">Tämä viikko</button>
+                    <button type="button" class="billing-period-btn active" data-period="month" onclick="setBillingPeriod('month')">Tämä kuukausi</button>
+                    <button type="button" class="billing-period-btn" data-period="lastMonth" onclick="setBillingPeriod('lastMonth')">Edellinen kuukausi</button>
+                    <button type="button" class="billing-period-btn" data-period="all" onclick="setBillingPeriod('all')">Kaikki</button>
                 </div>
             </div>
 
@@ -4616,8 +4642,8 @@
         if (tabBtnSettings) tabBtnSettings.classList.toggle('active', tab === 'settings');
 
         if (tab === 'customers') renderCustomers();
-        if (tab === 'history') renderWorkHistory();
-        if (tab === 'billing') renderBillingSummary();
+        if (tab === 'history') { populateCustomerFilterSelects(); renderWorkHistory(); }
+        if (tab === 'billing') { populateCustomerFilterSelects(); renderBillingSummary(); }
         if (tab === 'settings') applyHomeWidgetVisibility();
 
         if (tab === 'routes') {
@@ -5231,6 +5257,8 @@
             console.error('Virhe työlokin tallentamisessa:', e);
         }
     }
+    window.getStoredWorkLogs = getStoredWorkLogs;
+    window.saveStoredWorkLogs = saveStoredWorkLogs;
 
     function getPropertyDefaultPrice(propertyId, propertyName) {
         if (typeof tasks !== 'undefined' && Array.isArray(tasks)) {
@@ -5246,6 +5274,207 @@
         return 45.00;
     }
 
+    // =========================================================================
+    // YARDFLOW WORK LOGS, CUSTOMER FILTERING & BILLING ENGINE
+    // =========================================================================
+
+    // DOM compatibility layer for dual filter bars
+    const _origGetElementById = document.getElementById.bind(document);
+    document.getElementById = function(id) {
+        if (id === 'billing-filter-customer') {
+            return document.querySelector('#billing-filter-bar select') || _origGetElementById(id);
+        }
+        if (id === 'billing-filter-start-date') {
+            return document.querySelector('#billing-filter-bar input.filter-start-date') || _origGetElementById(id);
+        }
+        if (id === 'billing-filter-end-date') {
+            return document.querySelector('#billing-filter-bar input.filter-end-date') || _origGetElementById(id);
+        }
+        return _origGetElementById(id);
+    };
+
+    function sanitizeFilenamePart(str) {
+        if (!str) return 'Kaikki_asiakkaat';
+        return String(str)
+            .replace(/[äÄ]/g, 'a')
+            .replace(/[öÖ]/g, 'o')
+            .replace(/[åÅ]/g, 'a')
+            .replace(/[^a-zA-Z0-9_.-]/g, '_')
+            .replace(/_+/g, '_')
+            .replace(/^_+|_+$/g, '');
+    }
+
+    function formatDateYmd(d) {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    }
+
+    function fmtDateFi(yyyyMmDd) {
+        if (!yyyyMmDd) return '';
+        const parts = yyyyMmDd.split('-');
+        if (parts.length === 3) {
+            return `${parts[2]}.${parts[1]}.${parts[0]}`;
+        }
+        return yyyyMmDd;
+    }
+
+    function getDatesForPeriod(period) {
+        const now = new Date();
+        if (period === 'today') {
+            const dStr = formatDateYmd(now);
+            return {
+                start: new Date(dStr + 'T00:00:00'),
+                end: new Date(dStr + 'T23:59:59.999'),
+                startStr: dStr,
+                endStr: dStr
+            };
+        }
+        if (period === 'week') {
+            const day = now.getDay();
+            const diffToMon = (day === 0 ? -6 : 1) - day;
+            const mon = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMon);
+            const sun = new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + 6);
+            const monStr = formatDateYmd(mon);
+            const sunStr = formatDateYmd(sun);
+            return {
+                start: new Date(monStr + 'T00:00:00'),
+                end: new Date(sunStr + 'T23:59:59.999'),
+                startStr: monStr,
+                endStr: sunStr
+            };
+        }
+        if (period === 'month') {
+            const first = new Date(now.getFullYear(), now.getMonth(), 1);
+            const last = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            const firstStr = formatDateYmd(first);
+            const lastStr = formatDateYmd(last);
+            return {
+                start: new Date(firstStr + 'T00:00:00'),
+                end: new Date(lastStr + 'T23:59:59.999'),
+                startStr: firstStr,
+                endStr: lastStr
+            };
+        }
+        if (period === 'lastMonth') {
+            const first = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            const last = new Date(now.getFullYear(), now.getMonth(), 0);
+            const firstStr = formatDateYmd(first);
+            const lastStr = formatDateYmd(last);
+            return {
+                start: new Date(firstStr + 'T00:00:00'),
+                end: new Date(lastStr + 'T23:59:59.999'),
+                startStr: firstStr,
+                endStr: lastStr
+            };
+        }
+        return { start: null, end: null, startStr: '', endStr: '' };
+    }
+
+    // Täytetään dynaamisesti asiakasvalitsimet tallennetuista asiakkaista
+    function populateCustomerFilterSelects() {
+        const selects = document.querySelectorAll('.filter-customer-select');
+        if (!selects.length) return;
+
+        const customerMap = new Map();
+
+        // 1. Asiakasrekisteri
+        if (typeof customers !== 'undefined' && Array.isArray(customers)) {
+            customers.forEach(c => {
+                const name = (c.name || '').trim();
+                if (name && !customerMap.has(name.toLowerCase())) {
+                    customerMap.set(name.toLowerCase(), { id: c.id, name: name });
+                }
+            });
+        }
+
+        // 2. Kohteet / Tehtävät
+        if (typeof tasks !== 'undefined' && Array.isArray(tasks)) {
+            tasks.forEach(t => {
+                const name = (t.name || '').trim();
+                if (name && !customerMap.has(name.toLowerCase())) {
+                    customerMap.set(name.toLowerCase(), { id: t.customerId || t.id, name: name });
+                }
+            });
+        }
+
+        // 3. Työlokien asiakkaat ja kiinteistöt
+        const stored = getStoredWorkLogs();
+        stored.forEach(l => {
+            const name = (l.customerName || l.propertyName || '').trim();
+            if (name && !customerMap.has(name.toLowerCase())) {
+                customerMap.set(name.toLowerCase(), { id: l.customerId || name, name: name });
+            }
+        });
+
+        const list = Array.from(customerMap.values()).sort((a, b) => a.name.localeCompare(b.name, 'fi'));
+
+        selects.forEach(sel => {
+            const currentVal = sel.value;
+            let optionsHtml = '<option value="">Kaikki asiakkaat</option>';
+            list.forEach(c => {
+                optionsHtml += `<option value="${esc(c.name)}">${esc(c.name)}</option>`;
+            });
+            sel.innerHTML = optionsHtml;
+            if (currentVal && list.some(x => x.name === currentVal)) {
+                sel.value = currentVal;
+            }
+        });
+    }
+    window.populateCustomerFilterSelects = populateCustomerFilterSelects;
+
+    // Varmistetaan, että jokaisessa työlokimerkinnässä on customerId ja customerName
+    function enrichWorkLogsWithCustomers(logs) {
+        if (!logs || !Array.isArray(logs)) return [];
+        let changed = false;
+
+        const enriched = logs.map(l => {
+            let cid = l.customerId || null;
+            let cname = l.customerName || null;
+            const propName = (l.propertyName || l.name || '').trim();
+            const addr = (l.address || '').trim();
+
+            if (!cid || !cname) {
+                if (typeof customers !== 'undefined' && Array.isArray(customers)) {
+                    const match = customers.find(c =>
+                        (cid && String(c.id) === String(cid)) ||
+                        (c.name && propName && c.name.trim().toLowerCase() === propName.toLowerCase()) ||
+                        (c.address && addr && c.address.trim().toLowerCase() === addr.toLowerCase()) ||
+                        (c.linkedProperties && propName && c.linkedProperties.toLowerCase().includes(propName.toLowerCase()))
+                    );
+                    if (match) {
+                        cid = cid || match.id;
+                        cname = cname || match.name;
+                    }
+                }
+                if (typeof tasks !== 'undefined' && Array.isArray(tasks) && (!cid || !cname)) {
+                    const matchT = tasks.find(t =>
+                        (t.id && l.propertyId && String(t.id) === String(l.propertyId)) ||
+                        (t.name && propName && t.name.trim().toLowerCase() === propName.toLowerCase())
+                    );
+                    if (matchT) {
+                        cid = cid || matchT.customerId || matchT.id;
+                        cname = cname || matchT.name;
+                    }
+                }
+                cname = cname || propName || 'Tuntematon asiakas';
+            }
+
+            if (l.customerId !== cid || l.customerName !== cname) {
+                changed = true;
+                return { ...l, customerId: cid, customerName: cname };
+            }
+            return l;
+        });
+
+        if (changed) {
+            saveStoredWorkLogs(enriched);
+        }
+        return enriched;
+    }
+    window.enrichWorkLogsWithCustomers = enrichWorkLogsWithCustomers;
+
     // Päätallennusfunktio: kutsutaan automaattisesti kun kohde kuitataan valmiiksi
     function addWorkLogEntry(data) {
         if (!data) return;
@@ -5257,10 +5486,29 @@
             ? Number(data.price)
             : getPropertyDefaultPrice(propId, propName);
 
+        // Asiakastunnisteen linkitys
+        let cid = data.customerId || null;
+        let cname = data.customerName || null;
+        if (typeof customers !== 'undefined' && Array.isArray(customers)) {
+            const match = customers.find(c =>
+                (cid && String(c.id) === String(cid)) ||
+                (c.name && propName && c.name.trim().toLowerCase() === propName.trim().toLowerCase()) ||
+                (c.address && addr && c.address.trim().toLowerCase() === addr.trim().toLowerCase()) ||
+                (c.linkedProperties && propName && c.linkedProperties.toLowerCase().includes(propName.toLowerCase()))
+            );
+            if (match) {
+                cid = cid || match.id;
+                cname = cname || match.name;
+            }
+        }
+        if (!cname) cname = propName;
+
         const record = {
             id: data.id || ('log_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6)),
             propertyId: propId,
             propertyName: propName,
+            customerId: cid,
+            customerName: cname,
             address: addr,
             completedAt: data.completedAt || data.completed_at || data.timestamp || new Date().toISOString(),
             workType: data.workType || data.type || 'Auraus & Hiekoitus',
@@ -5272,6 +5520,7 @@
         logs.unshift(record);
         saveStoredWorkLogs(logs);
         updateWorkHistoryBadge();
+        populateCustomerFilterSelects();
 
         const historyView = document.getElementById('work-history-view');
         if (historyView && historyView.style.display !== 'none') {
@@ -5308,6 +5557,8 @@
                     id: 'seed_1',
                     propertyId: 'sample_1',
                     propertyName: 'Asunto Oy Kissanmaankatu 3',
+                    customerId: 'sample_1',
+                    customerName: 'Asunto Oy Kissanmaankatu 3',
                     address: 'Kissanmaankatu 3, Tampere',
                     completedAt: todayIso,
                     workType: 'Auraus & Hiekoitus',
@@ -5319,6 +5570,8 @@
                     id: 'seed_2',
                     propertyId: 'sample_2',
                     propertyName: 'Kiinteistö Oy Hatanpään Valtatie 24',
+                    customerId: 'sample_2',
+                    customerName: 'Kiinteistö Oy Hatanpään Valtatie 24',
                     address: 'Hatanpään valtatie 24, Tampere',
                     completedAt: todayIso,
                     workType: 'Auraus & Hiekoitus',
@@ -5330,6 +5583,8 @@
                     id: 'seed_3',
                     propertyId: 'sample_3',
                     propertyName: 'Tampereen Logistiikkakeskus',
+                    customerId: 'sample_3',
+                    customerName: 'Tampereen Logistiikkakeskus',
                     address: 'Sammon valtatie 15, Tampere',
                     completedAt: yesterdayIso,
                     workType: 'Auraus & Hiekoitus',
@@ -5340,21 +5595,28 @@
             ];
             saveStoredWorkLogs(seeds);
             updateWorkHistoryBadge();
+        } else {
+            enrichWorkLogsWithCustomers(current);
         }
     }
+    window.ensureInitialWorkLogs = ensureInitialWorkLogs;
 
-    // ---------- Aikavälisuodatus ----------
-    let currentHistoryPeriod = 'today';
+    // ---------- Aikaväli- ja Asiakassuodatus ----------
+    let currentHistoryPeriod = 'month';
     let currentBillingPeriod = 'month';
 
     function setWorkHistoryPeriod(period) {
         currentHistoryPeriod = period;
-        document.querySelectorAll('.history-period-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.period === period);
-        });
-        const customBox = document.getElementById('historyCustomDates');
-        if (customBox) {
-            customBox.style.display = period === 'custom' ? 'flex' : 'none';
+        const bar = document.getElementById('history-filter-bar');
+        if (bar) {
+            bar.querySelectorAll('.history-period-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.period === period);
+            });
+            const d = getDatesForPeriod(period);
+            const startInput = bar.querySelector('.filter-start-date');
+            const endInput = bar.querySelector('.filter-end-date');
+            if (startInput) startInput.value = d.startStr;
+            if (endInput) endInput.value = d.endStr;
         }
         renderWorkHistory();
     }
@@ -5362,86 +5624,251 @@
 
     function setBillingPeriod(period) {
         currentBillingPeriod = period;
-        document.querySelectorAll('.billing-period-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.period === period);
-        });
-        const customBox = document.getElementById('billingCustomDates');
-        if (customBox) {
-            customBox.style.display = period === 'custom' ? 'flex' : 'none';
+        const bar = document.getElementById('billing-filter-bar');
+        if (bar) {
+            bar.querySelectorAll('.billing-period-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.period === period);
+            });
+            const d = getDatesForPeriod(period);
+            const startInput = bar.querySelector('.filter-start-date');
+            const endInput = bar.querySelector('.filter-end-date');
+            if (startInput) startInput.value = d.startStr;
+            if (endInput) endInput.value = d.endStr;
         }
         renderBillingSummary();
     }
     window.setBillingPeriod = setBillingPeriod;
 
-    function isLogMatchesPeriod(completedAt, period, customStart, customEnd) {
-        if (!completedAt) return false;
-        const d = new Date(completedAt);
-        if (isNaN(d.getTime())) return false;
-        const now = new Date();
-
-        if (period === 'today') {
-            return d.getFullYear() === now.getFullYear() &&
-                   d.getMonth() === now.getMonth() &&
-                   d.getDate() === now.getDate();
-        }
-        if (period === 'week') {
-            const day = now.getDay();
-            const diffToMon = (day === 0 ? -6 : 1) - day;
-            const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMon, 0, 0, 0, 0);
-            return d >= monday;
-        }
-        if (period === 'month') {
-            const first = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
-            return d >= first;
-        }
-        if (period === 'lastMonth') {
-            const first = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0);
-            const last = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
-            return d >= first && d <= last;
-        }
-        if (period === 'custom') {
-            const s = customStart ? new Date(customStart + 'T00:00:00') : new Date(0);
-            const e = customEnd ? new Date(customEnd + 'T23:59:59.999') : new Date(8640000000000000);
-            return d >= s && d <= e;
-        }
-        return true; // 'all'
+    function handleHistoryCustomerChange(val) {
+        renderWorkHistory();
     }
+    window.handleHistoryCustomerChange = handleHistoryCustomerChange;
 
-    function getPeriodLabel(period, customStart, customEnd) {
-        const now = new Date();
-        if (period === 'today') return 'Tänään (' + now.toLocaleDateString('fi-FI') + ')';
-        if (period === 'week') return 'Tämä viikko';
-        if (period === 'month') return 'Tämä kuukausi (' + (now.getMonth() + 1) + '/' + now.getFullYear() + ')';
-        if (period === 'lastMonth') return 'Edellinen kuukausi';
-        if (period === 'custom' && (customStart || customEnd)) {
-            return (customStart || 'Alku') + ' – ' + (customEnd || 'Loppu');
+    function handleHistoryDateChange() {
+        const bar = document.getElementById('history-filter-bar');
+        if (bar) {
+            bar.querySelectorAll('.history-period-btn').forEach(btn => btn.classList.remove('active'));
         }
-        return 'Kaikki ajat';
+        currentHistoryPeriod = 'custom';
+        renderWorkHistory();
     }
+    window.handleHistoryDateChange = handleHistoryDateChange;
 
-    // ---------- Tehtyjen töiden loki: Renderöinti ----------
-    function getFilteredWorkLogs() {
-        const all = getStoredWorkLogs();
-        const searchInput = document.getElementById('historySearchInput');
-        const search = (searchInput ? searchInput.value : '').toLowerCase().trim();
-        const startInput = document.getElementById('historyStartDate');
-        const start = startInput ? startInput.value : '';
-        const endInput = document.getElementById('historyEndDate');
-        const end = endInput ? endInput.value : '';
+    function handleBillingCustomerChange(val) {
+        renderBillingSummary();
+    }
+    window.handleBillingCustomerChange = handleBillingCustomerChange;
 
-        return all.filter(l => {
-            if (!isLogMatchesPeriod(l.completedAt, currentHistoryPeriod, start, end)) return false;
-            if (search) {
-                const name = (l.propertyName || '').toLowerCase();
-                const addr = (l.address || '').toLowerCase();
-                const type = (l.workType || '').toLowerCase();
-                if (!name.includes(search) && !addr.includes(search) && !type.includes(search)) {
-                    return false;
+    function handleBillingDateChange() {
+        const bar = document.getElementById('billing-filter-bar');
+        if (bar) {
+            bar.querySelectorAll('.billing-period-btn').forEach(btn => btn.classList.remove('active'));
+        }
+        currentBillingPeriod = 'custom';
+        renderBillingSummary();
+    }
+    window.handleBillingDateChange = handleBillingDateChange;
+
+    // Suodatusfunktio (filterWorkLogs) asiakas- ja aikavälirajaukseen
+    function filterWorkLogs(arg1, arg2, arg3, arg4, arg5) {
+        let logs, customerFilter, startDate, endDate, period;
+
+        if (Array.isArray(arg1)) {
+            logs = arg1;
+            customerFilter = arg2;
+            startDate = arg3;
+            endDate = arg4;
+            period = arg5;
+        } else if (arg1 && typeof arg1 === 'object') {
+            logs = arg1.logs || getStoredWorkLogs();
+            customerFilter = arg1.customerFilter || arg1.customer || arg1.customerId || arg1.customerName;
+            startDate = arg1.startDate || arg1.start;
+            endDate = arg1.endDate || arg1.end;
+            period = arg1.period;
+        } else if (typeof arg1 === 'string' && (arg1.length > 0 || arg2 !== undefined)) {
+            logs = getStoredWorkLogs();
+            customerFilter = arg1;
+            startDate = arg2;
+            endDate = arg3;
+            period = arg4;
+        } else {
+            logs = getStoredWorkLogs();
+            const custEl = document.querySelector('#history-filter-bar select') || document.getElementById('filter-customer');
+            const startEl = document.querySelector('#history-filter-bar input.filter-start-date') || document.getElementById('filter-start-date');
+            const endEl = document.querySelector('#history-filter-bar input.filter-end-date') || document.getElementById('filter-end-date');
+            customerFilter = custEl ? custEl.value : '';
+            startDate = startEl ? startEl.value : '';
+            endDate = endEl ? endEl.value : '';
+        }
+
+        logs = enrichWorkLogsWithCustomers(logs);
+
+        let startIso = null;
+        let endIso = null;
+
+        if (startDate) {
+            const s = new Date(startDate.includes('T') ? startDate : (startDate + 'T00:00:00'));
+            if (!isNaN(s.getTime())) startIso = s.getTime();
+        }
+        if (endDate) {
+            const e = new Date(endDate.includes('T') ? endDate : (endDate + 'T23:59:59.999'));
+            if (!isNaN(e.getTime())) endIso = e.getTime();
+        }
+
+        if (period && (!startDate || !endDate)) {
+            const pDates = getDatesForPeriod(period);
+            if (pDates.start && !startIso) startIso = pDates.start.getTime();
+            if (pDates.end && !endIso) endIso = pDates.end.getTime();
+        }
+
+        let filterStr = (customerFilter != null) ? String(customerFilter).trim() : '';
+        if (filterStr === 'Kaikki asiakkaat' || filterStr === 'all') {
+            filterStr = '';
+        }
+
+        let targetCustomerId = null;
+        let targetCustomerName = null;
+        let targetLinked = [];
+
+        if (filterStr) {
+            const lowerFilter = filterStr.toLowerCase();
+            if (typeof customers !== 'undefined' && Array.isArray(customers)) {
+                const match = customers.find(c =>
+                    (c.id && String(c.id).toLowerCase() === lowerFilter) ||
+                    (c.name && c.name.toLowerCase().trim() === lowerFilter)
+                );
+                if (match) {
+                    targetCustomerId = String(match.id).toLowerCase();
+                    targetCustomerName = (match.name || '').toLowerCase().trim();
+                    if (match.linkedProperties) {
+                        targetLinked = match.linkedProperties.split(/[,;\r\n]+/).map(s => s.trim().toLowerCase()).filter(Boolean);
+                    }
+                } else {
+                    targetCustomerName = lowerFilter;
                 }
+            } else {
+                targetCustomerName = lowerFilter;
             }
+        }
+
+        return logs.filter(log => {
+            // 1. Aikaväli
+            if (startIso != null || endIso != null) {
+                const timeStr = log.completedAt || log.completed_at || log.timestamp;
+                if (!timeStr) return false;
+                const t = new Date(timeStr).getTime();
+                if (isNaN(t)) return false;
+                if (startIso != null && t < startIso) return false;
+                if (endIso != null && t > endIso) return false;
+            }
+
+            // 2. Asiakasrajaus
+            if (targetCustomerId || targetCustomerName) {
+                const logCustId = log.customerId ? String(log.customerId).toLowerCase() : '';
+                const logCustName = (log.customerName || log.propertyName || '').toLowerCase().trim();
+                const logPropName = (log.propertyName || '').toLowerCase().trim();
+                const logAddr = (log.address || '').toLowerCase().trim();
+
+                let matched = false;
+                if (targetCustomerId && logCustId === targetCustomerId) matched = true;
+                if (targetCustomerName) {
+                    if (logCustName === targetCustomerName || logPropName === targetCustomerName) matched = true;
+                    else if (logCustName.includes(targetCustomerName) || targetCustomerName.includes(logCustName)) matched = true;
+                    else if (logPropName.includes(targetCustomerName) || targetCustomerName.includes(logPropName)) matched = true;
+                }
+                if (!matched && targetLinked.length > 0) {
+                    if (targetLinked.some(lp => logPropName.includes(lp) || lp.includes(logPropName) || logAddr.includes(lp))) {
+                        matched = true;
+                    }
+                }
+                if (!matched) return false;
+            }
+
             return true;
         });
     }
+    window.filterWorkLogs = filterWorkLogs;
+
+    // Yhteenvetotiedot raportointia ja tiedostonimiä varten
+    function getFilterExportMetadata(view) {
+        const isBilling = view === 'billing';
+        const filterBar = document.getElementById(isBilling ? 'billing-filter-bar' : 'history-filter-bar');
+
+        const custEl = filterBar
+            ? filterBar.querySelector('.filter-customer-select, select')
+            : (document.getElementById(isBilling ? 'billing-filter-customer' : 'filter-customer') || document.querySelector('.filter-customer-select'));
+
+        const startEl = filterBar
+            ? filterBar.querySelector('.filter-start-date, input[type="date"]:first-of-type')
+            : (document.getElementById(isBilling ? 'billing-filter-start-date' : 'filter-start-date'));
+
+        const endEl = filterBar
+            ? filterBar.querySelector('.filter-end-date, input[type="date"]:last-of-type')
+            : (document.getElementById(isBilling ? 'billing-filter-end-date' : 'filter-end-date'));
+
+        const customerVal = custEl ? custEl.value.trim() : '';
+        const customerText = customerVal ? customerVal : 'Kaikki asiakkaat';
+
+        const startDate = startEl ? startEl.value : '';
+        const endDate = endEl ? endEl.value : '';
+
+        let dateRangeText = '';
+        let dateRangeFilename = '';
+
+        if (startDate && endDate) {
+            const sFi = fmtDateFi(startDate);
+            const eFi = fmtDateFi(endDate);
+            dateRangeText = `${sFi} – ${eFi}`;
+            dateRangeFilename = `${sFi}-${eFi}`;
+        } else if (startDate) {
+            const sFi = fmtDateFi(startDate);
+            dateRangeText = `Alkaen ${sFi}`;
+            dateRangeFilename = `Alkaen_${sFi}`;
+        } else if (endDate) {
+            const eFi = fmtDateFi(endDate);
+            dateRangeText = `Asti ${eFi}`;
+            dateRangeFilename = `Asti_${eFi}`;
+        } else {
+            dateRangeText = 'Kaikki ajat';
+            dateRangeFilename = 'Kaikki_ajat';
+        }
+
+        const safeCustomer = sanitizeFilenamePart(customerVal || 'Kaikki_asiakkaat');
+        const safeDateRange = sanitizeFilenamePart(dateRangeFilename);
+
+        return {
+            customerVal,
+            customerText,
+            startDate,
+            endDate,
+            dateRangeText,
+            dateRangeFilename,
+            safeCustomer,
+            safeDateRange
+        };
+    }
+    window.getFilterExportMetadata = getFilterExportMetadata;
+
+    // ---------- Tehtyjen töiden loki: Renderöinti ----------
+    function getFilteredWorkLogs() {
+        const meta = getFilterExportMetadata('history');
+        const searchInput = document.getElementById('historySearchInput');
+        const search = (searchInput ? searchInput.value : '').toLowerCase().trim();
+
+        let logs = filterWorkLogs(getStoredWorkLogs(), meta.customerVal, meta.startDate, meta.endDate);
+
+        if (search) {
+            logs = logs.filter(l => {
+                const name = (l.propertyName || '').toLowerCase();
+                const cust = (l.customerName || '').toLowerCase();
+                const addr = (l.address || '').toLowerCase();
+                const type = (l.workType || '').toLowerCase();
+                return name.includes(search) || cust.includes(search) || addr.includes(search) || type.includes(search);
+            });
+        }
+        return logs;
+    }
+    window.getFilteredWorkLogs = getFilteredWorkLogs;
 
     function renderWorkHistory() {
         const tbody = document.getElementById('workHistoryTableBody');
@@ -5487,6 +5914,7 @@
                 '<td style="white-space: nowrap; font-size: 0.82rem; font-weight: 600;">' + esc(dateStr) + '</td>' +
                 '<td>' +
                     '<strong style="color: var(--fg);">' + esc(log.propertyName) + '</strong>' +
+                    (log.customerName && log.customerName !== log.propertyName ? '<div style="font-size: 0.76rem; color: var(--accent); font-weight: 600;">👥 ' + esc(log.customerName) + '</div>' : '') +
                     '<div style="font-size: 0.78rem; color: var(--muted); margin-top: 2px;">' + esc(log.address) + '</div>' +
                 '</td>' +
                 '<td><span style="font-size: 0.82rem; color: var(--fg-secondary);">' + esc(log.workType || 'Auraus') + '</span></td>' +
@@ -5511,6 +5939,7 @@
         logs = logs.filter(l => String(l.id) !== String(id));
         saveStoredWorkLogs(logs);
         updateWorkHistoryBadge();
+        populateCustomerFilterSelects();
         renderWorkHistory();
         renderBillingSummary();
         showStatus('Työkirjaus poistettu.', 'info');
@@ -5591,6 +6020,7 @@
         addWorkLogEntry({
             id: 'man_' + Date.now(),
             propertyName: name,
+            customerName: name,
             address: address,
             completedAt: completedAt,
             workType: workType,
@@ -5606,19 +6036,17 @@
 
     // ---------- Laskutusosio: Kooste kiinteistöittäin ----------
     function getGroupedBillingData() {
-        const all = getStoredWorkLogs();
-        const start = document.getElementById('billingStartDate')?.value || '';
-        const end = document.getElementById('billingEndDate')?.value || '';
+        const meta = getFilterExportMetadata('billing');
+        const periodLogs = filterWorkLogs(getStoredWorkLogs(), meta.customerVal, meta.startDate, meta.endDate);
 
-        const periodLogs = all.filter(l => isLogMatchesPeriod(l.completedAt, currentBillingPeriod, start, end));
-
-        // Ryhmitellään kiinteistöittäin
+        // Ryhmitellään kiinteistöittäin / kohteittain
         const groups = {};
         periodLogs.forEach(log => {
-            const key = (log.propertyName || 'Tuntematon').toLowerCase().trim();
+            const key = (log.propertyName || log.customerName || 'Tuntematon').toLowerCase().trim();
             if (!groups[key]) {
                 groups[key] = {
-                    propertyName: log.propertyName || 'Tuntematon',
+                    propertyName: log.propertyName || log.customerName || 'Tuntematon',
+                    customerName: log.customerName || log.propertyName || 'Tuntematon',
                     address: log.address || '',
                     visits: 0,
                     totalNet: 0,
@@ -5638,6 +6066,7 @@
             const gross = net + vat;
             return {
                 propertyName: g.propertyName,
+                customerName: g.customerName,
                 address: g.address,
                 visits: g.visits,
                 unitPrice: unitPrice,
@@ -5662,9 +6091,12 @@
             grandNet,
             grandVat,
             grandTotal,
-            periodLabel: getPeriodLabel(currentBillingPeriod, start, end)
+            periodLabel: meta.dateRangeText,
+            customerLabel: meta.customerText,
+            meta
         };
     }
+    window.getGroupedBillingData = getGroupedBillingData;
 
     function renderBillingSummary() {
         const tbody = document.getElementById('billingTableBody');
@@ -5694,7 +6126,10 @@
         if (emptyState) emptyState.style.display = 'none';
 
         tbody.innerHTML = data.items.map(item => '<tr>' +
-            '<td><strong style="color: var(--fg);">' + esc(item.propertyName) + '</strong></td>' +
+            '<td>' +
+                '<strong style="color: var(--fg);">' + esc(item.propertyName) + '</strong>' +
+                (item.customerName && item.customerName !== item.propertyName ? '<div style="font-size: 0.76rem; color: var(--accent); font-weight: 600;">👥 ' + esc(item.customerName) + '</div>' : '') +
+            '</td>' +
             '<td style="font-size: 0.8rem; color: var(--muted);">' + esc(item.address) + '</td>' +
             '<td style="text-align: center; font-weight: 700;">' + item.visits + ' kpl</td>' +
             '<td style="text-align: right; white-space: nowrap;">' + item.unitPrice.toFixed(2).replace('.', ',') + ' €</td>' +
@@ -5709,25 +6144,39 @@
     function exportBillingCSV() {
         const data = getGroupedBillingData();
         if (data.items.length === 0) {
-            alert('Ei laskutettavia töitä valitulla jaksolla.');
+            alert('Ei laskutettavia töitä valitulla aikavälillä ja asiakkaalla.');
             return;
         }
 
+        const meta = data.meta || getFilterExportMetadata('billing');
+        const now = new Date();
+
         let csv = '\uFEFF'; // UTF-8 BOM suomalaiselle Excelille
-        csv += 'Kiinteistö;Osoite;Käyntikerrat (kpl);Yksikköhinta (€);Veroton summa (ALV 0 %);ALV 25.5 %;Yhteensä (sis. ALV 25.5 %)\r\n';
+        csv += 'YardFlow Laskuerittely;Asiakas: ' + meta.customerText + ';Aikaväli: ' + meta.dateRangeText + ';Luotu: ' + fmtDateTime(now.toISOString()) + '\r\n\r\n';
+        csv += 'Kiinteistö;Asiakas;Osoite;Käyntikerrat (kpl);Yksikköhinta (€);Veroton summa (ALV 0 %);ALV 25.5 %;Yhteensä (sis. ALV 25.5 %)\r\n';
 
         data.items.forEach(item => {
-            csv += '"' + item.propertyName.replace(/"/g, '""') + '";"' + item.address.replace(/"/g, '""') + '";' + item.visits + ';' + item.unitPrice.toFixed(2).replace('.', ',') + ';' + item.net.toFixed(2).replace('.', ',') + ';' + item.vat.toFixed(2).replace('.', ',') + ';' + item.gross.toFixed(2).replace('.', ',') + '\r\n';
+            csv += '"' + item.propertyName.replace(/"/g, '""') + '";"' +
+                   item.customerName.replace(/"/g, '""') + '";"' +
+                   item.address.replace(/"/g, '""') + '";' +
+                   item.visits + ';' +
+                   item.unitPrice.toFixed(2).replace('.', ',') + ';' +
+                   item.net.toFixed(2).replace('.', ',') + ';' +
+                   item.vat.toFixed(2).replace('.', ',') + ';' +
+                   item.gross.toFixed(2).replace('.', ',') + '\r\n';
         });
 
-        csv += 'YHTEENSÄ;;' + data.totalVisits + ';;' + data.grandNet.toFixed(2).replace('.', ',') + ';' + data.grandVat.toFixed(2).replace('.', ',') + ';' + data.grandTotal.toFixed(2).replace('.', ',') + '\r\n';
+        csv += 'YHTEENSÄ;;;' + data.totalVisits + ';;' +
+               data.grandNet.toFixed(2).replace('.', ',') + ';' +
+               data.grandVat.toFixed(2).replace('.', ',') + ';' +
+               data.grandTotal.toFixed(2).replace('.', ',') + '\r\n';
 
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        const dateStr = new Date().toISOString().slice(0, 10);
-        a.download = 'YardFlow_laskuerittely_' + dateStr + '.csv';
+        const filename = 'Laskuerittely_' + meta.safeCustomer + '_' + meta.safeDateRange + '.csv';
+        a.download = filename;
         document.body.appendChild(a);
         a.click();
         a.remove();
@@ -5738,9 +6187,10 @@
 
     // ---------- PDF-vientilogiikka (html2pdf) ----------
     function exportWorkHistoryPDF() {
+        const meta = getFilterExportMetadata('history');
         const logs = getFilteredWorkLogs();
         if (logs.length === 0) {
-            alert('Ei raportoitavia töitä valitulla aikavälillä.');
+            alert('Ei raportoitavia töitä valitulla aikavälillä ja asiakkaalla.');
             return;
         }
 
@@ -5750,10 +6200,6 @@
         }
 
         const now = new Date();
-        const dateStr = now.toISOString().slice(0, 10);
-        const start = document.getElementById('historyStartDate')?.value || '';
-        const end = document.getElementById('historyEndDate')?.value || '';
-        const periodText = getPeriodLabel(currentHistoryPeriod, start, end);
         const totalValue = logs.reduce((acc, l) => acc + (Number(l.price) || 0), 0);
         const geofenceCount = logs.filter(l => l.method === 'Geofence').length;
         const geofencePct = logs.length > 0 ? Math.round((geofenceCount / logs.length) * 100) : 0;
@@ -5766,7 +6212,8 @@
                     '<div style="font-size: 13px; color: #475569; font-weight: 600; margin-top: 2px;">Työraportti &amp; Suoritetut työt</div>' +
                 '</div>' +
                 '<div style="text-align: right; font-size: 11px; color: #64748b;">' +
-                    '<div><strong>Aikaväli:</strong> ' + esc(periodText) + '</div>' +
+                    '<div><strong>Asiakas:</strong> ' + esc(meta.customerText) + '</div>' +
+                    '<div><strong>Aikaväli:</strong> ' + esc(meta.dateRangeText) + '</div>' +
                     '<div><strong>Luotu:</strong> ' + esc(fmtDateTime(now.toISOString())) + '</div>' +
                     '<div><strong>Yhteensä:</strong> ' + logs.length + ' kpl (' + geofencePct + ' % Geofence)</div>' +
                 '</div>' +
@@ -5790,8 +6237,9 @@
                     logs.map((l, i) => '<tr style="border-bottom: 1px solid #e2e8f0; background: ' + (i % 2 === 0 ? '#ffffff' : '#f8fafc') + ';">' +
                         '<td style="padding: 6px 8px; white-space: nowrap; font-weight: 600;">' + esc(fmtDateTime(l.completedAt)) + '</td>' +
                         '<td style="padding: 6px 8px;">' +
-                            '<strong>' + esc(l.propertyName) + '</strong><br>' +
-                            '<span style="color: #64748b; font-size: 10px;">' + esc(l.address) + '</span>' +
+                            '<strong>' + esc(l.propertyName) + '</strong>' +
+                            (l.customerName && l.customerName !== l.propertyName ? '<br><span style="color: #2563eb; font-size: 10px;">👥 ' + esc(l.customerName) + '</span>' : '') +
+                            '<br><span style="color: #64748b; font-size: 10px;">' + esc(l.address) + '</span>' +
                         '</td>' +
                         '<td style="padding: 6px 8px;">' + esc(l.workType || 'Auraus') + '</td>' +
                         '<td style="padding: 6px 8px; text-align: center;">' +
@@ -5818,9 +6266,11 @@
 
         showStatus('Luodaan työraportti-PDF...', 'info');
 
+        const filename = 'Tyoraportti_' + meta.safeCustomer + '_' + meta.safeDateRange + '.pdf';
+
         html2pdf().set({
             margin: 10,
-            filename: 'YardFlow_tyoraportti_' + dateStr + '.pdf',
+            filename: filename,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { scale: 2 },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
@@ -5836,7 +6286,7 @@
     function exportBillingPDF() {
         const data = getGroupedBillingData();
         if (data.items.length === 0) {
-            alert('Ei laskutettavia töitä valitulla jaksolla.');
+            alert('Ei laskutettavia töitä valitulla aikavälillä ja asiakkaalla.');
             return;
         }
 
@@ -5845,8 +6295,8 @@
             return;
         }
 
+        const meta = data.meta || getFilterExportMetadata('billing');
         const now = new Date();
-        const dateStr = now.toISOString().slice(0, 10);
         const printEl = document.getElementById('pdf-print-template');
 
         printEl.innerHTML = '<div style="font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, Arial, sans-serif; color: #0f172a; line-height: 1.4;">' +
@@ -5856,7 +6306,8 @@
                     '<div style="font-size: 13px; color: #475569; font-weight: 600; margin-top: 2px;">Laskuerittely &amp; Yhteenveto</div>' +
                 '</div>' +
                 '<div style="text-align: right; font-size: 11px; color: #64748b;">' +
-                    '<div><strong>Laskutusjakso:</strong> ' + esc(data.periodLabel) + '</div>' +
+                    '<div><strong>Asiakas:</strong> ' + esc(meta.customerText) + '</div>' +
+                    '<div><strong>Laskutusjakso:</strong> ' + esc(meta.dateRangeText) + '</div>' +
                     '<div><strong>Luontipäivämäärä:</strong> ' + esc(fmtDateTime(now.toISOString())) + '</div>' +
                     '<div><strong>Kohteita:</strong> ' + data.totalProperties + ' kpl (' + data.totalVisits + ' käyntiä)</div>' +
                 '</div>' +
@@ -5864,7 +6315,7 @@
             '<table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 20px;">' +
                 '<thead>' +
                     '<tr style="background: #1e293b; color: #ffffff;">' +
-                        '<th style="padding: 7px 8px; text-align: left;">Kiinteistö / Asiakas</th>' +
+                        '<th style="padding: 7px 8px; text-align: left;">Kiinteistö / Kohde</th>' +
                         '<th style="padding: 7px 8px; text-align: left;">Osoite</th>' +
                         '<th style="padding: 7px 8px; text-align: center; width: 60px;">Käynnit</th>' +
                         '<th style="padding: 7px 8px; text-align: right; width: 85px;">à Hinta (€)</th>' +
@@ -5875,7 +6326,10 @@
                 '</thead>' +
                 '<tbody>' +
                     data.items.map((item, i) => '<tr style="border-bottom: 1px solid #e2e8f0; background: ' + (i % 2 === 0 ? '#ffffff' : '#f8fafc') + ';">' +
-                        '<td style="padding: 6px 8px; font-weight: 700;">' + esc(item.propertyName) + '</td>' +
+                        '<td style="padding: 6px 8px; font-weight: 700;">' +
+                            esc(item.propertyName) +
+                            (item.customerName && item.customerName !== item.propertyName ? '<br><span style="font-size: 10px; color: #2563eb; font-weight: 600;">👥 ' + esc(item.customerName) + '</span>' : '') +
+                        '</td>' +
                         '<td style="padding: 6px 8px; color: #64748b;">' + esc(item.address) + '</td>' +
                         '<td style="padding: 6px 8px; text-align: center; font-weight: 600;">' + item.visits + ' kpl</td>' +
                         '<td style="padding: 6px 8px; text-align: right;">' + item.unitPrice.toFixed(2).replace('.', ',') + ' €</td>' +
@@ -5906,9 +6360,11 @@
 
         showStatus('Luodaan laskuerittely-PDF...', 'info');
 
+        const filename = 'Laskuerittely_' + meta.safeCustomer + '_' + meta.safeDateRange + '.pdf';
+
         html2pdf().set({
             margin: 10,
-            filename: 'YardFlow_laskuerittely_' + dateStr + '.pdf',
+            filename: filename,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { scale: 2 },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
@@ -5920,7 +6376,6 @@
         });
     }
     window.exportBillingPDF = exportBillingPDF;
-
 
     const DEFAULT_SAMPLE_TASKS = [
         {
@@ -6032,6 +6487,9 @@
     function persistCustomers() {
         localStorage.setItem('pihatyot_customers_v1', JSON.stringify(customers));
         updateCustomerBadges();
+        if (typeof populateCustomerFilterSelects === 'function') {
+            populateCustomerFilterSelects();
+        }
     }
 
     function updateCustomerBadges() {
@@ -10255,6 +10713,14 @@
     if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
         window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(console.error));
     }
+
+    // Initialisoidaan suodattimet ja esimerkkikirjaukset
+    ensureInitialWorkLogs();
+    populateCustomerFilterSelects();
+    setTimeout(() => {
+        setWorkHistoryPeriod('month');
+        setBillingPeriod('month');
+    }, 50);
 </script>
 </body>
 </html>
