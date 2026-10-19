@@ -1744,9 +1744,10 @@
             }
 
             #routeSidebarPanel {
-                width: 410px;
-                min-width: 380px;
-                max-width: 440px;
+                width: 52%;
+                min-width: 480px;
+                max-width: 58%;
+                flex: 0 0 52%;
                 height: 100%;
                 overflow-y: auto;
                 padding: 18px 16px;
@@ -1769,7 +1770,8 @@
             }
 
             #yardMapCard {
-                flex: 1;
+                width: 48%;
+                flex: 1 1 48%;
                 height: 100%;
                 border-radius: 0;
                 border: none;
@@ -1781,6 +1783,7 @@
                 flex-direction: column;
                 overflow: hidden;
                 background: var(--bg-card);
+                position: relative;
             }
 
             #yardMapCard #yardSatelliteMap {
@@ -1791,12 +1794,12 @@
                 border-radius: var(--radius-lg);
             }
 
-            #viewCustomers, #work-history-view, #billing-view, #viewSettings {
+            #customers-view, #viewCustomers, #work-history-view, #billing-view, #viewSettings {
                 height: 100%;
                 width: 100%;
                 overflow-y: auto;
                 padding: 20px;
-                max-width: 900px;
+                max-width: 1200px;
                 margin: 0 auto;
                 box-sizing: border-box;
             }
@@ -1878,17 +1881,219 @@
             border: 1px solid rgba(245, 158, 11, 0.35);
         }
 
-        /* Kenttätilan rajoitukset ja korostukset */
+        /* ============================================================
+           KULJETTAJAN KENTTÄTILA (FIELD MODE) - PELKISTETTY KÄYTTÖLIITTYMÄ
+           ============================================================ */
+        html[data-app-mode="field"] .nav-tabs {
+            display: none !important;
+        }
         html[data-app-mode="field"] .admin-only {
+            display: none !important;
+        }
+        html[data-app-mode="field"] #routeSidebarPanel {
+            display: none !important;
+        }
+        html[data-app-mode="field"] #yardMapCard {
+            width: 100% !important;
+            max-width: 100% !important;
+            flex: 1 1 100% !important;
+            padding: 10px !important;
+            border: none !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+        }
+        html[data-app-mode="field"] #yardMapCard h3 {
+            display: none !important;
+        }
+        html[data-app-mode="field"] #yardMapStatus {
             display: none !important;
         }
         html[data-app-mode="field"] .leaflet-pm-toolbar {
             display: none !important;
         }
-        html[data-app-mode="field"] .btn-complete-main,
-        html[data-app-mode="field"] .btn-obstacle-action {
-            transform: scale(1.01);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+        html[data-app-mode="field"] .driver-hud-top {
+            display: block !important;
+        }
+        html[data-app-mode="field"] .driver-hud-bottom {
+            display: flex !important;
+        }
+
+        /* Oletuksena (hallintatilassa) kuljettajan HUD on piilossa */
+        .driver-hud-top,
+        .driver-hud-bottom {
+            display: none;
+        }
+
+        /* Kuljettajan HUD: Yläpalkki (Seuraava kohde, osoite, huomiot) */
+        .driver-hud-top {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+        }
+        .driver-hud-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .driver-hud-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.74rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            color: #38bdf8;
+            text-transform: uppercase;
+        }
+        .hud-pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            animation: hudPulse 1.8s infinite;
+        }
+        @keyframes hudPulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+        .hud-counter-badge {
+            background: rgba(255, 255, 255, 0.12);
+            color: var(--text-main);
+            padding: 2px 8px;
+            border-radius: var(--radius-pill);
+            font-weight: 700;
+            font-size: 0.75rem;
+        }
+        .driver-nav-quick-btn {
+            background: #0284c7;
+            color: #ffffff;
+            border: none;
+            border-radius: var(--radius-pill);
+            padding: 6px 14px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35);
+        }
+        .driver-hud-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--text-main);
+            line-height: 1.25;
+            margin-bottom: 2px;
+            letter-spacing: -0.01em;
+        }
+        .driver-hud-address {
+            font-size: 0.88rem;
+            color: var(--muted);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .driver-hud-note {
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            color: #f59e0b;
+            border-radius: var(--radius-md);
+            padding: 8px 12px;
+            font-size: 0.86rem;
+            font-weight: 600;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        /* Kuljettajan HUD: Alapalkki (Suuri vihreä kuittaus + esteilmoitus) */
+        .driver-hud-bottom {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+            align-items: stretch;
+            z-index: 1000;
+        }
+        .btn-driver-complete {
+            flex: 2.2;
+            min-height: 60px;
+            background: #10b981;
+            color: #ffffff;
+            border: none;
+            border-radius: var(--radius-lg);
+            font-size: 1.15rem;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+            transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.15s ease;
+            user-select: none;
+        }
+        .btn-driver-complete:hover {
+            background: #059669;
+        }
+        .btn-driver-complete:active {
+            transform: scale(0.98);
+        }
+        .btn-driver-obstacle {
+            flex: 1;
+            min-height: 60px;
+            background: rgba(245, 158, 11, 0.15);
+            border: 1.5px solid #f59e0b;
+            color: #f59e0b;
+            border-radius: var(--radius-lg);
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 12px;
+            transition: var(--transition);
+        }
+        .btn-driver-obstacle:hover {
+            background: rgba(245, 158, 11, 0.25);
+        }
+        .btn-driver-obstacle:active {
+            transform: scale(0.98);
+        }
+
+        /* Asiakaskortin lisätyylit */
+        .customer-business-id {
+            display: inline-block;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--muted);
+            margin-left: 6px;
+        }
+        .customer-linked-yards {
+            font-size: 0.82rem;
+            color: #38bdf8;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-customer-pdf {
+            background: rgba(14, 165, 233, 0.15) !important;
+            border: 1px solid rgba(14, 165, 233, 0.4) !important;
+            color: #38bdf8 !important;
+        }
+        .btn-customer-pdf:hover {
+            background: rgba(14, 165, 233, 0.3) !important;
         }
 
         /* Kotinäkymän widgetit */
@@ -1997,7 +2202,7 @@
         <button class="nav-tab active" id="tab-map" onclick="switchTab('routes')" title="Kartta ja ajokohteet">🗺️ Kartta &amp; Kohteet</button>
         <button class="nav-tab" id="tab-history" onclick="switchTab('history')" title="Tehtyjen töiden loki">📋 Tehdyt työt (<span id="workHistoryBadge">0</span>)</button>
         <button class="nav-tab" id="tab-billing" onclick="switchTab('billing')" title="Laskutuksen erittely ja koosteet">💶 Laskutus</button>
-        <button class="nav-tab" id="tabBtnCustomers" onclick="switchTab('customers')" title="Asiakasrekisteri">👥 Asiakkaat (<span id="customerCountBadge">0</span>)</button>
+        <button class="nav-tab" id="tab-customers" onclick="switchTab('customers')" title="Asiakashallinta">👥 Asiakkaat (<span id="customerCountBadge">0</span>)</button>
         <button class="nav-tab" id="tabBtnSettings" onclick="switchTab('settings')" title="Järjestelmäasetukset">⚙️ Asetukset</button>
     </div>
 
@@ -2245,6 +2450,26 @@
 
         <!-- SATELLIITTIKARTTA & ALUEIDEN PIIRTO (Leaflet + Leaflet-Geoman) -->
         <div class="card map-main-column" id="yardMapCard">
+            <!-- KULJETTAJAN MINIMAALINEN HUD (Näkyy vain kenttätilassa) -->
+            <div id="driver-hud-top" class="driver-hud-top">
+                <div class="driver-hud-header-row">
+                    <div class="driver-hud-badge">
+                        <span class="hud-pulse-dot"></span>
+                        <span id="driverHudStep">SEURAAVA KOHDE</span>
+                        <span id="driverHudCounter" class="hud-counter-badge">0 / 0</span>
+                    </div>
+                    <button type="button" class="driver-nav-quick-btn" onclick="navigateToNextYard()" title="Avaa navigointi Google Mapsissa">
+                        🧭 Navigoi
+                    </button>
+                </div>
+                <div id="driverHudName" class="driver-hud-title">Valitse kohde reitiltä</div>
+                <div id="driverHudAddress" class="driver-hud-address">📍 Osoite</div>
+                <div id="driverHudNote" class="driver-hud-note" style="display: none;">
+                    <span>⚠️</span>
+                    <span id="driverHudNoteText"></span>
+                </div>
+            </div>
+
             <h3>
                 <span>🛰️ Satelliittikartta &amp; Alueiden piirto</span>
                 <button type="button" class="tiny-btn" onclick="openStreetViewCurrentMapTarget()" title="Avaa valittu kohde Google Street View -katunäkymässä">
@@ -2312,22 +2537,37 @@
             </div>
 
             <div id="yardSatelliteMap"></div>
+
+            <!-- KULJETTAJAN ALAPALKIN PIKATOIMINNOT (Näkyy vain kenttätilassa) -->
+            <div id="driver-hud-bottom" class="driver-hud-bottom">
+                <button type="button" id="btn-driver-complete" class="btn-driver-complete" onclick="completeNextYard()">
+                    <span>✓</span>
+                    <span id="btnDriverCompleteText">KUITTAA TEHDYKSI</span>
+                </button>
+                <button type="button" id="btn-driver-obstacle" class="btn-driver-obstacle" onclick="reportNextYardObstacle()" title="Ilmoita este tai syy, miksi kohdetta ei voida tehdä">
+                    ⚠️ Ilmoita esteestä
+                </button>
+            </div>
         </div>
     </div>
 
     <!-- NÄKYMÄ 2: ASIAKASLISTA / ASIAKASREKISTERI (Lista ja haku heti ylhäällä!) -->
-    <div id="viewCustomers" style="display: none;">
-        <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
-                <button type="button" class="btn-outline" style="min-height: 38px; padding: 6px 14px; font-weight: 600; font-size: 0.85rem;" onclick="switchTab('routes')">
-                    ← Takaisin kartalle
-                </button>
-                <div style="display: flex; gap: 8px; align-items: center;">
-                    <h3 style="margin: 0;">
-                        <span>👥 Asiakkaat (<span id="customerCountTitle">0</span>)</span>
+    <div id="customers-view" style="display: none;">
+        <div class="card" style="max-width: 1200px; margin: 0 auto;">
+            <!-- Yläpalkki: Otsikko ja "+ Lisää uusi asiakas" (#btn-add-customer) -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <h3 style="margin: 0; font-size: 1.25rem; display: flex; align-items: center; gap: 8px;">
+                        <span>👥</span>
+                        <span>Asiakashallinta (<span id="customerCountTitle">0</span>)</span>
                     </h3>
-                    <button type="button" class="btn-primary" id="btnToggleAddCustomer" style="width: auto; min-height: 38px; padding: 7px 14px; font-size: 0.82rem;" onclick="toggleDrawer('addCustomerDrawer', this)">
-                        ➕ Uusi asiakas
+                    <div style="font-size: 0.82rem; color: var(--muted); margin-top: 3px;">
+                        Hallinnoi asiakasrekisteriä, sopimushintoja, liitettyjä kiinteistöjä ja tulosta asiakaskortit
+                    </div>
+                </div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button type="button" class="btn-primary" id="btn-add-customer" onclick="toggleDrawer('addCustomerDrawer', this)" style="min-height: 40px; padding: 0 16px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                        ➕ Lisää uusi asiakas
                     </button>
                 </div>
             </div>
@@ -2339,83 +2579,104 @@
                     <button class="tiny-btn" type="button" onclick="toggleDrawer('addCustomerDrawer')">✕ Sulje</button>
                 </div>
 
-                <label for="custName">Asiakkaan nimi:</label>
-                <input type="text" id="custName" placeholder="esim. Matti Meikäläinen">
+                <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 12px;">
+                    <div>
+                        <label for="custName">Nimi / Yritys / Taloyhtiö *:</label>
+                        <input type="text" id="custName" placeholder="esim. Asunto Oy Härmälänranta / Matti Meikäläinen" required>
+                    </div>
+                    <div>
+                        <label for="custBusinessId">Y-tunnus tai henkilötunnus:</label>
+                        <input type="text" id="custBusinessId" placeholder="esim. 1234567-8 tai 010190-123A">
+                    </div>
+                </div>
 
-                <label for="custAddress">Katuosoite ja kaupunki:</label>
-                <input type="text" id="custAddress" placeholder="esim. Kissanmaankatu 3, Tampere">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <label for="custAddress">Katuosoite ja kaupunki *:</label>
+                        <input type="text" id="custAddress" placeholder="esim. Nuolialantie 15, Tampere" required>
+                    </div>
+                    <div>
+                        <label for="custBillingAddress">Laskutusosoite (jos eri):</label>
+                        <input type="text" id="custBillingAddress" placeholder="esim. PL 100, 33101 Tampere">
+                    </div>
+                </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                    <div>
+                        <label for="custContactPerson">Yhteyshenkilö:</label>
+                        <input type="text" id="custContactPerson" placeholder="esim. Isännöitsijä Antti Aho">
+                    </div>
                     <div>
                         <label for="custPhone">Puhelinnumero:</label>
                         <input type="tel" id="custPhone" placeholder="esim. 040 123 4567">
                     </div>
                     <div>
-                        <label for="custEmail">Sähköposti:</label>
-                        <input type="email" id="custEmail" placeholder="esim. matti@yritys.fi">
+                        <label for="custEmail">Laskutussähköposti:</label>
+                        <input type="email" id="custEmail" placeholder="esim. laskutus@taloyhtio.fi">
                     </div>
                 </div>
 
-                <label>Maksutapa:</label>
+                <label for="custLinkedProperties">Liitetyt kiinteistöt / pihat:</label>
+                <input type="text" id="custLinkedProperties" placeholder="esim. Pääpiha, Itäparkki, Huoltotie (pilkulla eroteltuna)">
+
+                <label>Maksutapa ja laskutusehdot:</label>
                 <div class="choice-group">
                     <label class="choice-label">
                         <input type="radio" name="custPayment" value="Laskutus" checked>
-                        💳 Laskutus
+                        💳 Laskutus (Verkkolasku / Sähköposti)
                     </label>
                     <label class="choice-label">
                         <input type="radio" name="custPayment" value="Käteinen">
-                        💵 Käteinen
+                        💵 Käteinen / Kortti
                     </label>
                 </div>
 
-                <label>Sopimusmalli:</label>
+                <label>Sopimusmalli / Veloitusperuste:</label>
                 <div class="choice-group">
                     <label class="choice-label">
-                        <input type="radio" name="custContract" value="Kuukausi + käynnit" checked>
-                        Kuukausi + käynnit
+                        <input type="radio" name="custContract" value="Käynnit" checked>
+                        Kerta-auraus / käyntiperusteinen
                     </label>
                     <label class="choice-label">
-                        <input type="radio" name="custContract" value="Käynnit">
-                        Käynnit
+                        <input type="radio" name="custContract" value="Tuntiveloitus">
+                        Tuntiveloitus
                     </label>
                     <label class="choice-label">
                         <input type="radio" name="custContract" value="Kuukausisopimus">
                         Kiinteä kuukausi
                     </label>
+                    <label class="choice-label">
+                        <input type="radio" name="custContract" value="Kuukausi + käynnit">
+                        Kuukausi + käynnit
+                    </label>
                 </div>
 
-                <label for="custType">Oletustyö:</label>
-                <select id="custType">
-                    <option value="Auraus & Hiekoitus">Auraus & Hiekoitus</option>
-                    <option value="Nurmikonleikkuu">Nurmikonleikkuu</option>
-                    <option value="Haravointi & Pihatyö">Haravointi & Pihatyö</option>
-                    <option value="Muu työ">Muu työ</option>
-                </select>
-
-                <label>Sopimushinnat (€ sis. ALV, valinnainen):</label>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <label>Sopimushinnat (€ sis. ALV 25,5 %):</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px;">
                     <div>
-                        <label for="custMonthlyPrice">Kk-maksu (€ sis. ALV):</label>
-                        <input type="number" id="custMonthlyPrice" step="0.5" min="0" placeholder="Oletus (0 €)">
+                        <label for="custPlowPrice">Auraus / kerta (€):</label>
+                        <input type="number" id="custPlowPrice" step="0.5" min="0" placeholder="esim. 45.00">
                     </div>
                     <div>
-                        <label for="custPlowPrice">Auraus / kerta (€ sis. ALV):</label>
-                        <input type="number" id="custPlowPrice" step="0.5" min="0" placeholder="Oletus (0 €)">
-                    </div>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div>
-                        <label for="custSandPrice">Hiekoitus / kerta (€ sis. ALV):</label>
-                        <input type="number" id="custSandPrice" step="0.5" min="0" placeholder="Oletus (0 €)">
+                        <label for="custHourlyRate">Tuntihinta (€/h):</label>
+                        <input type="number" id="custHourlyRate" step="1" min="0" placeholder="esim. 65.00">
                     </div>
                     <div>
-                        <label for="custGravelPrice">Sepeli / kg (€ sis. ALV):</label>
-                        <input type="number" id="custGravelPrice" step="0.01" min="0" placeholder="Oletus (0 €)">
+                        <label for="custSandPrice">Hiekoitus / kerta (€):</label>
+                        <input type="number" id="custSandPrice" step="0.5" min="0" placeholder="esim. 25.00">
+                    </div>
+                    <div>
+                        <label for="custMonthlyPrice">Kk-sopimusmaksu (€):</label>
+                        <input type="number" id="custMonthlyPrice" step="1" min="0" placeholder="esim. 250.00">
+                    </div>
+                    <div>
+                        <label for="custGravelPrice">Sepeli / kg (€):</label>
+                        <input type="number" id="custGravelPrice" step="0.01" min="0" placeholder="esim. 0.35">
                     </div>
                 </div>
 
-                <label for="custNotes">Kuljettajan lisätiedot / huomiot:</label>
-                <textarea id="custNotes" rows="2" placeholder="esim. Varo kaivonkantta nurkassa, portin koodi 1234"></textarea>
+                <label for="custNotes">Pihan lisäohjeet / huomiot kuljettajalle:</label>
+                <textarea id="custNotes" rows="2" placeholder="esim. Lumenkasaus itäkulmaan, varo kaivonkantta autotallin edessä"></textarea>
 
                 <div class="geofence-settings-box">
                     <div class="geofence-settings-title">
@@ -2440,10 +2701,10 @@
                     </div>
                 </div>
 
-                <button class="btn-primary" onclick="addCustomerFromForm()">💾 Tallenna asiakas rekisteriin</button>
+                <button class="btn-primary" onclick="addCustomerFromForm()" style="min-height: 44px; font-weight: 700;">💾 Tallenna asiakas rekisteriin</button>
             </div>
 
-            <input type="text" id="custSearchInput" class="search-input" placeholder="🔍 Etsi asiakasta nimellä, osoitteella tai puhelimella..." oninput="renderCustomers()">
+            <input type="text" id="custSearchInput" class="search-input" placeholder="🔍 Etsi asiakasta nimellä, y-tunnuksella, osoitteella, puhelimella tai kiinteistöllä..." oninput="renderCustomers()">
             <div id="customerList"></div>
         </div>
     </div>
@@ -2933,24 +3194,48 @@
 
     <!-- Asiakkaan muokkausdialogi -->
     <dialog id="editCustomerDialog" class="app-dialog">
-        <form method="dialog" class="dialog-content">
+        <form method="dialog" class="dialog-content" style="max-width: 680px;">
             <h3>Muokkaa asiakkaan tietoja</h3>
-            <label for="editCustName">Asiakkaan nimi:</label>
-            <input type="text" id="editCustName" required>
-
-            <label for="editCustAddress">Katuosoite ja kaupunki:</label>
-            <input type="text" id="editCustAddress" required>
+            
+            <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 10px;">
+                <div>
+                    <label for="editCustName">Nimi / Yritys / Taloyhtiö *:</label>
+                    <input type="text" id="editCustName" required>
+                </div>
+                <div>
+                    <label for="editCustBusinessId">Y-tunnus tai henkilötunnus:</label>
+                    <input type="text" id="editCustBusinessId">
+                </div>
+            </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div>
+                    <label for="editCustAddress">Katuosoite ja kaupunki *:</label>
+                    <input type="text" id="editCustAddress" required>
+                </div>
+                <div>
+                    <label for="editCustBillingAddress">Laskutusosoite:</label>
+                    <input type="text" id="editCustBillingAddress">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                <div>
+                    <label for="editCustContactPerson">Yhteyshenkilö:</label>
+                    <input type="text" id="editCustContactPerson">
+                </div>
                 <div>
                     <label for="editCustPhone">Puhelinnumero:</label>
                     <input type="tel" id="editCustPhone">
                 </div>
                 <div>
-                    <label for="editCustEmail">Sähköposti:</label>
+                    <label for="editCustEmail">Laskutussähköposti:</label>
                     <input type="email" id="editCustEmail">
                 </div>
             </div>
+
+            <label for="editCustLinkedProperties">Liitetyt kiinteistöt / pihat:</label>
+            <input type="text" id="editCustLinkedProperties" placeholder="esim. Pääpiha, Itäparkki">
 
             <label>Maksutapa:</label>
             <div class="choice-group">
@@ -2960,57 +3245,55 @@
                 </label>
                 <label class="choice-label">
                     <input type="radio" name="editCustPayment" value="Käteinen">
-                    💵 Käteinen
+                    💵 Käteinen / Kortti
                 </label>
             </div>
 
-            <label>Sopimusmalli:</label>
+            <label>Sopimusmalli / Veloitusperuste:</label>
             <div class="choice-group">
                 <label class="choice-label">
-                    <input type="radio" name="editCustContract" value="Kuukausi + käynnit">
-                    Kuukausi + käynnit
+                    <input type="radio" name="editCustContract" value="Käynnit">
+                    Kerta-auraus
                 </label>
                 <label class="choice-label">
-                    <input type="radio" name="editCustContract" value="Käynnit">
-                    Käynnit
+                    <input type="radio" name="editCustContract" value="Tuntiveloitus">
+                    Tuntiveloitus
                 </label>
                 <label class="choice-label">
                     <input type="radio" name="editCustContract" value="Kuukausisopimus">
                     Kiinteä kuukausi
                 </label>
+                <label class="choice-label">
+                    <input type="radio" name="editCustContract" value="Kuukausi + käynnit">
+                    Kuukausi + käynnit
+                </label>
             </div>
 
-            <label for="editCustType">Oletustyö:</label>
-            <select id="editCustType">
-                <option value="Auraus & Hiekoitus">Auraus & Hiekoitus</option>
-                <option value="Nurmikonleikkuu">Nurmikonleikkuu</option>
-                <option value="Haravointi & Pihatyö">Haravointi & Pihatyö</option>
-                <option value="Muu työ">Muu työ</option>
-            </select>
-
-            <label>Sopimushinnat (€ sis. ALV, valinnainen):</label>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <label>Sopimushinnat (€ sis. ALV 25,5 %):</label>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px;">
                 <div>
-                    <label for="editCustMonthlyPrice">Kk-maksu (€ sis. ALV):</label>
-                    <input type="number" id="editCustMonthlyPrice" step="0.5" min="0" placeholder="Oletus">
+                    <label for="editCustPlowPrice">Auraus / kerta (€):</label>
+                    <input type="number" id="editCustPlowPrice" step="0.5" min="0">
                 </div>
                 <div>
-                    <label for="editCustPlowPrice">Auraus / kerta (€ sis. ALV):</label>
-                    <input type="number" id="editCustPlowPrice" step="0.5" min="0" placeholder="Oletus">
-                </div>
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div>
-                    <label for="editCustSandPrice">Hiekoitus / kerta (€ sis. ALV):</label>
-                    <input type="number" id="editCustSandPrice" step="0.5" min="0" placeholder="Oletus">
+                    <label for="editCustHourlyRate">Tuntihinta (€/h):</label>
+                    <input type="number" id="editCustHourlyRate" step="1" min="0">
                 </div>
                 <div>
-                    <label for="editCustGravelPrice">Sepeli / kg (€ sis. ALV):</label>
-                    <input type="number" id="editCustGravelPrice" step="0.01" min="0" placeholder="Oletus">
+                    <label for="editCustSandPrice">Hiekoitus / kerta (€):</label>
+                    <input type="number" id="editCustSandPrice" step="0.5" min="0">
+                </div>
+                <div>
+                    <label for="editCustMonthlyPrice">Kk-maksu (€):</label>
+                    <input type="number" id="editCustMonthlyPrice" step="1" min="0">
+                </div>
+                <div>
+                    <label for="editCustGravelPrice">Sepeli / kg (€):</label>
+                    <input type="number" id="editCustGravelPrice" step="0.01" min="0">
                 </div>
             </div>
 
-            <label for="editCustNotes">Kuljettajan lisätiedot / huomiot:</label>
+            <label for="editCustNotes">Pihan lisäohjeet / huomiot:</label>
             <textarea id="editCustNotes" rows="2"></textarea>
 
             <div class="geofence-settings-box">
@@ -3018,27 +3301,27 @@
                     <span>🛰️ Paikkatodennus (Geofence / Proof of Presence)</span>
                 </div>
                 <label class="check-row" style="margin-bottom: 10px;">
-                    <input type="checkbox" id="editCustGeofenceEnabled" checked>
+                    <input type="checkbox" id="editCustGeofenceEnabled">
                     Vaadi paikkatodennus kohteessa
                 </label>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                     <div>
                         <label for="editCustGeofenceType">Aluetyyppi:</label>
                         <select id="editCustGeofenceType" style="margin-bottom: 0;">
-                            <option value="radius" selected>Ympyräsäde (Radius)</option>
+                            <option value="radius">Ympyräsäde (Radius)</option>
                             <option value="polygon">Piirretty satelliittiraja (Polygon)</option>
                         </select>
                     </div>
                     <div>
                         <label for="editCustGeofenceRadius">Säde: <span id="editCustGeofenceRadiusVal">80</span> m (+50 m GPS-tol.):</label>
-                        <input type="range" id="editCustGeofenceRadius" min="30" max="300" step="5" value="80" style="margin-bottom: 0; padding: 6px 0;" oninput="document.getElementById('editCustGeofenceRadiusVal').textContent = this.value; previewGeofenceRadiusFromDialog('customer', this.value)">
+                        <input type="range" id="editCustGeofenceRadius" min="30" max="300" step="5" style="margin-bottom: 0; padding: 6px 0;" oninput="document.getElementById('editCustGeofenceRadiusVal').textContent = this.value">
                     </div>
                 </div>
             </div>
 
             <div class="dialog-actions">
-                <button type="button" class="btn-outline" onclick="document.getElementById('editCustomerDialog').close('cancel')">Peruuta</button>
-                <button type="submit" value="ok" class="btn-primary" style="width: auto; padding: 10px 20px;">Tallenna muutokset</button>
+                <button type="button" class="btn-outline" onclick="document.getElementById('editCustomerDialog').close()">Peruuta</button>
+                <button type="submit" value="ok" class="btn-primary" style="min-height: 40px; padding: 0 18px;">💾 Tallenna muutokset</button>
             </div>
         </form>
     </dialog>
@@ -3252,11 +3535,11 @@
             if (currentAppMode === 'field') {
                 badge.className = 'mode-status-badge mode-badge-field';
                 badge.textContent = '🚜 Kenttätila';
-                badge.title = 'Kenttätila aktiivinen: kartat ja markkerit lukittu, kuljettajanäkymä.';
+                badge.title = 'Kenttätila aktiivinen: häiriötön kuljettajanäkymä ja nopea kuittaus.';
             } else {
                 badge.className = 'mode-status-badge mode-badge-admin';
                 badge.textContent = '🛠️ Hallintatila';
-                badge.title = 'Hallintatila aktiivinen: piirtotyökalut ja muokkaus käytettävissä.';
+                badge.title = 'Hallintatila aktiivinen: piirtotyökalut, asiakkaat ja laskutus.';
             }
         }
 
@@ -3281,9 +3564,24 @@
             if (typeof activePinMovingTaskId !== 'undefined' && activePinMovingTaskId != null) {
                 activePinMovingTaskId = null;
             }
+
+            switchTab('routes');
+            updateDriverHud();
         }
 
         if (typeof renderTasks === 'function') renderTasks();
+
+        if (typeof yardMap !== 'undefined' && yardMap) {
+            setTimeout(() => {
+                yardMap.invalidateSize();
+                if (currentAppMode === 'field') {
+                    const next = tasks.find(t => !t.done && !t.blocked) || tasks.find(t => !t.done);
+                    if (next && next.lat && next.lon) {
+                        yardMap.flyTo([next.lat, next.lon], 18, { duration: 0.8 });
+                    }
+                }
+            }, 80);
+        }
     }
     window.setAppMode = setAppMode;
 
@@ -3425,6 +3723,95 @@
     }
     window.navigateToNextYard = navigateToNextYard;
 
+    
+    // ---------- KULJETTAJAN KENTTÄTILAN HUD-TOIMINNOT ----------
+    function updateDriverHud() {
+        if (!tasks) return;
+        const total = tasks.length;
+        const doneList = tasks.filter(t => t.done);
+        const done = doneList.length;
+        const nextTask = tasks.find(t => !t.done && !t.blocked) || tasks.find(t => !t.done);
+
+        const hudStep = document.getElementById('driverHudStep');
+        const hudCounter = document.getElementById('driverHudCounter');
+        const hudName = document.getElementById('driverHudName');
+        const hudAddress = document.getElementById('driverHudAddress');
+        const hudNote = document.getElementById('driverHudNote');
+        const hudNoteText = document.getElementById('driverHudNoteText');
+        const btnCompleteText = document.getElementById('btnDriverCompleteText');
+        const btnComplete = document.getElementById('btn-driver-complete');
+
+        if (hudCounter) hudCounter.textContent = `${done} / ${total}`;
+
+        if (!nextTask) {
+            if (hudStep) hudStep.textContent = 'REITTI VALMIS';
+            if (hudName) hudName.textContent = 'Kaikki kohteet kuitattu! 🎉';
+            if (hudAddress) hudAddress.textContent = 'Päivän ajoreitti suoritettu onnistuneesti.';
+            if (hudNote) hudNote.style.display = 'none';
+            if (btnCompleteText) btnCompleteText.textContent = '✓ KAIKKI VALMISTA';
+            if (btnComplete) {
+                btnComplete.style.opacity = '0.6';
+                btnComplete.disabled = true;
+            }
+            return;
+        }
+
+        if (btnComplete) {
+            btnComplete.style.opacity = '1';
+            btnComplete.disabled = false;
+        }
+
+        const taskIndex = tasks.findIndex(t => t.id === nextTask.id);
+        if (hudStep) hudStep.textContent = `KOHDE ${taskIndex >= 0 ? taskIndex + 1 : done + 1}`;
+        if (hudName) hudName.textContent = nextTask.name || 'Nimetön kohde';
+        if (hudAddress) hudAddress.textContent = `📍 ${nextTask.address || 'Ei osoitetta'}`;
+
+        if (nextTask.notes && nextTask.notes.trim()) {
+            if (hudNote) hudNote.style.display = 'flex';
+            if (hudNoteText) hudNoteText.textContent = nextTask.notes.trim();
+        } else {
+            if (hudNote) hudNote.style.display = 'none';
+        }
+
+        if (btnCompleteText) {
+            btnCompleteText.textContent = nextTask.blocked ? '✓ KUITTAA (ESTE ILMOITETTU)' : 'KUITTAA TEHDYKSI';
+        }
+    }
+    window.updateDriverHud = updateDriverHud;
+
+    function reportNextYardObstacle() {
+        const nextTask = tasks.find(t => !t.done && !t.blocked) || tasks.find(t => !t.done);
+        if (!nextTask) {
+            alert('Ei aktiivisia kohteita reitillä.');
+            return;
+        }
+        if (typeof openTaskObstacleModal === 'function') {
+            openTaskObstacleModal(nextTask.id);
+        } else {
+            alert('Esteen ilmoitus ei ole käytettävissä.');
+        }
+    }
+    window.reportNextYardObstacle = reportNextYardObstacle;
+
+    function navigateToNextYard() {
+        const nextTask = tasks.find(t => !t.done && !t.blocked) || tasks.find(t => !t.done);
+        if (!nextTask) {
+            alert('Ei kohteita navigoitavaksi.');
+            return;
+        }
+        let url;
+        if (nextTask.lat && nextTask.lon) {
+            url = `https://www.google.com/maps/dir/?api=1&destination=${nextTask.lat},${nextTask.lon}`;
+        } else if (nextTask.address) {
+            url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(nextTask.address)}`;
+        } else {
+            alert('Kohteelta puuttuu osoite ja koordinaatit.');
+            return;
+        }
+        window.open(url, '_blank', 'noopener');
+    }
+    window.navigateToNextYard = navigateToNextYard;
+
     function completeNextYard() {
         const nextTask = tasks.find(t => !t.done && !t.blocked) || tasks.find(t => !t.done);
         if (!nextTask) {
@@ -3432,6 +3819,7 @@
             return;
         }
         handleCompleteTaskClick(nextTask.id);
+        setTimeout(() => updateDriverHud(), 150);
     }
     window.completeNextYard = completeNextYard;
 
@@ -3440,13 +3828,13 @@
         if (tab === 'map') tab = 'routes';
 
         const routesView = document.getElementById('viewRoutes');
-        const custView = document.getElementById('viewCustomers');
+        const custView = document.getElementById('customers-view') || document.getElementById('viewCustomers');
         const historyView = document.getElementById('work-history-view');
         const billingView = document.getElementById('billing-view');
         const settingsView = document.getElementById('viewSettings');
 
         const tabBtnRoutes = document.getElementById('tab-map') || document.getElementById('tabBtnRoutes');
-        const tabBtnCust = document.getElementById('tabBtnCustomers');
+        const tabBtnCust = document.getElementById('tab-customers') || document.getElementById('tabBtnCustomers');
         const tabBtnHistory = document.getElementById('tab-history');
         const tabBtnBilling = document.getElementById('tab-billing');
         const tabBtnSettings = document.getElementById('tabBtnSettings');
@@ -3456,12 +3844,6 @@
         if (historyView) historyView.style.display = tab === 'history' ? '' : 'none';
         if (billingView) billingView.style.display = tab === 'billing' ? '' : 'none';
         if (settingsView) settingsView.style.display = tab === 'settings' ? '' : 'none';
-
-        if (tab === 'routes' && typeof yardMap !== 'undefined' && yardMap) {
-            setTimeout(() => {
-                yardMap.invalidateSize();
-            }, 50);
-        }
 
         if (tabBtnRoutes) tabBtnRoutes.classList.toggle('active', tab === 'routes');
         if (tabBtnCust) tabBtnCust.classList.toggle('active', tab === 'customers');
@@ -3473,6 +3855,14 @@
         if (tab === 'history') renderWorkHistory();
         if (tab === 'billing') renderBillingSummary();
         if (tab === 'settings') applyHomeWidgetVisibility();
+
+        if (tab === 'routes') {
+            if (currentAppMode === 'field') updateDriverHud();
+            if (typeof yardMap !== 'undefined' && yardMap) {
+                setTimeout(() => yardMap.invalidateSize(), 50);
+                setTimeout(() => yardMap.invalidateSize(), 250);
+            }
+        }
     }
     window.switchTab = switchTab;
 
@@ -4907,16 +5297,20 @@
 
     function addCustomerFromForm() {
         const nameInput = document.getElementById('custName');
+        const bizIdInput = document.getElementById('custBusinessId');
         const addrInput = document.getElementById('custAddress');
+        const billAddrInput = document.getElementById('custBillingAddress');
+        const contactInput = document.getElementById('custContactPerson');
         const phoneInput = document.getElementById('custPhone');
         const emailInput = document.getElementById('custEmail');
-        const typeSelect = document.getElementById('custType');
-        const notesInput = document.getElementById('custNotes');
+        const linkedPropsInput = document.getElementById('custLinkedProperties');
 
-        const monthlyPriceInput = document.getElementById('custMonthlyPrice');
         const plowPriceInput = document.getElementById('custPlowPrice');
+        const hourlyRateInput = document.getElementById('custHourlyRate');
         const sandPriceInput = document.getElementById('custSandPrice');
+        const monthlyPriceInput = document.getElementById('custMonthlyPrice');
         const gravelPriceInput = document.getElementById('custGravelPrice');
+        const notesInput = document.getElementById('custNotes');
 
         const gfEn = document.getElementById('custGeofenceEnabled');
         const gfType = document.getElementById('custGeofenceType');
@@ -4924,13 +5318,18 @@
 
         const name = nameInput.value.trim();
         const address = addrInput.value.trim();
+        const businessId = bizIdInput ? bizIdInput.value.trim() : '';
+        const billingAddress = billAddrInput ? billAddrInput.value.trim() : '';
+        const contactPerson = contactInput ? contactInput.value.trim() : '';
         const phone = phoneInput ? phoneInput.value.trim() : '';
         const email = emailInput ? emailInput.value.trim() : '';
+        const linkedProperties = linkedPropsInput ? linkedPropsInput.value.trim() : '';
+
         const paymentMethod = document.querySelector('input[name="custPayment"]:checked')?.value || 'Laskutus';
-        const contractType = document.querySelector('input[name="custContract"]:checked')?.value || 'Kuukausi + käynnit';
+        const contractType = document.querySelector('input[name="custContract"]:checked')?.value || 'Käynnit';
 
         if (!name || !address) {
-            alert('Täytä vähintään asiakkaan nimi ja osoite!');
+            alert('Täytä vähintään asiakkaan nimi ja katuosoite!');
             return;
         }
 
@@ -4938,19 +5337,24 @@
         const newCust = normalizeGeofenceFields({
             id: newId(),
             name,
+            businessId,
             address,
+            billingAddress: billingAddress || address,
+            contactPerson,
             phone,
             email,
+            linkedProperties,
             lat: picked ? parseFloat(addrInput.dataset.lat) : null,
             lon: picked ? parseFloat(addrInput.dataset.lon) : null,
             paymentMethod,
             contractType,
-            defaultType: typeSelect.value,
-            monthlyPrice: (monthlyPriceInput && monthlyPriceInput.value) ? parseFloat(monthlyPriceInput.value) : null,
-            plowPrice: (plowPriceInput && plowPriceInput.value) ? parseFloat(plowPriceInput.value) : null,
+            defaultType: 'Auraus & Hiekoitus',
+            plowPrice: (plowPriceInput && plowPriceInput.value) ? parseFloat(plowPriceInput.value) : 45.00,
+            hourlyRate: (hourlyRateInput && hourlyRateInput.value) ? parseFloat(hourlyRateInput.value) : null,
             sandPrice: (sandPriceInput && sandPriceInput.value) ? parseFloat(sandPriceInput.value) : null,
+            monthlyPrice: (monthlyPriceInput && monthlyPriceInput.value) ? parseFloat(monthlyPriceInput.value) : null,
             gravelPrice: (gravelPriceInput && gravelPriceInput.value) ? parseFloat(gravelPriceInput.value) : null,
-            notes: notesInput.value.trim(),
+            notes: notesInput ? notesInput.value.trim() : '',
             geofence_enabled: gfEn ? gfEn.checked : true,
             geofence_type: gfType ? gfType.value : 'radius',
             geofence_radius: gfRad ? Number(gfRad.value) || 80 : 80,
@@ -4962,25 +5366,24 @@
         renderCustomers();
 
         nameInput.value = '';
+        if (bizIdInput) bizIdInput.value = '';
         addrInput.value = '';
-        ['lat', 'lon', 'geo', 'addr'].forEach(k => delete addrInput.dataset[k]);
+        if (billAddrInput) billAddrInput.value = '';
+        if (contactInput) contactInput.value = '';
         if (phoneInput) phoneInput.value = '';
         if (emailInput) emailInput.value = '';
-        if (monthlyPriceInput) monthlyPriceInput.value = '';
+        if (linkedPropsInput) linkedPropsInput.value = '';
         if (plowPriceInput) plowPriceInput.value = '';
+        if (hourlyRateInput) hourlyRateInput.value = '';
         if (sandPriceInput) sandPriceInput.value = '';
+        if (monthlyPriceInput) monthlyPriceInput.value = '';
         if (gravelPriceInput) gravelPriceInput.value = '';
-        notesInput.value = '';
-        if (gfEn) gfEn.checked = true;
-        if (gfType) gfType.value = 'radius';
-        if (gfRad) gfRad.value = 80;
-        const gfRadVal = document.getElementById('custGeofenceRadiusVal');
-        if (gfRadVal) gfRadVal.textContent = '80';
+        if (notesInput) notesInput.value = '';
 
         const custDrawer = document.getElementById('addCustomerDrawer');
         if (custDrawer) custDrawer.style.display = 'none';
 
-        showStatus(`Asiakas "${esc(name)}" lisätty asiakaslistaan!`, 'success');
+        showStatus(`Asiakas "${esc(name)}" lisätty asiakasrekisteriin!`, 'success');
     }
 
     function addCustomerToTodayRoute(customerId) {
@@ -5045,23 +5448,43 @@
         if (!c) return;
         normalizeGeofenceFields(c);
         editingCustomerId = id;
-        document.getElementById('editCustName').value = c.name || '';
-        editCustAddressInput.value = c.address || '';
-        ['lat', 'lon', 'geo', 'addr'].forEach(k => delete editCustAddressInput.dataset[k]);
-        document.getElementById('editCustPhone').value = c.phone || '';
-        document.getElementById('editCustEmail').value = c.email || '';
+
+        const nameEl = document.getElementById('editCustName');
+        const bizIdEl = document.getElementById('editCustBusinessId');
+        const addrEl = document.getElementById('editCustAddress');
+        const billAddrEl = document.getElementById('editCustBillingAddress');
+        const contactEl = document.getElementById('editCustContactPerson');
+        const phoneEl = document.getElementById('editCustPhone');
+        const emailEl = document.getElementById('editCustEmail');
+        const linkedEl = document.getElementById('editCustLinkedProperties');
+
+        const plowEl = document.getElementById('editCustPlowPrice');
+        const hourlyEl = document.getElementById('editCustHourlyRate');
+        const sandEl = document.getElementById('editCustSandPrice');
+        const monthlyEl = document.getElementById('editCustMonthlyPrice');
+        const gravelEl = document.getElementById('editCustGravelPrice');
+        const notesEl = document.getElementById('editCustNotes');
+
+        if (nameEl) nameEl.value = c.name || '';
+        if (bizIdEl) bizIdEl.value = c.businessId || '';
+        if (addrEl) addrEl.value = c.address || '';
+        if (billAddrEl) billAddrEl.value = c.billingAddress || '';
+        if (contactEl) contactEl.value = c.contactPerson || '';
+        if (phoneEl) phoneEl.value = c.phone || '';
+        if (emailEl) emailEl.value = c.email || '';
+        if (linkedEl) linkedEl.value = c.linkedProperties || '';
 
         const payRadio = document.querySelector(`input[name="editCustPayment"][value="${c.paymentMethod || 'Laskutus'}"]`);
         if (payRadio) payRadio.checked = true;
-        const conRadio = document.querySelector(`input[name="editCustContract"][value="${c.contractType || 'Kuukausi + käynnit'}"]`);
+        const conRadio = document.querySelector(`input[name="editCustContract"][value="${c.contractType || 'Käynnit'}"]`);
         if (conRadio) conRadio.checked = true;
 
-        document.getElementById('editCustType').value = c.defaultType || 'Auraus & Hiekoitus';
-        document.getElementById('editCustMonthlyPrice').value = (c.monthlyPrice != null && !isNaN(c.monthlyPrice)) ? c.monthlyPrice : '';
-        document.getElementById('editCustPlowPrice').value = (c.plowPrice != null && !isNaN(c.plowPrice)) ? c.plowPrice : '';
-        document.getElementById('editCustSandPrice').value = (c.sandPrice != null && !isNaN(c.sandPrice)) ? c.sandPrice : '';
-        document.getElementById('editCustGravelPrice').value = (c.gravelPrice != null && !isNaN(c.gravelPrice)) ? c.gravelPrice : '';
-        document.getElementById('editCustNotes').value = c.notes || '';
+        if (plowEl) plowEl.value = (c.plowPrice != null && !isNaN(c.plowPrice)) ? c.plowPrice : '';
+        if (hourlyEl) hourlyEl.value = (c.hourlyRate != null && !isNaN(c.hourlyRate)) ? c.hourlyRate : '';
+        if (sandEl) sandEl.value = (c.sandPrice != null && !isNaN(c.sandPrice)) ? c.sandPrice : '';
+        if (monthlyEl) monthlyEl.value = (c.monthlyPrice != null && !isNaN(c.monthlyPrice)) ? c.monthlyPrice : '';
+        if (gravelEl) gravelEl.value = (c.gravelPrice != null && !isNaN(c.gravelPrice)) ? c.gravelPrice : '';
+        if (notesEl) notesEl.value = c.notes || '';
 
         const gfEn = document.getElementById('editCustGeofenceEnabled');
         const gfType = document.getElementById('editCustGeofenceType');
@@ -5088,23 +5511,38 @@
             if (!c) return;
 
             c.name = document.getElementById('editCustName').value.trim();
-            c.address = editCustAddressInput.value.trim();
+            const bizIdEl = document.getElementById('editCustBusinessId');
+            if (bizIdEl) c.businessId = bizIdEl.value.trim();
+
+            c.address = document.getElementById('editCustAddress').value.trim();
+            const billAddrEl = document.getElementById('editCustBillingAddress');
+            if (billAddrEl) c.billingAddress = billAddrEl.value.trim();
+
+            const contactEl = document.getElementById('editCustContactPerson');
+            if (contactEl) c.contactPerson = contactEl.value.trim();
+
             c.phone = document.getElementById('editCustPhone').value.trim();
             c.email = document.getElementById('editCustEmail').value.trim();
-            c.paymentMethod = document.querySelector('input[name="editCustPayment"]:checked')?.value || 'Laskutus';
-            c.contractType = document.querySelector('input[name="editCustContract"]:checked')?.value || 'Kuukausi + käynnit';
-            c.defaultType = document.getElementById('editCustType').value;
 
-            const mVal = document.getElementById('editCustMonthlyPrice').value.trim();
-            const pVal = document.getElementById('editCustPlowPrice').value.trim();
-            const sVal = document.getElementById('editCustSandPrice').value.trim();
-            const gVal = document.getElementById('editCustGravelPrice').value.trim();
-            c.monthlyPrice = mVal !== '' ? parseFloat(mVal) : null;
+            const linkedEl = document.getElementById('editCustLinkedProperties');
+            if (linkedEl) c.linkedProperties = linkedEl.value.trim();
+
+            c.paymentMethod = document.querySelector('input[name="editCustPayment"]:checked')?.value || 'Laskutus';
+            c.contractType = document.querySelector('input[name="editCustContract"]:checked')?.value || 'Käynnit';
+
+            const pVal = document.getElementById('editCustPlowPrice')?.value.trim();
+            const hVal = document.getElementById('editCustHourlyRate')?.value.trim();
+            const sVal = document.getElementById('editCustSandPrice')?.value.trim();
+            const mVal = document.getElementById('editCustMonthlyPrice')?.value.trim();
+            const gVal = document.getElementById('editCustGravelPrice')?.value.trim();
+
             c.plowPrice = pVal !== '' ? parseFloat(pVal) : null;
+            c.hourlyRate = hVal !== '' ? parseFloat(hVal) : null;
             c.sandPrice = sVal !== '' ? parseFloat(sVal) : null;
+            c.monthlyPrice = mVal !== '' ? parseFloat(mVal) : null;
             c.gravelPrice = gVal !== '' ? parseFloat(gVal) : null;
 
-            c.notes = document.getElementById('editCustNotes').value.trim();
+            c.notes = document.getElementById('editCustNotes')?.value.trim() || '';
 
             const gfEn = document.getElementById('editCustGeofenceEnabled');
             const gfType = document.getElementById('editCustGeofenceType');
@@ -5113,16 +5551,17 @@
             c.geofence_type = gfType ? gfType.value : 'radius';
             c.geofence_radius = gfRad ? Number(gfRad.value) || 80 : 80;
 
-            // Synkronoidaan myös reitillä olevat tämän asiakkaan kohteet
+            // Synkronoidaan reitillä olevat kohteet
             tasks.forEach(t => {
-                if (String(t.customerId) === String(id) || (t.name.toLowerCase() === c.name.toLowerCase())) {
+                if (String(t.customerId) === String(id) || (t.name && t.name.toLowerCase() === c.name.toLowerCase())) {
                     t.phone = c.phone;
                     t.email = c.email;
-                    t.paymentMethod = c.paymentMethod;
-                    t.contractType = c.contractType;
+                    t.name = c.name;
+                    t.notes = c.notes;
                     t.geofence_enabled = c.geofence_enabled;
                     t.geofence_type = c.geofence_type;
                     t.geofence_radius = c.geofence_radius;
+                    if (c.plowPrice != null) t.price = c.plowPrice;
                 }
             });
 
@@ -5131,14 +5570,14 @@
             saveAndRender();
             if (typeof syncYardMapGeofenceControls === 'function') syncYardMapGeofenceControls();
             if (typeof renderYardGeofenceCircle === 'function') renderYardGeofenceCircle();
-            showStatus(`Asiakkaan "${esc(c.name)}" tiedot ja geofence-asetukset päivitetty!`, 'success');
+            showStatus(`Asiakkaan "${esc(c.name)}" tiedot tallennettu onnistuneesti!`, 'success');
         });
     }
 
     function deleteCustomer(id) {
         const c = customers.find(x => String(x.id) === String(id));
         if (!c) return;
-        if (confirm(`Haluatko varmasti poistaa asiakkaan "${c.name}" rekisteristä? (Tämä ei poista jo reitillä olevia kohteita)`)) {
+        if (confirm(`Haluatko varmasti poistaa asiakkaan "${c.name}" asiakasrekisteristä? (Tämä ei poista jo ajolistalla olevia kohteita)`)) {
             customers = customers.filter(x => String(x.id) !== String(id));
             persistCustomers();
             renderCustomers();
@@ -5155,15 +5594,19 @@
         const filtered = customers.filter(c => {
             if (!search) return true;
             return (c.name && c.name.toLowerCase().includes(search)) ||
+                   (c.businessId && c.businessId.toLowerCase().includes(search)) ||
                    (c.address && c.address.toLowerCase().includes(search)) ||
+                   (c.billingAddress && c.billingAddress.toLowerCase().includes(search)) ||
+                   (c.contactPerson && c.contactPerson.toLowerCase().includes(search)) ||
                    (c.phone && c.phone.toLowerCase().includes(search)) ||
                    (c.email && c.email.toLowerCase().includes(search)) ||
+                   (c.linkedProperties && c.linkedProperties.toLowerCase().includes(search)) ||
                    (c.paymentMethod && c.paymentMethod.toLowerCase().includes(search)) ||
                    (c.contractType && c.contractType.toLowerCase().includes(search));
         });
 
         if (customers.length === 0) {
-            listEl.innerHTML = '<p class="empty-state">Ei vielä tallennettuja asiakkaita. Paina yltä "➕ Uusi asiakas" lisätäksesi ensimmäisen!</p>';
+            listEl.innerHTML = '<p class="empty-state">Ei vielä tallennettuja asiakkaita. Paina yltä "➕ Lisää uusi asiakas" lisätäksesi ensimmäisen!</p>';
             return;
         }
 
@@ -5177,72 +5620,75 @@
             const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.address)}`;
             const phoneHtml = c.phone ? `<a href="tel:${esc(c.phone)}" class="contact-link" title="Soita asiakkaalle">📞 ${esc(c.phone)}</a>` : '';
             const emailHtml = c.email ? `<a href="mailto:${esc(c.email)}" class="contact-link" title="Lähetä sähköpostia">✉️ ${esc(c.email)}</a>` : '';
+            const contactHtml = c.contactPerson ? `<span class="tag-pill" title="Yhteyshenkilö">👤 ${esc(c.contactPerson)}</span>` : '';
+            const bizIdHtml = c.businessId ? `<span class="tag-pill" title="Y-tunnus / Henkilötunnus">🏢 Y: ${esc(c.businessId)}</span>` : '';
             const payTag = c.paymentMethod ? `<span class="tag-pill tag-payment">${c.paymentMethod === 'Laskutus' ? '💳' : '💵'} ${esc(c.paymentMethod)}</span>` : '';
             const conTag = c.contractType ? `<span class="tag-pill tag-contract">📋 ${esc(c.contractType)}</span>` : '';
 
             const gfBadge = c.geofence_enabled !== false
-                ? `<span class="tag-pill" title="Vaadi paikkatodennus kohteessa">🛰️ Geofence: ${c.geofence_type === 'polygon' ? 'Karttaraja' : `${c.geofence_radius || 80} m`}</span>`
+                ? `<span class="tag-pill" title="Vaadi paikkatodennus kohteessa">🛰️ Geofence: ${c.geofence_type === 'polygon' ? 'Satelliittiraja' : `${c.geofence_radius || 80} m`}</span>`
                 : `<span class="tag-pill" style="opacity:0.65;">🛰️ Paikkatodennus: Ei vaadita</span>`;
 
-            const customPrices = [];
-            if (c.monthlyPrice != null && Number(c.monthlyPrice) > 0) customPrices.push(`Kk ${c.monthlyPrice}€`);
-            if (c.plowPrice != null && Number(c.plowPrice) > 0) customPrices.push(`Auraus ${c.plowPrice}€`);
-            if (c.sandPrice != null && Number(c.sandPrice) > 0) customPrices.push(`Hiekoitus ${c.sandPrice}€`);
-            if (c.gravelPrice != null && Number(c.gravelPrice) > 0) customPrices.push(`Sepeli ${c.gravelPrice}€/kg`);
-            const priceTag = customPrices.length ? `<span class="tag-pill tag-price">🏷️ ${customPrices.join(' · ')}</span>` : '';
+            const pricePills = [];
+            if (c.plowPrice != null && Number(c.plowPrice) > 0) pricePills.push(`Auraus ${Number(c.plowPrice).toFixed(2)} €`);
+            if (c.hourlyRate != null && Number(c.hourlyRate) > 0) pricePills.push(`Tunti ${Number(c.hourlyRate).toFixed(2)} €/h`);
+            if (c.monthlyPrice != null && Number(c.monthlyPrice) > 0) pricePills.push(`Kk ${Number(c.monthlyPrice).toFixed(2)} €`);
+            if (c.sandPrice != null && Number(c.sandPrice) > 0) pricePills.push(`Hiekoitus ${Number(c.sandPrice).toFixed(2)} €`);
+            if (c.gravelPrice != null && Number(c.gravelPrice) > 0) pricePills.push(`Sepeli ${Number(c.gravelPrice).toFixed(2)} €/kg`);
+            const priceTag = pricePills.length ? `<span class="tag-pill tag-price" title="Sopimushinnat (sis. ALV 25,5 %)">🏷️ ${pricePills.join(' · ')}</span>` : '';
 
-            // Tarkistetaan onko asiakkaalla aktiivista esimieshuomiota (manual_override / manager_alert)
-            const activeAlertTask = tasks.find(t =>
-                (t.manual_override || t.manager_alert) &&
-                (String(t.customerId) === String(c.id) || (t.name && t.name.toLowerCase() === c.name.toLowerCase()))
-            );
-            const hasAlert = !!(activeAlertTask || c.manager_alert || c.manual_override);
-            const alertReason = activeAlertTask?.override_reason || c.override_reason || '';
-            const alertDist = activeAlertTask?.override_distance_meters ?? c.override_distance_meters;
+            const linkedYardsHtml = c.linkedProperties ? `
+                <div class="customer-linked-yards">
+                    <span>🏡 <strong>Liitetyt kohteet:</strong> ${esc(c.linkedProperties)}</span>
+                </div>` : '';
 
-            const managerAlertHtml = hasAlert ? `
-                <div class="manager-alert-banner" title="Esimieshuomio: ${esc(alertReason)}">
-                    <span>⚠️</span>
-                    <div>
-                        <strong>Poikkeuskuittaus / Esimieshuomio${alertDist != null ? ` (${alertDist} m kohteesta)` : ''}:</strong> ${esc(alertReason || 'Manuaalinen kuittaus alueen ulkopuolelta')}
-                    </div>
+            const billingAddrHtml = (c.billingAddress && c.billingAddress !== c.address) ? `
+                <div style="font-size: 0.8rem; color: var(--muted); margin-top: 2px;">
+                    💳 <strong>Laskutusosoite:</strong> ${esc(c.billingAddress)}
                 </div>` : '';
 
             return `
-                <div class="customer-card yard-card" style="${hasAlert ? 'border-left: 4px solid var(--accent-amber);' : ''}">
-                    <div class="customer-header">
-                        <span class="customer-name yard-title" style="margin-bottom: 0;">${esc(c.name)}</span>
+                <div class="customer-card yard-card" style="margin-bottom: 12px;">
+                    <div class="customer-header" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                        <div>
+                            <span class="customer-name yard-title" style="margin-bottom: 0; font-size: 1.1rem; font-weight: 800;">
+                                ${esc(c.name)}
+                            </span>
+                            ${c.businessId ? `<span class="customer-business-id">(${esc(c.businessId)})</span>` : ''}
+                        </div>
                         <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
-                            ${hasAlert ? `<span class="manager-alert-pill" title="Manuaalikuittaus: ${esc(alertReason)}">⚠️ Manuaalikuittaus</span>` : ''}
-                            <span class="badge badge-active">${esc(c.defaultType || 'Auraus')}</span>
+                            <span class="badge badge-active">${esc(c.contractType || 'Käynnit')}</span>
                         </div>
                     </div>
 
-                    <div class="task-address-row">
-                        <a href="${mapsUrl}" target="_blank" rel="noopener" class="yard-address">📍 ${esc(c.address)}</a>
-                        ${(phoneHtml || emailHtml) ? `<div class="customer-contacts">${phoneHtml} ${emailHtml}</div>` : ''}
+                    <div class="task-address-row" style="margin: 6px 0;">
+                        <a href="${mapsUrl}" target="_blank" rel="noopener" class="yard-address" title="Avaa kartalla">📍 ${esc(c.address)}</a>
+                        ${billingAddrHtml}
+                        ${(phoneHtml || emailHtml || contactHtml) ? `<div class="customer-contacts" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px;">${contactHtml} ${phoneHtml} ${emailHtml}</div>` : ''}
                     </div>
 
-                    <div class="customer-tags" style="display: flex; gap: 6px; flex-wrap: wrap;">
+                    ${linkedYardsHtml}
+
+                    <div class="customer-tags" style="display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0;">
+                        ${bizIdHtml}
                         ${payTag}
                         ${conTag}
                         ${gfBadge}
                         ${priceTag}
                     </div>
 
-                    ${managerAlertHtml}
-                    ${c.notes ? `<div class="customer-notes">⚠️ ${esc(c.notes)}</div>` : ''}
+                    ${c.notes ? `<div class="customer-notes" style="margin-bottom: 8px;">⚠️ <strong>Kuskiohje:</strong> ${esc(c.notes)}</div>` : ''}
 
-                    <div class="customer-actions">
+                    <div class="customer-actions" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 10px; border-top: 1px solid var(--border); padding-top: 10px;">
                         <button class="btn-primary" style="padding: 8px 14px; min-height: 38px; font-size: 0.82rem; width: auto;" onclick="addCustomerToTodayRoute(${c.id})">
                             🚜 Lisää ajolistalle
                         </button>
                         <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                            <button class="tiny-btn" type="button" onclick="openCustomerOnYardMap(${c.id})" title="Avaa kohteen satelliittikartta ja piirrä piha-alueet">🛰️ Pihakartta</button>
-                            <button class="tiny-btn" type="button" onclick="openStreetViewForCustomer(${c.id})" title="Avaa kohde Google Street View -katunäkymässä">🛣️ Avaa Street View</button>
+                            <button class="tiny-btn" type="button" onclick="editCustomer(${c.id})" title="Muokkaa asiakkaan tietoja">✏️ Muokkaa tietoja</button>
+                            <button class="tiny-btn btn-customer-pdf" type="button" id="btn-customer-pdf" onclick="exportCustomerCardPDF(${c.id})" title="Luo ja lataa tulostuskelpoinen A4-asiakaskortti PDF">📄 Asiakaskortti / PDF</button>
+                            <button class="tiny-btn" type="button" onclick="openCustomerOnYardMap(${c.id})" title="Avaa kohteen satelliittikartta">🛰️ Pihakartta</button>
                             <button class="photo-btn" type="button" onclick="openCustomerPhotos(${c.id})" title="Kohteen valokuvat">📷 <span data-photo-count-for="${c.id}">${photoCounts[String(c.id)] || 0}</span></button>
-                            <button class="tiny-btn" onclick="editCustomer(${c.id})" title="Muokkaa asiakkaan tietoja">✎ Muokkaa</button>
-                            <button class="tiny-btn danger" onclick="deleteCustomer(${c.id})" title="Poista asiakas">✕</button>
+                            <button class="tiny-btn danger" type="button" onclick="deleteCustomer(${c.id})" title="Poista asiakas rekisteristä">🗑️ Poista asiakas</button>
                         </div>
                     </div>
                 </div>
@@ -5250,6 +5696,180 @@
         }).join('');
         if (typeof refreshYardMapTargetSelect === 'function') refreshYardMapTargetSelect();
     }
+
+    // ---------- ASIAKASKORTTI / PDF (html2pdf) ----------
+    function exportCustomerCardPDF(customerId) {
+        const c = customers.find(x => String(x.id) === String(customerId));
+        if (!c) {
+            alert('Asiakasta ei löytynyt.');
+            return;
+        }
+
+        if (typeof html2pdf === 'undefined') {
+            alert('PDF-kirjasto latautuu, yritä hetken kuluttua uudelleen.');
+            return;
+        }
+
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('fi-FI', { day: 'numeric', month: 'numeric', year: 'numeric' });
+
+        // Etsitään kertyneet työt työhistoriasta
+        let workLogs = [];
+        try {
+            workLogs = JSON.parse(localStorage.getItem('yardflow_work_logs')) || [];
+        } catch (e) {}
+
+        const custLogs = workLogs.filter(l => 
+            String(l.propertyId) === String(c.id) ||
+            (l.propertyName && l.propertyName.toLowerCase() === c.name.toLowerCase()) ||
+            (l.address && c.address && l.address.toLowerCase() === c.address.toLowerCase())
+        );
+
+        const totalWorkSum = custLogs.reduce((acc, l) => acc + (Number(l.price) || 0), 0);
+        const vatRate = 0.255;
+        const netSum = totalWorkSum / (1 + vatRate);
+        const vatSum = totalWorkSum - netSum;
+
+        const printEl = document.getElementById('pdf-print-template');
+        printEl.innerHTML = '<div style="font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, Arial, sans-serif; color: #0f172a; line-height: 1.4; padding: 10px;">' +
+            '<div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #0284c7; padding-bottom: 12px; margin-bottom: 16px;">' +
+                '<div>' +
+                    '<h1 style="margin: 0; font-size: 24px; color: #0284c7; font-weight: 800; letter-spacing: -0.02em;">YardFlow</h1>' +
+                    '<div style="font-size: 14px; color: #334155; font-weight: 700; margin-top: 2px;">ASIAKASKORTTI &amp; SOPIMUSERITTELY</div>' +
+                '</div>' +
+                '<div style="text-align: right; font-size: 11px; color: #64748b;">' +
+                    '<div>Tulostettu: <strong>' + dateStr + '</strong></div>' +
+                    '<div>Asiakas-ID: #' + c.id + '</div>' +
+                '</div>' +
+            '</div>' +
+
+            // Asiakastiedot & Laskutustiedot laatikko
+            '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">' +
+                '<div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px;">' +
+                    '<h3 style="margin: 0 0 8px 0; font-size: 13px; color: #0284c7; text-transform: uppercase; letter-spacing: 0.05em;">Asiakkaan perustiedot</h3>' +
+                    '<div style="font-size: 15px; font-weight: 800; color: #0f172a; margin-bottom: 4px;">' + esc(c.name) + '</div>' +
+                    (c.businessId ? '<div style="font-size: 12px; color: #475569; margin-bottom: 3px;"><strong>Y-tunnus / Hetu:</strong> ' + esc(c.businessId) + '</div>' : '') +
+                    (c.contactPerson ? '<div style="font-size: 12px; color: #475569; margin-bottom: 3px;"><strong>Yhteyshenkilö:</strong> ' + esc(c.contactPerson) + '</div>' : '') +
+                    '<div style="font-size: 12px; color: #475569; margin-bottom: 3px;"><strong>Käyntiosoite:</strong> ' + esc(c.address) + '</div>' +
+                    (c.phone ? '<div style="font-size: 12px; color: #475569; margin-bottom: 3px;"><strong>Puhelin:</strong> ' + esc(c.phone) + '</div>' : '') +
+                    (c.email ? '<div style="font-size: 12px; color: #475569;"><strong>Sähköposti:</strong> ' + esc(c.email) + '</div>' : '') +
+                '</div>' +
+
+                '<div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px;">' +
+                    '<h3 style="margin: 0 0 8px 0; font-size: 13px; color: #0284c7; text-transform: uppercase; letter-spacing: 0.05em;">Laskutus &amp; Sopimusperuste</h3>' +
+                    '<div style="font-size: 12px; color: #475569; margin-bottom: 4px;"><strong>Laskutusosoite:</strong> ' + esc(c.billingAddress || c.address) + '</div>' +
+                    '<div style="font-size: 12px; color: #475569; margin-bottom: 4px;"><strong>Maksutapa:</strong> ' + esc(c.paymentMethod || 'Laskutus') + '</div>' +
+                    '<div style="font-size: 12px; color: #475569; margin-bottom: 4px;"><strong>Sopimusmalli:</strong> ' + esc(c.contractType || 'Käynnit') + '</div>' +
+                    (c.linkedProperties ? '<div style="font-size: 12px; color: #0284c7; margin-top: 6px;"><strong>Liitetyt kohteet / pihat:</strong> ' + esc(c.linkedProperties) + '</div>' : '') +
+                    (c.notes ? '<div style="font-size: 11px; color: #d97706; margin-top: 6px; background: #fef3c7; padding: 4px 8px; border-radius: 4px;"><strong>Kuskiohje:</strong> ' + esc(c.notes) + '</div>' : '') +
+                '</div>' +
+            '</div>' +
+
+            // Sopimushintataulukko
+            '<div style="margin-bottom: 18px;">' +
+                '<h3 style="margin: 0 0 8px 0; font-size: 13px; color: #1e293b; text-transform: uppercase; letter-spacing: 0.04em;">Sovelluksen sopimushinnasto</h3>' +
+                '<table style="width: 100%; border-collapse: collapse; font-size: 11px;">' +
+                    '<thead>' +
+                        '<tr style="background: #f1f5f9; border-bottom: 1px solid #cbd5e1; text-align: left;">' +
+                            '<th style="padding: 6px 8px;">Palvelu / Toimenpide</th>' +
+                            '<th style="padding: 6px 8px; text-align: right;">Veroton (ALV 0 %)</th>' +
+                            '<th style="padding: 6px 8px; text-align: right;">ALV 25,5 %</th>' +
+                            '<th style="padding: 6px 8px; text-align: right;">Sopimushinta (sis. ALV)</th>' +
+                        '</tr>' +
+                    '</thead>' +
+                    '<tbody>' +
+                        '<tr style="border-bottom: 1px solid #f1f5f9;">' +
+                            '<td style="padding: 6px 8px; font-weight: 600;">Auraus &amp; Talvikunnossapito / käynti</td>' +
+                            '<td style="padding: 6px 8px; text-align: right;">' + (c.plowPrice ? ((c.plowPrice / 1.255).toFixed(2) + ' €') : 'Oletus (35.86 €)') + '</td>' +
+                            '<td style="padding: 6px 8px; text-align: right;">' + (c.plowPrice ? ((c.plowPrice - c.plowPrice / 1.255).toFixed(2) + ' €') : '9.14 €') + '</td>' +
+                            '<td style="padding: 6px 8px; text-align: right; font-weight: 700;">' + (c.plowPrice ? (Number(c.plowPrice).toFixed(2) + ' €') : '45.00 €') + '</td>' +
+                        '</tr>' +
+                        (c.hourlyRate ? (
+                            '<tr style="border-bottom: 1px solid #f1f5f9;">' +
+                                '<td style="padding: 6px 8px; font-weight: 600;">Tuntityöveloitus / h</td>' +
+                                '<td style="padding: 6px 8px; text-align: right;">' + (c.hourlyRate / 1.255).toFixed(2) + ' €</td>' +
+                                '<td style="padding: 6px 8px; text-align: right;">' + (c.hourlyRate - c.hourlyRate / 1.255).toFixed(2) + ' €</td>' +
+                                '<td style="padding: 6px 8px; text-align: right; font-weight: 700;">' + Number(c.hourlyRate).toFixed(2) + ' €/h</td>' +
+                            '</tr>'
+                        ) : '') +
+                        (c.monthlyPrice ? (
+                            '<tr style="border-bottom: 1px solid #f1f5f9;">' +
+                                '<td style="padding: 6px 8px; font-weight: 600;">Kiinteä kuukausimaksu / kk</td>' +
+                                '<td style="padding: 6px 8px; text-align: right;">' + (c.monthlyPrice / 1.255).toFixed(2) + ' €</td>' +
+                                '<td style="padding: 6px 8px; text-align: right;">' + (c.monthlyPrice - c.monthlyPrice / 1.255).toFixed(2) + ' €</td>' +
+                                '<td style="padding: 6px 8px; text-align: right; font-weight: 700;">' + Number(c.monthlyPrice).toFixed(2) + ' €/kk</td>' +
+                            '</tr>'
+                        ) : '') +
+                        (c.sandPrice ? (
+                            '<tr style="border-bottom: 1px solid #f1f5f9;">' +
+                                '<td style="padding: 6px 8px; font-weight: 600;">Erillishiekoitus / käynti</td>' +
+                                '<td style="padding: 6px 8px; text-align: right;">' + (c.sandPrice / 1.255).toFixed(2) + ' €</td>' +
+                                '<td style="padding: 6px 8px; text-align: right;">' + (c.sandPrice - c.sandPrice / 1.255).toFixed(2) + ' €</td>' +
+                                '<td style="padding: 6px 8px; text-align: right; font-weight: 700;">' + Number(c.sandPrice).toFixed(2) + ' €</td>' +
+                            '</tr>'
+                        ) : '') +
+                    '</tbody>' +
+                '</table>' +
+            '</div>' +
+
+            // Kertyneet työt (Work History)
+            '<div>' +
+                '<h3 style="margin: 0 0 8px 0; font-size: 13px; color: #1e293b; text-transform: uppercase; letter-spacing: 0.04em;">Suoritetut työt &amp; käyntihistoria (' + custLogs.length + ' kpl)</h3>' +
+                (custLogs.length === 0 
+                    ? '<div style="font-size: 12px; color: #64748b; font-style: italic; padding: 8px 0;">Ei vielä kirjattuja töitä tälle asiakkaalle järjestelmässä.</div>'
+                    : '<table style="width: 100%; border-collapse: collapse; font-size: 10px;">' +
+                        '<thead>' +
+                            '<tr style="background: #f1f5f9; border-bottom: 1px solid #cbd5e1; text-align: left;">' +
+                                '<th style="padding: 5px 6px;">Pvm &amp; Aika</th>' +
+                                '<th style="padding: 5px 6px;">Työ</th>' +
+                                '<th style="padding: 5px 6px;">Kuittaustapa</th>' +
+                                '<th style="padding: 5px 6px; text-align: right;">Hinta (sis. ALV 25,5 %)</th>' +
+                            '</tr>' +
+                        '</thead>' +
+                        '<tbody>' +
+                            custLogs.slice(0, 15).map(function(l) {
+                                return '<tr style="border-bottom: 1px solid #f1f5f9;">' +
+                                    '<td style="padding: 4px 6px; white-space: nowrap;">' + (l.completedAt ? new Date(l.completedAt).toLocaleString('fi-FI') : '-') + '</td>' +
+                                    '<td style="padding: 4px 6px;">' + esc(l.workType || 'Auraus & Hiekoitus') + '</td>' +
+                                    '<td style="padding: 4px 6px;">' + esc(l.method || 'Geofence') + (l.overrideReason ? (' (' + esc(l.overrideReason) + ')') : '') + '</td>' +
+                                    '<td style="padding: 4px 6px; text-align: right; font-weight: 600;">' + (Number(l.price) || 0).toFixed(2) + ' €</td>' +
+                                '</tr>';
+                            }).join('') +
+                        '</tbody>' +
+                        '<tfoot>' +
+                            '<tr style="border-top: 2px solid #0f172a; font-weight: 700; background: #f8fafc;">' +
+                                '<td colspan="3" style="padding: 6px; text-align: right;">Yhteensä kertyneet työt (sis. ALV 25,5 %):</td>' +
+                                '<td style="padding: 6px; text-align: right; color: #0284c7; font-size: 11px;">' + totalWorkSum.toFixed(2) + ' €</td>' +
+                            '</tr>' +
+                        '</tfoot>' +
+                      '</table>'
+                ) +
+            '</div>' +
+
+            '<div style="margin-top: 24px; padding-top: 10px; border-top: 1px solid #cbd5e1; font-size: 9px; color: #94a3b8; display: flex; justify-content: space-between;">' +
+                '<span>YardFlow Fleet Management &bull; Luotu automaattisesti</span>' +
+                '<span>Sivu 1 / 1</span>' +
+            '</div>' +
+        '</div>';
+
+        const filename = 'YardFlow_asiakaskortti_' + (c.name || 'asiakas').replace(/[^a-zA-Z0-9åäöÅÄÖ]/g, '_') + '.pdf';
+
+        html2pdf().set({
+            margin: 10,
+            filename: filename,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        }).from(printEl).save().then(function() {
+            showStatus('Asiakaskortti ladattu onnistuneesti!', 'success');
+        }).catch(function(err) {
+            console.error('PDF error:', err);
+            alert('PDF:n luonti epäonnistui: ' + err.message);
+        });
+    }
+    window.exportCustomerCardPDF = exportCustomerCardPDF;
+
+    
 
     let depot = JSON.parse(localStorage.getItem('pihatyot_depot_v4')) || {
         address: localStorage.getItem('pihatyot_depot') || '',
