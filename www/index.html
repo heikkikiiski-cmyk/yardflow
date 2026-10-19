@@ -778,6 +778,60 @@
         .widget-next-yard-card { background: var(--bg-card); border: 1px solid var(--accent); border-radius: var(--radius-md); padding: 10px 12px; }
         .widget-tickets-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 10px 12px; }
 
+        /* ============================================================
+           LIGHTROOM-STYLE COLLAPSIBLE CARDS & PANELS
+           ============================================================ */
+        .collapsible-card {
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+        .card-header-clickable {
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: opacity 0.15s ease;
+        }
+        .card-header-clickable:hover {
+            opacity: 0.85;
+        }
+        .collapse-chevron {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            font-size: 0.82rem;
+            color: var(--muted);
+            transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s ease;
+            flex-shrink: 0;
+            margin-left: 8px;
+        }
+        .card-header-clickable:hover .collapse-chevron {
+            color: var(--fg);
+        }
+        .collapsible-card.is-collapsed .collapse-chevron {
+            transform: rotate(-90deg);
+        }
+        .collapsible-card .card-body,
+        .collapsible-card .card-collapsible-body {
+            transition: max-height 0.32s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.22s ease, margin 0.22s ease;
+            max-height: 3500px;
+            opacity: 1;
+            overflow: hidden;
+        }
+        .collapsible-card.is-collapsed .card-body,
+        .collapsible-card.is-collapsed .card-collapsible-body {
+            max-height: 0 !important;
+            opacity: 0;
+            margin-top: 0 !important;
+            margin-bottom: 0 !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            border: none !important;
+            pointer-events: none;
+        }
+
         /* Leaflet.Path.Transform kahvojen tyylit */
         .leaflet-drag-transform-marker { background: #ffffff !important; border: 2px solid #0284c7 !important; border-radius: 3px !important; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.45) !important; cursor: nwse-resize !important; width: 13px !important; height: 13px !important; margin-left: -6.5px !important; margin-top: -6.5px !important; }
         .drag-marker--rotate,
@@ -991,103 +1045,126 @@
         <div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px;">
             
             <!-- WIDGET 1: [Päivän tilanne] (#dash-widget-progress) -->
-            <div id="dash-widget-progress" class="card dash-widget-card">
-                <div class="dash-widget-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div id="dash-widget-progress" class="card dash-widget-card collapsible-card">
+                <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
                     <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
                         <span>📊</span> <span>Päivän tilanne</span>
                     </h3>
-                    <span id="dashProgressPercent" style="font-weight: 800; font-size: 1.1rem; color: #10b981;">0%</span>
-                </div>
-                <div class="progress-bar-track" style="height: 12px; border-radius: 6px; background: var(--bg-secondary); overflow: hidden; margin-bottom: 12px;">
-                    <div id="dashProgressBarFill" class="progress-bar-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #10b981, #059669); transition: width 0.4s ease;"></div>
-                </div>
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center;">
-                    <div style="background: var(--bg-card-secondary, rgba(255,255,255,0.03)); padding: 10px 6px; border-radius: var(--radius-md); border: 1px solid var(--border);">
-                        <div style="font-size: 0.74rem; color: var(--muted); text-transform: uppercase;">Kuitatut</div>
-                        <div id="dashDoneCount" style="font-size: 1.25rem; font-weight: 800; color: #10b981; margin-top: 2px;">0</div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span id="dashProgressPercent" style="font-weight: 800; font-size: 1.1rem; color: #10b981;">0%</span>
+                        <span class="collapse-chevron">▾</span>
                     </div>
-                    <div style="background: var(--bg-card-secondary, rgba(255,255,255,0.03)); padding: 10px 6px; border-radius: var(--radius-md); border: 1px solid var(--border);">
-                        <div style="font-size: 0.74rem; color: var(--muted); text-transform: uppercase;">Jäljellä</div>
-                        <div id="dashRemainingCount" style="font-size: 1.25rem; font-weight: 800; color: var(--accent-amber, #f59e0b); margin-top: 2px;">0</div>
+                </div>
+                <div class="card-collapsible-body">
+                    <div class="progress-bar-track" style="height: 12px; border-radius: 6px; background: var(--bg-secondary); overflow: hidden; margin-bottom: 12px;">
+                        <div id="dashProgressBarFill" class="progress-bar-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #10b981, #059669); transition: width 0.4s ease;"></div>
                     </div>
-                    <div style="background: var(--bg-card-secondary, rgba(255,255,255,0.03)); padding: 10px 6px; border-radius: var(--radius-md); border: 1px solid var(--border);">
-                        <div style="font-size: 0.74rem; color: var(--muted); text-transform: uppercase;">Yhteensä</div>
-                        <div id="dashTotalCount" style="font-size: 1.25rem; font-weight: 800; color: var(--fg); margin-top: 2px;">0</div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center;">
+                        <div style="background: var(--bg-card-secondary, rgba(255,255,255,0.03)); padding: 10px 6px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                            <div style="font-size: 0.74rem; color: var(--muted); text-transform: uppercase;">Kuitatut</div>
+                            <div id="dashDoneCount" style="font-size: 1.25rem; font-weight: 800; color: #10b981; margin-top: 2px;">0</div>
+                        </div>
+                        <div style="background: var(--bg-card-secondary, rgba(255,255,255,0.03)); padding: 10px 6px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                            <div style="font-size: 0.74rem; color: var(--muted); text-transform: uppercase;">Jäljellä</div>
+                            <div id="dashRemainingCount" style="font-size: 1.25rem; font-weight: 800; color: var(--accent-amber, #f59e0b); margin-top: 2px;">0</div>
+                        </div>
+                        <div style="background: var(--bg-card-secondary, rgba(255,255,255,0.03)); padding: 10px 6px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                            <div style="font-size: 0.74rem; color: var(--muted); text-transform: uppercase;">Yhteensä</div>
+                            <div id="dashTotalCount" style="font-size: 1.25rem; font-weight: 800; color: var(--fg); margin-top: 2px;">0</div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- WIDGET 2: [Seuraava kohde] (#dash-widget-next-stop) -->
-            <div id="dash-widget-next-stop" class="card dash-widget-card">
-                <div class="dash-widget-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div id="dash-widget-next-stop" class="card dash-widget-card collapsible-card">
+                <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
                     <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
                         <span>📍</span> <span>Seuraava kohde</span>
                     </h3>
-                    <span class="status-pill status-ready" id="dashNextStopOrder" style="font-size: 0.74rem;">Seuraava #1</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="status-pill status-ready" id="dashNextStopOrder" style="font-size: 0.74rem;">Seuraava #1</span>
+                        <span class="collapse-chevron">▾</span>
+                    </div>
                 </div>
-                <div id="dashNextStopContent">
-                    <!-- Populated dynamically -->
+                <div class="card-collapsible-body">
+                    <div id="dashNextStopContent">
+                        <!-- Populated dynamically -->
+                    </div>
                 </div>
             </div>
 
             <!-- WIDGET 3: [Reitin pika-analyysi] (#dash-widget-route-stats) -->
-            <div id="dash-widget-route-stats" class="card dash-widget-card">
-                <div class="dash-widget-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div id="dash-widget-route-stats" class="card dash-widget-card collapsible-card">
+                <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
                     <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
                         <span>⚡</span> <span>Reitin pika-analyysi</span>
                     </h3>
-                    <span style="font-size: 0.75rem; color: var(--muted);">35 km/h taajama</span>
-                </div>
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center;">
-                    <div style="background: var(--bg-card-secondary, rgba(255,255,255,0.03)); padding: 10px 6px; border-radius: var(--radius-md); border: 1px solid var(--border);">
-                        <div style="font-size: 0.74rem; color: var(--muted);">Siirtymät</div>
-                        <div id="dashRouteDistance" style="font-size: 1.1rem; font-weight: 800; color: var(--fg); margin-top: 2px;">0.0 km</div>
-                    </div>
-                    <div style="background: var(--bg-card-secondary, rgba(255,255,255,0.03)); padding: 10px 6px; border-radius: var(--radius-md); border: 1px solid var(--border);">
-                        <div style="font-size: 0.74rem; color: var(--muted);">Ajoaika</div>
-                        <div id="dashRouteDuration" style="font-size: 1.1rem; font-weight: 800; color: var(--fg); margin-top: 2px;">0 min</div>
-                    </div>
-                    <div style="background: var(--bg-card-secondary, rgba(255,255,255,0.03)); padding: 10px 6px; border-radius: var(--radius-md); border: 1px solid var(--border);">
-                        <div style="font-size: 0.74rem; color: var(--muted);">Polttoainekulu</div>
-                        <div id="dashRouteFuel" style="font-size: 1.1rem; font-weight: 800; color: #10b981; margin-top: 2px;">0,00 €</div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 0.75rem; color: var(--muted);">35 km/h taajama</span>
+                        <span class="collapse-chevron">▾</span>
                     </div>
                 </div>
-                <div style="margin-top: 12px; font-size: 0.78rem; color: var(--muted); display: flex; justify-content: space-between; align-items: center;">
-                    <span id="dashRouteStopsCount">0 kohdetta reitillä</span>
-                    <button type="button" class="btn-outline" style="padding: 4px 10px; font-size: 0.78rem;" onclick="setAppMode('admin'); switchTab('routes'); setTimeout(autoOptimizeRoute, 150);">⚡ Optimoi reitti</button>
+                <div class="card-collapsible-body">
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center;">
+                        <div style="background: var(--bg-card-secondary, rgba(255,255,255,0.03)); padding: 10px 6px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                            <div style="font-size: 0.74rem; color: var(--muted);">Siirtymät</div>
+                            <div id="dashRouteDistance" style="font-size: 1.1rem; font-weight: 800; color: var(--fg); margin-top: 2px;">0.0 km</div>
+                        </div>
+                        <div style="background: var(--bg-card-secondary, rgba(255,255,255,0.03)); padding: 10px 6px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                            <div style="font-size: 0.74rem; color: var(--muted);">Ajoaika</div>
+                            <div id="dashRouteDuration" style="font-size: 1.1rem; font-weight: 800; color: var(--fg); margin-top: 2px;">0 min</div>
+                        </div>
+                        <div style="background: var(--bg-card-secondary, rgba(255,255,255,0.03)); padding: 10px 6px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                            <div style="font-size: 0.74rem; color: var(--muted);">Polttoainekulu</div>
+                            <div id="dashRouteFuel" style="font-size: 1.1rem; font-weight: 800; color: #10b981; margin-top: 2px;">0,00 €</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 12px; font-size: 0.78rem; color: var(--muted); display: flex; justify-content: space-between; align-items: center;">
+                        <span id="dashRouteStopsCount">0 kohdetta reitillä</span>
+                        <button type="button" class="btn-outline" style="padding: 4px 10px; font-size: 0.78rem;" onclick="setAppMode('admin'); switchTab('routes'); setTimeout(autoOptimizeRoute, 150);">⚡ Optimoi reitti</button>
+                    </div>
                 </div>
             </div>
 
             <!-- WIDGET 4: [Pikalinkit] (#dash-widget-shortcuts) -->
-            <div id="dash-widget-shortcuts" class="card dash-widget-card">
-                <div class="dash-widget-header" style="margin-bottom: 12px;">
+            <div id="dash-widget-shortcuts" class="card dash-widget-card collapsible-card">
+                <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
                     <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
                         <span>🚀</span> <span>Pikalinkit</span>
                     </h3>
+                    <span class="collapse-chevron">▾</span>
                 </div>
-                <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <button type="button" class="btn-primary" style="display: flex; align-items: center; gap: 8px; justify-content: center; min-height: 42px; font-weight: 600;" onclick="startTourShortcut()">
-                        <span>🚜</span> <span>Aloita kierros (Kenttätila)</span>
-                    </button>
-                    <button type="button" class="btn-secondary" style="display: flex; align-items: center; gap: 8px; justify-content: center; min-height: 42px;" onclick="switchTab('history'); setTimeout(exportWorkHistoryPDF, 150);">
-                        <span>📄</span> <span>Lataa työraportti (PDF)</span>
-                    </button>
-                    <button type="button" class="btn-outline" style="display: flex; align-items: center; gap: 8px; justify-content: center; min-height: 42px;" onclick="switchTab('customers'); setTimeout(() => { const d = document.getElementById('addCustomerDrawer'); if (d) d.style.display = 'block'; }, 150);">
-                        <span>➕</span> <span>Uusi asiakas</span>
-                    </button>
+                <div class="card-collapsible-body">
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <button type="button" class="btn-primary" style="display: flex; align-items: center; gap: 8px; justify-content: center; min-height: 42px; font-weight: 600;" onclick="openCreateRouteModal()">
+                            <span>➕</span> <span>Luo uusi reitti</span>
+                        </button>
+                        <button type="button" class="btn-secondary" style="display: flex; align-items: center; gap: 8px; justify-content: center; min-height: 42px;" onclick="switchTab('history'); setTimeout(exportWorkHistoryPDF, 150);">
+                            <span>📄</span> <span>Lataa työraportti (PDF)</span>
+                        </button>
+                        <button type="button" class="btn-outline" style="display: flex; align-items: center; gap: 8px; justify-content: center; min-height: 42px;" onclick="switchTab('customers'); setTimeout(() => { const d = document.getElementById('addCustomerDrawer'); if (d) d.style.display = 'block'; }, 150);">
+                            <span>👥</span> <span>Uusi asiakas</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
             <!-- WIDGET 5: [Viimeisimmät kuittaukset] (#dash-widget-recent-logs) -->
-            <div id="dash-widget-recent-logs" class="card dash-widget-card" style="grid-column: 1 / -1;">
-                <div class="dash-widget-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div id="dash-widget-recent-logs" class="card dash-widget-card collapsible-card" style="grid-column: 1 / -1;">
+                <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
                     <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
                         <span>📋</span> <span>Viimeisimmät kuittaukset</span>
                     </h3>
-                    <button type="button" class="btn-outline" style="padding: 4px 10px; font-size: 0.78rem;" onclick="switchTab('history')">Näytä kaikki työt →</button>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <button type="button" class="btn-outline" style="padding: 4px 10px; font-size: 0.78rem;" onclick="event.stopPropagation(); switchTab('history')">Näytä kaikki työt →</button>
+                        <span class="collapse-chevron">▾</span>
+                    </div>
                 </div>
-                <div id="dashRecentLogsList">
-                    <!-- Populated dynamically -->
+                <div class="card-collapsible-body">
+                    <div id="dashRecentLogsList">
+                        <!-- Populated dynamically -->
+                    </div>
                 </div>
             </div>
 
@@ -1186,14 +1263,14 @@
 
             <!-- Kompaktit lisätyökalut (avaavat lomakkeen tai asetukset vain tarvittaessa) -->
             <div class="toolbar-row admin-only">
+                <button type="button" class="btn-primary" id="btn-create-new-route" onclick="openCreateRouteModal()" style="font-weight: 700; padding: 6px 14px;">
+                    ➕ Luo uusi reitti
+                </button>
                 <button type="button" class="drawer-toggle-btn" id="btnToggleAddTask" onclick="toggleDrawer('addTaskDrawer', this)">
                     ➕ Lisää kohde
                 </button>
                 <button type="button" class="drawer-toggle-btn" id="btnToggleRouteConfig" onclick="toggleDrawer('routeConfigDrawer', this)">
                     ⚙️ Reitit &amp; Varikko (<span id="routeCount">0</span>)
-                </button>
-                <button type="button" class="drawer-toggle-btn" onclick="resetAllDone()" title="Nollaa kaikki kohteet tekemättömiksi uutta kierrosta varten">
-                    🔄 Uusi kierros
                 </button>
             </div>
 
@@ -1325,16 +1402,28 @@
                 </div>
             </div>
 
-            <!-- Suodattimet ja itse kohdelista -->
-            <div class="filter-bar">
-                <button class="filter-btn active" onclick="setFilter('all', this)">Kaikki</button>
-                <button class="filter-btn" onclick="setFilter('pending', this)">Tekemättä</button>
-                <button class="filter-btn" onclick="setFilter('done', this)">Valmiit</button>
-            </div>
+            <!-- KOKOONTAITETTAVA REITIN KOHTEET -KORTTI (#route-planning-card) -->
+            <div id="route-planning-card" class="card collapsible-card" style="margin-top: 12px; padding: 12px;">
+                <div class="card-header-clickable" onclick="toggleCardCollapse(this)" style="margin-bottom: 8px;">
+                    <div style="font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
+                        <span>📋</span>
+                        <span>Reitin kohteet</span>
+                    </div>
+                    <span class="collapse-chevron">▾</span>
+                </div>
+                <div class="card-collapsible-body">
+                    <!-- Suodattimet ja itse kohdelista -->
+                    <div class="filter-bar">
+                        <button class="filter-btn active" onclick="setFilter('all', this)">Kaikki</button>
+                        <button class="filter-btn" onclick="setFilter('pending', this)">Tekemättä</button>
+                        <button class="filter-btn" onclick="setFilter('done', this)">Valmiit</button>
+                    </div>
 
-            <div id="property-list-container">
-                <div id="property-list" class="property-list">
-                    <div id="taskList"></div>
+                    <div id="property-list-container">
+                        <div id="property-list" class="property-list">
+                            <div id="taskList"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1350,6 +1439,7 @@
                         <span id="driverHudStep">SEURAAVA KOHDE</span>
                         <span id="driverHudCounter" class="hud-counter-badge">0 / 0</span>
                     </div>
+                    <div id="driverHudRouteInfo" style="font-size: 0.76rem; color: var(--accent-light, #38bdf8); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 140px;" title="Aktiivinen reitti ja kuljettaja"></div>
                     <button type="button" class="driver-nav-quick-btn" onclick="navigateToNextYard()" title="Avaa navigointi Google Mapsissa">
                         🧭 Navigoi
                     </button>
@@ -2394,6 +2484,60 @@
             </div>
         </form>
     </dialog>
+
+    <!-- Uuden reitin luonti ja kuskille osoitus (#modal-create-route) -->
+    <dialog id="modal-create-route" class="app-dialog">
+        <form method="dialog" class="dialog-content" style="max-width: 640px;" onsubmit="event.preventDefault(); saveNewCreatedRoute();">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+                <h3 style="margin: 0; font-size: 1.15rem; display: flex; align-items: center; gap: 8px;">
+                    <span>➕</span>
+                    <span>Luo uusi reitti</span>
+                </h3>
+                <button type="button" class="tiny-btn" onclick="closeCreateRouteModal()">✕ Sulje</button>
+            </div>
+
+            <!-- Reitin nimi -->
+            <label for="route-new-name" style="font-weight: 700; color: var(--fg);">Reitin nimi:</label>
+            <input type="text" id="route-new-name" placeholder="esim. Aamukierros Länsi tai Papinkadun piiri" required style="margin-bottom: 12px;">
+
+            <!-- Kuljettajan valinta -->
+            <label for="route-assigned-driver" style="font-weight: 700; color: var(--fg);">Kuljettajan valinta (Osoita reitti):</label>
+            <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                <select id="route-assigned-driver" onchange="handleDriverSelectChange(this.value)" style="margin-bottom: 0; flex: 1;">
+                    <option value="Hessu">Hessu (Oletus)</option>
+                    <option value="Pekka">Kuski 1 (Pekka)</option>
+                    <option value="Matti">Kuski 2 (Matti)</option>
+                    <option value="Kalle">Kuski 3 (Kalle)</option>
+                    <option value="__custom__">+ Kirjoita muu kuljettaja...</option>
+                </select>
+                <input type="text" id="route-custom-driver-input" placeholder="Kirjoita kuljettajan nimi" style="display: none; margin-bottom: 0; flex: 1;">
+            </div>
+
+            <!-- Kohteiden / Asiakkaiden valintalista -->
+            <div style="margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <label style="font-weight: 700; margin: 0; color: var(--fg);">
+                        Valitse reittiin kuuluvat kohteet (<span id="route-selected-count">0</span> kpl valittu):
+                    </label>
+                    <div style="display: flex; gap: 6px;">
+                        <button type="button" class="tiny-btn" onclick="setCreateRouteCheckboxes(true)">Valitse kaikki</button>
+                        <button type="button" class="tiny-btn" onclick="setCreateRouteCheckboxes(false)">Tyhjennä</button>
+                    </div>
+                </div>
+
+                <div id="route-properties-selection-list" style="max-height: 240px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 8px; background: rgba(0,0,0,0.12); display: flex; flex-direction: column; gap: 6px;">
+                    <!-- Dynamic property checkboxes -->
+                </div>
+            </div>
+
+            <div class="dialog-actions" style="display: flex; gap: 10px; margin-top: 14px;">
+                <button type="button" class="btn-outline" style="flex: 1;" onclick="closeCreateRouteModal()">Peruuta</button>
+                <button type="submit" id="btnSaveNewRoute" class="btn-primary" style="flex: 1.5; padding: 10px 20px; font-weight: 700;">
+                    💾 Tallenna ja määritä reitti
+                </button>
+            </div>
+        </form>
+    </dialog>
 </div>
 
 <!-- Piilotettu tulostuspohja (html2pdf) -->
@@ -2777,12 +2921,19 @@
             pts.push({ lat: depot.lat, lon: depot.lon, name: depot.address || 'Varikko' });
         }
 
+        if (!panel.classList.contains('collapsible-card')) {
+            panel.classList.add('collapsible-card');
+        }
+
         if (pts.length < 2) {
-            panel.innerHTML = '<div class="route-analytics-header">' +
+            panel.innerHTML = '<div class="route-analytics-header card-header-clickable" onclick="toggleCardCollapse(this)">' +
                 '<div class="route-analytics-title">📊 Siirtymämatkat &amp; Kululaskenta</div>' +
+                '<span class="collapse-chevron">▾</span>' +
                 '</div>' +
+                '<div class="card-collapsible-body">' +
                 '<div style="font-size: 0.8rem; color: var(--muted); padding: 4px 0;">' +
                 'Lisää reitille vähintään kaksi koordinaateilla varustettua kohdetta nähdäksesi siirtymämatkat ja kuluarvion.' +
+                '</div>' +
                 '</div>';
             return;
         }
@@ -2809,51 +2960,56 @@
         const fuelLitres = totalKm * (fuelConsumptionL100km / 100);
         const fuelCost = fuelLitres * fuelPricePerLitre;
 
-        panel.innerHTML = '<div class="route-analytics-header">' +
+        panel.innerHTML = '<div class="route-analytics-header card-header-clickable" onclick="toggleCardCollapse(this)">' +
             '<div class="route-analytics-title">📊 Siirtymämatkat &amp; Polttoainearvio</div>' +
-            '<span class="status-pill status-ready" style="font-size: 0.72rem; padding: 2px 8px;">35 km/h taajama</span>' +
+            '<div style="display: flex; align-items: center; gap: 8px;">' +
+                '<span class="status-pill status-ready" style="font-size: 0.72rem; padding: 2px 8px;">35 km/h taajama</span>' +
+                '<span class="collapse-chevron">▾</span>' +
+            '</div>' +
             '</div>' +
 
-            '<div class="route-kpi-grid">' +
-                '<div class="route-kpi-box">' +
-                    '<div class="route-kpi-label">Siirtymät yht.</div>' +
-                    '<div class="route-kpi-value">' + totalKm.toFixed(1) + ' km</div>' +
+            '<div class="card-collapsible-body">' +
+                '<div class="route-kpi-grid">' +
+                    '<div class="route-kpi-box">' +
+                        '<div class="route-kpi-label">Siirtymät yht.</div>' +
+                        '<div class="route-kpi-value">' + totalKm.toFixed(1) + ' km</div>' +
+                    '</div>' +
+                    '<div class="route-kpi-box">' +
+                        '<div class="route-kpi-label">Arvioitu ajoaika</div>' +
+                        '<div class="route-kpi-value">' + timeStr + '</div>' +
+                    '</div>' +
+                    '<div class="route-kpi-box">' +
+                        '<div class="route-kpi-label">Polttoainekulut</div>' +
+                        '<div class="route-kpi-value" style="color: #10b981;">' + fuelCost.toFixed(2) + ' €</div>' +
+                    '</div>' +
                 '</div>' +
-                '<div class="route-kpi-box">' +
-                    '<div class="route-kpi-label">Arvioitu ajoaika</div>' +
-                    '<div class="route-kpi-value">' + timeStr + '</div>' +
-                '</div>' +
-                '<div class="route-kpi-box">' +
-                    '<div class="route-kpi-label">Polttoainekulut</div>' +
-                    '<div class="route-kpi-value" style="color: #10b981;">' + fuelCost.toFixed(2) + ' €</div>' +
-                '</div>' +
-            '</div>' +
 
-            '<div class="route-fuel-settings-row">' +
-                '<div class="route-fuel-input-group">' +
-                    '<label for="routeFuelConsumption">Kulutus:</label>' +
-                    '<input type="number" id="routeFuelConsumption" step="0.5" min="1" max="100" value="' + fuelConsumptionL100km + '" onchange="updateFuelSettings(this.value, null)">' +
-                    '<span>l/100km</span>' +
+                '<div class="route-fuel-settings-row">' +
+                    '<div class="route-fuel-input-group">' +
+                        '<label for="routeFuelConsumption">Kulutus:</label>' +
+                        '<input type="number" id="routeFuelConsumption" step="0.5" min="1" max="100" value="' + fuelConsumptionL100km + '" onchange="updateFuelSettings(this.value, null)">' +
+                        '<span>l/100km</span>' +
+                    '</div>' +
+                    '<div class="route-fuel-input-group">' +
+                        '<label for="routeFuelPrice">Hinta:</label>' +
+                        '<input type="number" id="routeFuelPrice" step="0.01" min="0.5" max="10" value="' + fuelPricePerLitre.toFixed(2) + '" onchange="updateFuelSettings(null, this.value)">' +
+                        '<span>€/l</span>' +
+                    '</div>' +
+                    '<span style="color: var(--muted); font-size: 0.72rem; margin-left: auto;">(' + fuelLitres.toFixed(1) + ' litraa)</span>' +
                 '</div>' +
-                '<div class="route-fuel-input-group">' +
-                    '<label for="routeFuelPrice">Hinta:</label>' +
-                    '<input type="number" id="routeFuelPrice" step="0.01" min="0.5" max="10" value="' + fuelPricePerLitre.toFixed(2) + '" onchange="updateFuelSettings(null, this.value)">' +
-                    '<span>€/l</span>' +
-                '</div>' +
-                '<span style="color: var(--muted); font-size: 0.72rem; margin-left: auto;">(' + fuelLitres.toFixed(1) + ' litraa)</span>' +
-            '</div>' +
 
-            '<details class="route-legs-details" open>' +
-                '<summary class="route-legs-summary-btn">Kohteiden väliset siirtymät (' + legs.length + ' etappia) ▾</summary>' +
-                '<div class="route-legs-list">' +
-                    legs.map(function(leg, idx) {
-                        return '<div class="route-leg-row">' +
-                            '<span><strong>' + (idx + 1) + '.</strong> ' + esc(leg.from) + ' ➔ ' + esc(leg.to) + '</span>' +
-                            '<span><strong>' + leg.km.toFixed(1) + ' km</strong> (~' + leg.minutes + ' min)</span>' +
-                        '</div>';
-                    }).join('') +
-                '</div>' +
-            '</details>';
+                '<details class="route-legs-details" open>' +
+                    '<summary class="route-legs-summary-btn">Kohteiden väliset siirtymät (' + legs.length + ' etappia) ▾</summary>' +
+                    '<div class="route-legs-list">' +
+                        legs.map(function(leg, idx) {
+                            return '<div class="route-leg-row">' +
+                                '<span><strong>' + (idx + 1) + '.</strong> ' + esc(leg.from) + ' ➔ ' + esc(leg.to) + '</span>' +
+                                '<span><strong>' + leg.km.toFixed(1) + ' km</strong> (~' + leg.minutes + ' min)</span>' +
+                            '</div>';
+                        }).join('') +
+                    '</div>' +
+                '</details>' +
+            '</div>';
     }
     window.renderRouteAnalytics = renderRouteAnalytics;
 
@@ -3114,6 +3270,19 @@
             if (hudNoteText) hudNoteText.textContent = nextTask.notes.trim();
         } else {
             if (hudNote) hudNote.style.display = 'none';
+        }
+
+        const hudRouteInfo = document.getElementById('driverHudRouteInfo');
+        if (hudRouteInfo) {
+            const curRoute = typeof getCurrentRoute === 'function' ? getCurrentRoute() : null;
+            if (curRoute) {
+                const driverStr = curRoute.driver ? ` (${curRoute.driver})` : '';
+                hudRouteInfo.textContent = `${curRoute.name}${driverStr}`;
+                hudRouteInfo.style.display = 'block';
+            } else {
+                hudRouteInfo.textContent = '';
+                hudRouteInfo.style.display = 'none';
+            }
         }
 
         if (btnCompleteText) {
@@ -7559,16 +7728,17 @@
         const el = document.getElementById('routeList');
         document.getElementById('routeCount').textContent = routes.length;
         if (routes.length === 0) {
-            el.innerHTML = '<p class="empty-state">Ei vielä tallennettuja reittejä. Lisää kohteet ja paina "Tallenna reitti".</p>';
+            el.innerHTML = '<p class="empty-state">Ei vielä tallennettuja reittejä. Lisää kohteet ja paina "Tallenna reitti" tai "Luo uusi reitti".</p>';
             return;
         }
         el.innerHTML = routes.map(r => {
             const active = String(r.id) === String(currentRouteId);
+            const driverBadge = r.driver ? `<span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); margin-left: 4px;">🚜 ${esc(r.driver)}</span>` : '';
             return `
             <div class="route-item ${active ? 'active' : ''}">
                 <div class="route-info">
-                    <div class="route-name">${esc(r.name)} ${active ? '<span class="badge">Aktiivinen</span>' : ''}</div>
-                    <div class="route-meta">${r.tasks.length} kohdetta · päivitetty ${esc(fmtDate(r.updated || r.created))}</div>
+                    <div class="route-name">${esc(r.name)} ${active ? '<span class="badge">Aktiivinen</span>' : ''}${driverBadge}</div>
+                    <div class="route-meta">${r.tasks ? r.tasks.length : 0} kohdetta · päivitetty ${esc(fmtDate(r.updated || r.created))}</div>
                 </div>
                 <div class="route-actions">
                     <button class="tiny-btn" onclick="loadRoute(${r.id})">▶ Lataa</button>
@@ -7584,9 +7754,276 @@
         if (!el) return;
         const cur = getCurrentRoute();
         if (!cur) { el.innerHTML = ''; return; }
-        const dirty = taskSig(tasks) !== taskSig(cur.tasks);
-        el.innerHTML = `Reitti: <b>${esc(cur.name)}</b>` + (dirty ? ' <span class="dirty">● tallentamattomia muutoksia</span>' : '');
+        const dirty = taskSig(tasks) !== taskSig(cur.tasks || []);
+        const driverBadge = cur.driver ? ` <span style="font-size: 0.8rem; color: #38bdf8; font-weight: normal;">(Kuljettaja: <strong>${esc(cur.driver)}</strong>)</span>` : '';
+        el.innerHTML = `Reitti: <b>${esc(cur.name)}</b>${driverBadge}` + (dirty ? ' <span class="dirty">● tallentamattomia muutoksia</span>' : '');
     }
+
+    // ============================================================
+    // 🗂️ KOKOONTAITETTAVIEN PANEELIEN HALLINTA (LIGHTROOM-TYYLI)
+    // ============================================================
+    function getPanelCollapseStates() {
+        try {
+            return JSON.parse(localStorage.getItem('yardflow_panel_collapse_state') || '{}');
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function savePanelCollapseStates(states) {
+        try {
+            localStorage.setItem('yardflow_panel_collapse_state', JSON.stringify(states));
+        } catch (e) {}
+    }
+
+    function toggleCardCollapse(headerEl) {
+        if (!headerEl) return;
+        const card = headerEl.closest('.collapsible-card');
+        if (!card) return;
+        const isCollapsed = card.classList.toggle('is-collapsed');
+        const cardId = card.id;
+        if (cardId) {
+            const states = getPanelCollapseStates();
+            states[cardId] = isCollapsed;
+            savePanelCollapseStates(states);
+        }
+    }
+    window.toggleCardCollapse = toggleCardCollapse;
+
+    function restorePanelCollapseStates() {
+        const states = getPanelCollapseStates();
+        Object.keys(states).forEach(id => {
+            const el = document.getElementById(id);
+            if (el && el.classList.contains('collapsible-card')) {
+                el.classList.toggle('is-collapsed', !!states[id]);
+            }
+        });
+    }
+    window.restorePanelCollapseStates = restorePanelCollapseStates;
+
+    // ============================================================
+    // ➕ "LUO UUSI REITTI" -MODALIN JA KUSKIN VALINNAN TOIMINNOT
+    // ============================================================
+    function openCreateRouteModal() {
+        const dlg = document.getElementById('modal-create-route');
+        if (!dlg) return;
+
+        const nameInput = document.getElementById('route-new-name');
+        if (nameInput) {
+            nameInput.value = `Reitti ${new Date().toLocaleDateString('fi-FI')}`;
+        }
+
+        const driverSel = document.getElementById('route-assigned-driver');
+        if (driverSel) {
+            driverSel.value = 'Hessu';
+        }
+        const customDriverInput = document.getElementById('route-custom-driver-input');
+        if (customDriverInput) {
+            customDriverInput.style.display = 'none';
+            customDriverInput.value = '';
+        }
+
+        populateCreateRoutePropertiesList();
+
+        if (typeof dlg.showModal === 'function') {
+            dlg.showModal();
+        } else {
+            dlg.style.display = 'block';
+        }
+    }
+    window.openCreateRouteModal = openCreateRouteModal;
+
+    function closeCreateRouteModal() {
+        const dlg = document.getElementById('modal-create-route');
+        if (!dlg) return;
+        if (typeof dlg.close === 'function') {
+            dlg.close();
+        } else {
+            dlg.style.display = 'none';
+        }
+    }
+    window.closeCreateRouteModal = closeCreateRouteModal;
+
+    function handleDriverSelectChange(val) {
+        const customInput = document.getElementById('route-custom-driver-input');
+        if (!customInput) return;
+        if (val === '__custom__') {
+            customInput.style.display = 'block';
+            customInput.focus();
+        } else {
+            customInput.style.display = 'none';
+            customInput.value = '';
+        }
+    }
+    window.handleDriverSelectChange = handleDriverSelectChange;
+
+    function populateCreateRoutePropertiesList() {
+        const container = document.getElementById('route-properties-selection-list');
+        if (!container) return;
+
+        // Kootaan uniikit kohteet joko rekisteristä (customers) tai nykyisistä tehtävistä (tasks)
+        const items = [];
+        const seenNames = new Set();
+
+        if (typeof customers !== 'undefined' && Array.isArray(customers) && customers.length > 0) {
+            customers.forEach(c => {
+                const key = (c.name || '').trim().toLowerCase();
+                if (key && !seenNames.has(key)) {
+                    seenNames.add(key);
+                    items.push({
+                        id: c.id,
+                        name: c.name,
+                        address: c.address || '',
+                        type: c.workType || 'Auraus & Hiekoitus',
+                        notes: c.notes || '',
+                        lat: c.lat || null,
+                        lon: c.lon || null,
+                        geofence_radius: c.geofence_radius || 80,
+                        geofence_type: c.geofence_type || 'radius'
+                    });
+                }
+            });
+        }
+
+        if (typeof tasks !== 'undefined' && Array.isArray(tasks) && tasks.length > 0) {
+            tasks.forEach(t => {
+                const key = (t.name || '').trim().toLowerCase();
+                if (key && !seenNames.has(key)) {
+                    seenNames.add(key);
+                    items.push({
+                        id: t.id,
+                        name: t.name,
+                        address: t.address || '',
+                        type: t.type || 'Auraus & Hiekoitus',
+                        notes: t.notes || '',
+                        lat: t.lat || null,
+                        lon: t.lon || null,
+                        geofence_radius: t.geofence_radius || 80,
+                        geofence_type: t.geofence_type || 'radius'
+                    });
+                }
+            });
+        }
+
+        if (items.length === 0) {
+            container.innerHTML = '<div style="font-size: 0.82rem; color: var(--muted); text-align: center; padding: 12px;">Ei tallennettuja asiakkaita tai kohteita. Lisää ensin kohteita rekisteriin tai kartalle.</div>';
+            updateCreateRouteSelectedCount();
+            return;
+        }
+
+        container.innerHTML = items.map((item, idx) => {
+            const jsonStr = esc(JSON.stringify(item));
+            return `
+                <label style="display: flex; align-items: center; gap: 8px; padding: 6px 8px; background: rgba(255,255,255,0.03); border-radius: 6px; cursor: pointer; user-select: none;">
+                    <input type="checkbox" class="route-prop-checkbox" checked data-prop="${jsonStr}" onchange="updateCreateRouteSelectedCount()" style="width: auto; margin: 0;">
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="font-size: 0.86rem; font-weight: 600; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${esc(item.name)}</div>
+                        <div style="font-size: 0.74rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${esc(item.address || 'Ei osoitetta')} &bull; ${esc(item.type)}</div>
+                    </div>
+                </label>
+            `;
+        }).join('');
+
+        updateCreateRouteSelectedCount();
+    }
+
+    function setCreateRouteCheckboxes(checked) {
+        const checkboxes = document.querySelectorAll('.route-prop-checkbox');
+        checkboxes.forEach(cb => { cb.checked = !!checked; });
+        updateCreateRouteSelectedCount();
+    }
+    window.setCreateRouteCheckboxes = setCreateRouteCheckboxes;
+
+    function updateCreateRouteSelectedCount() {
+        const countSpan = document.getElementById('route-selected-count');
+        const checked = document.querySelectorAll('.route-prop-checkbox:checked');
+        if (countSpan) {
+            countSpan.textContent = String(checked.length);
+        }
+    }
+    window.updateCreateRouteSelectedCount = updateCreateRouteSelectedCount;
+
+    function saveNewCreatedRoute() {
+        const nameInput = document.getElementById('route-new-name');
+        const routeName = (nameInput ? nameInput.value.trim() : '') || `Reitti ${new Date().toLocaleDateString('fi-FI')}`;
+
+        const driverSel = document.getElementById('route-assigned-driver');
+        let driverName = driverSel ? driverSel.value : 'Hessu';
+        if (driverName === '__custom__') {
+            const customInput = document.getElementById('route-custom-driver-input');
+            driverName = (customInput ? customInput.value.trim() : '') || 'Kuljettaja';
+        }
+
+        const checkedBoxes = Array.from(document.querySelectorAll('.route-prop-checkbox:checked'));
+        if (checkedBoxes.length === 0) {
+            alert('Valitse vähintään yksi kohde uudelle reitille!');
+            return;
+        }
+
+        const selectedProps = checkedBoxes.map(cb => {
+            try {
+                return JSON.parse(cb.getAttribute('data-prop'));
+            } catch (e) {
+                return null;
+            }
+        }).filter(Boolean);
+
+        const routeId = 'route_' + Date.now();
+        const now = new Date().toISOString();
+
+        const routeTasks = selectedProps.map(p => normalizeGeofenceFields({
+            id: newId(),
+            name: p.name,
+            address: p.address,
+            type: p.type || 'Auraus & Hiekoitus',
+            notes: p.notes || '',
+            lat: p.lat,
+            lon: p.lon,
+            geofence_enabled: true,
+            geofence_type: p.geofence_type || 'radius',
+            geofence_radius: p.geofence_radius || 80,
+            done: false,
+            completed: false,
+            verified_on_site: false,
+            manual_override: false,
+            override_reason: null,
+            override_distance_meters: null,
+            completed_at: null,
+            manager_alert: false
+        }));
+
+        const newRouteObj = {
+            id: routeId,
+            name: routeName,
+            driver: driverName,
+            propertyIds: selectedProps.map(p => p.id),
+            created: now,
+            updated: now,
+            tasks: routeTasks,
+            depot: { ...depot },
+            returnToDepot: returnCheckbox ? returnCheckbox.checked : false
+        };
+
+        routes.unshift(newRouteObj);
+        currentRouteId = routeId;
+        persistRoutes();
+
+        // Otetaan reitti suoraan aktiiviseksi ajolistaksi
+        tasks = JSON.parse(JSON.stringify(routeTasks));
+        saveAndRender();
+        renderRoutes();
+        renderActiveRoute();
+        updateDriverHud();
+
+        closeCreateRouteModal();
+        showStatus(`Reitti "${esc(routeName)}" luotu ja osoitettu kuskille "${esc(driverName)}" (${selectedProps.length} kohdetta)!`, 'success');
+
+        // Siirrytään kartta/reittinäkymään jos oltiin muualla
+        if (typeof switchTab === 'function') {
+            switchTab('routes');
+        }
+    }
+    window.saveNewCreatedRoute = saveNewCreatedRoute;
 
     // ---------- Kohteen muokkaus ----------
     let editingId = null;
@@ -10007,9 +10444,11 @@
     populateCustomerFilterSelects();
     applyDashboardPrefs();
     updateDrawerBadges();
+    restorePanelCollapseStates();
     setTimeout(() => {
         setWorkHistoryPeriod('month');
         setBillingPeriod('month');
+        restorePanelCollapseStates();
     }, 50);
 
     // Supabase automaattinen taustasynkronointi käynnistyksessä
@@ -10020,6 +10459,7 @@
     document.addEventListener('DOMContentLoaded', () => {
         populateSyncQueueFromPendingLogs();
         if (navigator.onLine) syncPendingLogs();
+        restorePanelCollapseStates();
     });
 </script>
 </body>
