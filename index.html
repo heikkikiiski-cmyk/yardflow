@@ -1848,6 +1848,19 @@
     <!-- NÄKYMÄ 1: AJO & REITIT (Ajolista heti ensimmäisenä!) -->
     <div id="viewRoutes">
         <div class="card sidebar-column" id="routeSidebarPanel">
+            <!-- Sivupalkin hakupalkki ja laskuri (Ihan ylhäällä työpöytä- ja mobiilinäkymässä) -->
+            <div class="property-search-wrapper" style="margin-bottom: 14px;">
+                <div style="position: relative; display: flex; align-items: center;">
+                    <span style="position: absolute; left: 12px; font-size: 0.95rem; pointer-events: none; opacity: 0.6;">🔍</span>
+                    <input type="text" id="property-search-input" placeholder="Hae nimellä tai osoitteella..." style="padding-left: 36px; padding-right: 32px; margin-bottom: 0;" oninput="handlePropertySearch(this.value)">
+                    <button type="button" id="property-search-clear" onclick="clearPropertySearch()" style="position: absolute; right: 8px; background: none; border: none; padding: 4px; font-size: 0.85rem; color: var(--muted); display: none; cursor: pointer;" title="Tyhjennä haku">✕</button>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 0.78rem; color: var(--muted); padding: 0 2px;">
+                    <span id="search-count">0 kohdetta</span>
+                    <span id="search-filter-hint" style="display: none; color: var(--accent);">Suodatettu haulla</span>
+                </div>
+            </div>
+
             <h3 style="margin-bottom: 10px;">
                 <span>🚜 Päivän ajolista (<span id="taskCount">0</span>)</span>
                 <span class="summary-km" id="summaryDistance"></span>
@@ -2008,19 +2021,6 @@
                 </div>
             </div>
 
-            <!-- Sivupalkin hakupalkki ja laskuri -->
-            <div class="property-search-wrapper" style="margin-bottom: 12px;">
-                <div style="position: relative; display: flex; align-items: center;">
-                    <span style="position: absolute; left: 12px; font-size: 0.95rem; pointer-events: none; opacity: 0.6;">🔍</span>
-                    <input type="text" id="property-search-input" placeholder="Hae nimellä tai osoitteella..." style="padding-left: 36px; padding-right: 32px; margin-bottom: 0;" oninput="handlePropertySearch(this.value)">
-                    <button type="button" id="property-search-clear" onclick="clearPropertySearch()" style="position: absolute; right: 8px; background: none; border: none; padding: 4px; font-size: 0.85rem; color: var(--muted); display: none; cursor: pointer;" title="Tyhjennä haku">✕</button>
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 0.78rem; color: var(--muted); padding: 0 2px;">
-                    <span id="search-count">0 kohdetta</span>
-                    <span id="search-filter-hint" style="display: none; color: var(--accent);">Suodatettu haulla</span>
-                </div>
-            </div>
-
             <!-- Suodattimet ja itse kohdelista -->
             <div class="filter-bar">
                 <button class="filter-btn active" onclick="setFilter('all', this)">Kaikki</button>
@@ -2037,14 +2037,9 @@
         <div class="card map-main-column" id="yardMapCard">
             <h3>
                 <span>🛰️ Satelliittikartta &amp; Alueiden piirto</span>
-                <div style="display: flex; gap: 6px; align-items: center;">
-                    <button type="button" class="tiny-btn" id="btnPinDropMode" onclick="toggleMapPinDropMode()" title="Aseta tai siirrä kohteen tarkka sijaintipiste klikkaamalla tai raahaamalla kartalla">
-                        📍 Aseta sijaintipiste
-                    </button>
-                    <button type="button" class="tiny-btn" onclick="openStreetViewCurrentMapTarget()" title="Avaa valittu kohde Google Street View -katunäkymässä">
-                        🛣️ Avaa Street View
-                    </button>
-                </div>
+                <button type="button" class="tiny-btn" onclick="openStreetViewCurrentMapTarget()" title="Avaa valittu kohde Google Street View -katunäkymässä">
+                    🛣️ Avaa Street View
+                </button>
             </h3>
 
             <label for="yardMapTargetSelect">Valitse tarkasteltava / piirrettävä kohde:</label>
@@ -7012,6 +7007,12 @@
     window.clearPropertySearch = clearPropertySearch;
 
     function selectActiveProperty(taskId, flyTo = true) {
+        if (activePinMovingTaskId != null && activePinMovingTaskId !== taskId) {
+            activePinMovingTaskId = null;
+            isPinDropModeActive = false;
+            pinDropTargetContext = null;
+            updatePinMarkerDraggableState();
+        }
         activeSelectedTaskId = taskId;
         document.querySelectorAll('#taskList .task-item').forEach(el => {
             el.classList.remove('active-property');
@@ -7085,6 +7086,7 @@
             const isManualOverride = !!(task.done && (task.manual_override || task.manager_alert));
             const isVerifiedOnSite = !!(task.done && task.verified_on_site && !isManualOverride);
             const isActive = activeSelectedTaskId === task.id;
+            const isMovingThisPin = activePinMovingTaskId === task.id;
 
             const item = document.createElement('div');
             item.className = `task-item yard-card ${task.done ? 'done' : ''} ${isManualOverride ? 'manual-override-card' : ''} ${isBlocked ? 'is-blocked' : ''} ${isActive ? 'active-property active' : ''}`;
@@ -7183,6 +7185,13 @@
                 ${task.notes ? `<div class="task-notes">⚠️ ${esc(task.notes)}</div>` : ''}
                 ${verificationBannerHtml}
 
+                ${isMovingThisPin ? `
+                <div style="background: rgba(245, 158, 11, 0.16); border: 1px solid rgba(245, 158, 11, 0.5); border-radius: var(--radius-sm); padding: 8px 10px; font-size: 0.82rem; color: var(--accent-amber); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                    <span>📍 <b>Sijainti avattu siirrettäväksi:</b> Klikkaa kartalta uusi kohta tai raahaa merkkiä.</span>
+                    <button type="button" class="tiny-btn" style="background: var(--accent-amber); color: #000; font-weight: 700; white-space: nowrap; padding: 4px 10px; margin: 0;" onclick="toggleMoveCardPin(${task.id}, event)">Valmis ✓</button>
+                </div>
+                ` : ''}
+
                 <div class="task-action-row">
                     <button type="button" class="${completeBtnClass}" onclick="handleCompleteTaskClick(${task.id}, this)" title="${task.done ? 'Klikkaa palauttaaksesi kohteen tekemättömäksi' : 'Tarkistaa GPS-sijainnin ja kuittaa pihan valmiiksi'}">
                         ${isBlocked ? '✓ Kuittaa valmiiksi (este poistunut)' : completeBtnText}
@@ -7201,6 +7210,7 @@
                     </div>
                     <div class="task-tools-group">
                         <button class="tiny-btn" type="button" onclick="openTaskOnYardMap(${task.id})" title="Avaa satelliittikartta ja piirrä kone-/käsityöalueet sekä geofence-ympyrä">🛰️ Pihakartta</button>
+                        <button class="tiny-btn ${isMovingThisPin ? 'active' : ''}" style="${isMovingThisPin ? 'background: var(--accent-amber); color: #000; font-weight: 700; border-color: var(--accent-amber);' : ''}" type="button" onclick="toggleMoveCardPin(${task.id}, event)" title="${isMovingThisPin ? 'Tallenna ja lukitse kohteen sijainti' : 'Siirrä tämän kohteen sijaintipistettä kartalla'}">${isMovingThisPin ? '✓ Sijainti OK' : '📍 Siirrä sijaintia'}</button>
                         <button class="tiny-btn" type="button" onclick="openStreetViewForTask(${task.id})" title="Avaa kohde Google Street View -katunäkymässä">🛣️ Avaa Street View</button>
                         <button class="tiny-btn" type="button" onclick="quickSnapPhoto(${task.id})" title="Ota valokuva kohteesta">📷 Ota kuva</button>
                         <button class="photo-btn" type="button" onclick="openCustomerPhotos(${task.customerId ? task.customerId : `'${esc(task.name)}'`})" title="Näytä kohteen valokuvat">🖼️ <span data-photo-count-for="${task.customerId || esc(task.name)}">${photoCounts[String(task.customerId || task.name)] || 0}</span></button>
@@ -7264,7 +7274,8 @@
     let yardGeofenceCircle = null;
     let yardPinDropMarker = null;
     let isPinDropModeActive = false;
-    let pinDropTargetContext = null; // 'addTask' | 'editTask' | 'current'
+    let pinDropTargetContext = null; // 'addTask' | 'editTask' | 'moveCardPin'
+    let activePinMovingTaskId = null;
     let currentDrawCategory = 'machine';
     let selectedMapLayer = null;
     let currentMapTargetKey = localStorage.getItem(YARD_ACTIVE_TARGET_KEY) || '';
@@ -7299,37 +7310,58 @@
     }
     window.reverseGeocode = reverseGeocode;
 
-    function getPinDropIcon() {
+    // Puhdas sijaintineula ilman tekstilaatikkoa (väri oranssi/amber siirtotilassa, sininen lukittuna)
+    function getPinDropIcon(isDraggable = false) {
+        const pinColor = isDraggable ? '#f59e0b' : '#0284c7';
         return L.divIcon({
             className: 'yard-pin-marker-wrapper',
             html: `<div style="display:flex; flex-direction:column; align-items:center; transform: translate(-50%, -100%); pointer-events: auto;">
-                <div style="background: #0284c7; color: white; border: 2px solid white; border-radius: 999px; padding: 4px 10px; font-weight: 700; font-size: 0.76rem; box-shadow: 0 4px 12px rgba(0,0,0,0.35); white-space: nowrap; margin-bottom: 2px;">
-                    📍 Kohteen sijainti
+                <div style="width: 24px; height: 24px; background: ${pinColor}; border: 3px solid #ffffff; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); box-shadow: 0 4px 12px rgba(0,0,0,0.45); cursor: ${isDraggable ? 'grab' : 'pointer'};">
+                    <div style="width: 8px; height: 8px; background: #ffffff; border-radius: 50%; margin: 5px auto 0 auto;"></div>
                 </div>
-                <div style="width: 20px; height: 20px; background: #0284c7; border: 3px solid white; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.45); cursor: grab;"></div>
             </div>`,
             iconSize: [0, 0],
             iconAnchor: [0, 0]
         });
     }
 
+    function updatePinMarkerDraggableState() {
+        if (!yardPinDropMarker) return;
+        const canDrag = (activePinMovingTaskId != null) || (isPinDropModeActive && (pinDropTargetContext === 'addTask' || pinDropTargetContext === 'editTask'));
+        if (yardPinDropMarker.dragging) {
+            if (canDrag) yardPinDropMarker.dragging.enable();
+            else yardPinDropMarker.dragging.disable();
+        }
+        yardPinDropMarker.setIcon(getPinDropIcon(canDrag));
+    }
+
     async function applyPinDropCoordinates(lat, lng, shouldReverseGeocode = true) {
         if (!yardMap) return;
 
+        const canDrag = (activePinMovingTaskId != null) || (isPinDropModeActive && (pinDropTargetContext === 'addTask' || pinDropTargetContext === 'editTask'));
+
         if (!yardPinDropMarker) {
             yardPinDropMarker = L.marker([lat, lng], {
-                draggable: true,
-                icon: getPinDropIcon(),
+                draggable: canDrag,
+                icon: getPinDropIcon(canDrag),
                 zIndexOffset: 1200,
                 pmIgnore: true
             }).addTo(yardMap);
 
             yardPinDropMarker.on('dragend', e => {
-                const pos = e.target.getLatLng();
-                applyPinDropCoordinates(pos.lat, pos.lng, true);
+                const canMove = (activePinMovingTaskId != null) || (isPinDropModeActive && (pinDropTargetContext === 'addTask' || pinDropTargetContext === 'editTask'));
+                if (canMove) {
+                    const pos = e.target.getLatLng();
+                    applyPinDropCoordinates(pos.lat, pos.lng, true);
+                }
             });
         } else {
             yardPinDropMarker.setLatLng([lat, lng]);
+            yardPinDropMarker.setIcon(getPinDropIcon(canDrag));
+            if (yardPinDropMarker.dragging) {
+                if (canDrag) yardPinDropMarker.dragging.enable();
+                else yardPinDropMarker.dragging.disable();
+            }
             if (!yardMap.hasLayer(yardPinDropMarker)) {
                 yardPinDropMarker.addTo(yardMap);
             }
@@ -7356,7 +7388,16 @@
             return;
         }
 
-        if (pinDropTargetContext === 'editTask' && editingId != null) {
+        if (activePinMovingTaskId != null) {
+            const t = tasks.find(x => x.id === activePinMovingTaskId);
+            if (t) {
+                t.lat = lat;
+                t.lon = lng;
+                t.gps = true;
+                target = t;
+                targetKey = makeTargetGeoKey(t.name, t.address);
+            }
+        } else if (pinDropTargetContext === 'editTask' && editingId != null) {
             const t = tasks.find(x => x.id === editingId);
             if (t) {
                 t.lat = lat;
@@ -7406,14 +7447,61 @@
     }
     window.applyPinDropCoordinates = applyPinDropCoordinates;
 
-    function toggleMapPinDropMode() {
-        if (isPinDropModeActive) {
-            disableMapPinDropMode();
+    // Kohteen kortin kautta käynnistettävä sijainnin siirtotila
+    function startMovingCardPin(taskId) {
+        const task = tasks.find(t => t.id === taskId);
+        if (!task) return;
+
+        activePinMovingTaskId = taskId;
+        pinDropTargetContext = 'moveCardPin';
+        isPinDropModeActive = true;
+
+        selectActiveProperty(taskId, false);
+
+        if (yardMap) {
+            let lat = task.lat;
+            let lon = task.lon;
+            if (!lat || !lon) {
+                const c = yardMap.getCenter();
+                lat = c.lat;
+                lon = c.lng;
+                task.lat = lat;
+                task.lon = lon;
+                task.gps = true;
+            }
+            yardMap.flyTo([lat, lon], 18, { duration: 0.8 });
+            applyPinDropCoordinates(lat, lon, false);
+        }
+
+        updatePinMarkerDraggableState();
+        renderTasks();
+
+        setYardMapStatus(`📍 Kohteen "${task.name}" sijainti avattu siirrettäväksi! Klikkaa karttaa tai raahaa merkkiä. Paina kortista "✓ Sijainti OK" kun olet valmis.`);
+    }
+    window.startMovingCardPin = startMovingCardPin;
+
+    function stopMovingCardPin(taskId) {
+        const task = tasks.find(t => t.id === taskId);
+        activePinMovingTaskId = null;
+        isPinDropModeActive = false;
+        pinDropTargetContext = null;
+
+        updatePinMarkerDraggableState();
+        renderTasks();
+
+        setYardMapStatus(`✓ Kohteen "${task ? task.name : ''}" sijainti tallennettu ja lukittu.`);
+    }
+    window.stopMovingCardPin = stopMovingCardPin;
+
+    function toggleMoveCardPin(taskId, event) {
+        if (event) event.stopPropagation();
+        if (activePinMovingTaskId === taskId) {
+            stopMovingCardPin(taskId);
         } else {
-            enableMapPinDropMode('current');
+            startMovingCardPin(taskId);
         }
     }
-    window.toggleMapPinDropMode = toggleMapPinDropMode;
+    window.toggleMoveCardPin = toggleMoveCardPin;
 
     function enableMapPinDropMode(context = 'current') {
         isPinDropModeActive = true;
@@ -7426,9 +7514,6 @@
             if (typeof yardMap.pm.disableGlobalRotateMode === 'function') yardMap.pm.disableGlobalRotateMode();
         }
         clearToolbarActiveStates();
-
-        const btn = document.getElementById('btnPinDropMode');
-        if (btn) btn.classList.add('active');
 
         switchTab('routes');
 
@@ -7466,6 +7551,7 @@
             }
         }
 
+        updatePinMarkerDraggableState();
         setYardMapStatus('📍 Sijaintitila päällä: Klikkaa karttaa tai raahaa merkkiä asettaaksesi kohteen tarkan sijainnin.');
     }
     window.enableMapPinDropMode = enableMapPinDropMode;
@@ -7473,9 +7559,9 @@
     function disableMapPinDropMode() {
         isPinDropModeActive = false;
         pinDropTargetContext = null;
-        const btn = document.getElementById('btnPinDropMode');
-        if (btn) btn.classList.remove('active');
-        setYardMapStatus('Sijaintipisteen asetus suljettu.');
+        activePinMovingTaskId = null;
+        updatePinMarkerDraggableState();
+        setYardMapStatus('Sijaintipisteen siirtotila suljettu.');
     }
     window.disableMapPinDropMode = disableMapPinDropMode;
 
@@ -8147,20 +8233,29 @@
         const markerLat = activeTarget?.lat || activeTarget?.taskRef?.lat || activeTarget?.custRef?.lat || null;
         const markerLon = activeTarget?.lon || activeTarget?.taskRef?.lon || activeTarget?.custRef?.lon || null;
         if (markerLat && markerLon && yardMap) {
+            const canDrag = (activePinMovingTaskId != null) || (isPinDropModeActive && (pinDropTargetContext === 'addTask' || pinDropTargetContext === 'editTask'));
             if (!yardPinDropMarker) {
                 yardPinDropMarker = L.marker([markerLat, markerLon], {
-                    draggable: true,
-                    icon: getPinDropIcon(),
+                    draggable: canDrag,
+                    icon: getPinDropIcon(canDrag),
                     zIndexOffset: 1200,
                     pmIgnore: true
                 }).addTo(yardMap);
 
                 yardPinDropMarker.on('dragend', e => {
-                    const pos = e.target.getLatLng();
-                    applyPinDropCoordinates(pos.lat, pos.lng, true);
+                    const canMove = (activePinMovingTaskId != null) || (isPinDropModeActive && (pinDropTargetContext === 'addTask' || pinDropTargetContext === 'editTask'));
+                    if (canMove) {
+                        const pos = e.target.getLatLng();
+                        applyPinDropCoordinates(pos.lat, pos.lng, true);
+                    }
                 });
             } else {
                 yardPinDropMarker.setLatLng([markerLat, markerLon]);
+                yardPinDropMarker.setIcon(getPinDropIcon(canDrag));
+                if (yardPinDropMarker.dragging) {
+                    if (canDrag) yardPinDropMarker.dragging.enable();
+                    else yardPinDropMarker.dragging.disable();
+                }
                 if (!yardMap.hasLayer(yardPinDropMarker)) yardPinDropMarker.addTo(yardMap);
             }
         }
@@ -8492,7 +8587,8 @@
         }
 
         yardMap.on('click', e => {
-            if (isPinDropModeActive && e.latlng) {
+            const canMove = (activePinMovingTaskId != null) || (isPinDropModeActive && (pinDropTargetContext === 'addTask' || pinDropTargetContext === 'editTask'));
+            if (canMove && e.latlng) {
                 applyPinDropCoordinates(e.latlng.lat, e.latlng.lng, true);
                 return;
             }
