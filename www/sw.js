@@ -1,6 +1,6 @@
 // Palvelutyöläinen: YardFlow toimii offline-tilassa (esim. huonon kentän peitossa).
 // Kasvata versiota aina kun muutat tiedostoja, niin päivitys tulee käyttöön.
-const CACHE = 'yardflow-v1-8';
+const CACHE = 'yardflow-v1-9';
 const ASSETS = [
     './',
     './index.html',

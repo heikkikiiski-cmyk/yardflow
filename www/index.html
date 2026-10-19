@@ -1445,9 +1445,69 @@
             border: 1px dashed var(--accent-blue);
             cursor: wait;
         }
+        .task-action-row {
+            display: flex;
+            gap: 8px;
+            align-items: stretch;
+            margin-top: 4px;
+        }
+        .task-action-row .btn-complete-main {
+            flex: 1;
+            margin-top: 0;
+        }
+        .btn-obstacle-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 0 14px;
+            min-height: 46px;
+            border-radius: var(--radius-md);
+            background: rgba(239, 68, 68, 0.14);
+            color: #f43f5e;
+            border: 1.5px solid rgba(239, 68, 68, 0.45);
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.15s ease;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.15);
+        }
+        .btn-obstacle-action:hover {
+            background: rgba(239, 68, 68, 0.22);
+            border-color: rgba(239, 68, 68, 0.7);
+        }
+        .btn-obstacle-action:active {
+            transform: scale(0.97);
+        }
+        .btn-obstacle-action.is-blocked {
+            background: rgba(239, 68, 68, 0.26);
+            border-color: #ef4444;
+            color: #ffffff;
+            font-weight: 700;
+        }
+        .task-item.is-blocked {
+            border-left-color: #ef4444 !important;
+            background: rgba(239, 68, 68, 0.07);
+        }
         .task-item.done.manual-override-card {
             border-left-color: var(--accent-amber);
             background: rgba(245, 158, 11, 0.1);
+        }
+        .blocked-alert-banner {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            background: rgba(239, 68, 68, 0.14);
+            border: 1px solid rgba(239, 68, 68, 0.45);
+            border-left: 4px solid #ef4444;
+            color: var(--danger-text, #f87171);
+            padding: 9px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 0.82rem;
+            line-height: 1.35;
+            margin-top: 6px;
+            margin-bottom: 4px;
         }
         .manager-alert-banner {
             display: flex;
@@ -2522,6 +2582,74 @@
                 <button type="button" class="btn-outline" onclick="cancelGeofenceManualOverride()">Peruuta</button>
                 <button type="submit" id="btnConfirmGeofenceOverride" class="btn-primary" style="width: auto; padding: 10px 20px; background: var(--accent-amber); box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3);" disabled>
                     ⚠️ Vahvista manuaalikuittaus
+                </button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- Esteen ilmoituksen (Ei pääse tekemään) ponnahdusikkuna -->
+    <dialog id="taskObstacleDialog" class="app-dialog">
+        <form method="dialog" class="dialog-content" onsubmit="event.preventDefault(); confirmTaskObstacle();">
+            <h3 style="color: #f43f5e; display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                <span>🚫</span>
+                <span>Ei pääse tekemään kohdetta</span>
+            </h3>
+            <div id="obstacleTargetInfo" style="font-size: 0.9rem; font-weight: 600; color: var(--fg); margin-bottom: 4px;"></div>
+            <div id="obstacleLocationInfo" style="font-size: 0.82rem; color: var(--muted); margin-bottom: 12px;"></div>
+
+            <div style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: var(--radius-md); padding: 10px 12px; font-size: 0.85rem; color: var(--danger-text, #f87171); margin-bottom: 14px;">
+                Ilmoitus esteestä tallentuu työlokiin ja välittyy työnjohdolle huomiomerkinnällä.
+            </div>
+
+            <label style="font-weight: 600; color: var(--fg);">Valitse syy esteelle (pakollinen):</label>
+            <div class="override-reason-list" id="obstacleReasonGroup">
+                <label class="override-reason-option">
+                    <input type="radio" name="taskObstacleReason" value="Väylä tai portti tukossa (autot / esteet tiellä)" onchange="updateTaskObstacleModalState()">
+                    <span>1. Väylä tai portti tukossa (autot / esteet tiellä)</span>
+                </label>
+                <label class="override-reason-option">
+                    <input type="radio" name="taskObstacleReason" value="Piha-alueella esteitä / työmaa / vaarallinen este" onchange="updateTaskObstacleModalState()">
+                    <span>2. Piha-alueella esteitä / työmaa / vaarallinen este</span>
+                </label>
+                <label class="override-reason-option">
+                    <input type="radio" name="taskObstacleReason" value="Kone ei mahdu / liian ahdas kulkureitti" onchange="updateTaskObstacleModalState()">
+                    <span>3. Kone ei mahdu / liian ahdas kulkureitti</span>
+                </label>
+                <label class="override-reason-option">
+                    <input type="radio" name="taskObstacleReason" value="Asiakas kielsi / pyysi jättämään väliin" onchange="updateTaskObstacleModalState()">
+                    <span>4. Asiakas kielsi / pyysi jättämään väliin</span>
+                </label>
+                <label class="override-reason-option">
+                    <input type="radio" name="taskObstacleReason" value="Kelirikko / vaarallinen peilijää / ei aurauskunnossa" onchange="updateTaskObstacleModalState()">
+                    <span>5. Kelirikko / vaarallinen peilijää / ei aurauskunnossa</span>
+                </label>
+                <label class="override-reason-option">
+                    <input type="radio" name="taskObstacleReason" value="Muu syy" onchange="updateTaskObstacleModalState()">
+                    <span>6. Muu syy (kirjoita perustelu alle)</span>
+                </label>
+            </div>
+
+            <div id="obstacleCustomBox" style="display: none; margin-top: 8px; margin-bottom: 12px;">
+                <label for="obstacleCustomReason" style="color: #f43f5e; font-weight: 600;">Kirjoita tarkempi perustelu (pakollinen):</label>
+                <textarea id="obstacleCustomReason" rows="2" placeholder="Kirjoita miksi kohdetta ei pystytä tekemään..." oninput="updateTaskObstacleModalState()" style="margin-bottom: 0;"></textarea>
+            </div>
+
+            <!-- Valinnainen lisätieto / kuva esteestä -->
+            <div style="margin: 12px 0; padding: 10px; background: var(--secondary); border: 1px dashed var(--border); border-radius: var(--radius-md);">
+                <div style="font-size: 0.82rem; font-weight: 600; color: var(--fg); margin-bottom: 6px;">📷 Todiste esteestä (suositus):</div>
+                <button type="button" class="tiny-btn" onclick="capturePhotoForObstacle()" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px;">
+                    📷 Ota valokuva esteestä
+                </button>
+                <span id="obstaclePhotoNotice" style="font-size: 0.78rem; color: var(--accent-green); display: none; margin-left: 8px;">✓ Kuva liitetty</span>
+            </div>
+
+            <div class="dialog-actions" style="display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap;">
+                <button type="button" id="btnRemoveObstacle" class="btn-outline" onclick="removeObstacleFromTask()" style="display: none; color: var(--muted); margin-right: auto;">
+                    Palauta normaaliksi
+                </button>
+                <button type="button" class="btn-outline" onclick="cancelTaskObstacle()">Peruuta</button>
+                <button type="submit" id="btnConfirmTaskObstacle" class="btn-primary" style="width: auto; padding: 10px 20px; background: #ef4444; border-color: #ef4444; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);" disabled>
+                    🚫 Vahvista ja lähetä ilmoitus
                 </button>
             </div>
         </form>
@@ -4114,7 +4242,19 @@
 
             let geofenceTag = '';
             let managerAlertHtml = '';
-            if (log.manual_override || log.manager_alert) {
+            let logBorderColor = '';
+            if (log.blocked) {
+                const reasonText = log.blocked_reason || log.notes || 'Ei ilmoitettua syytä';
+                geofenceTag = `<span class="manager-alert-pill" style="background: rgba(239, 68, 68, 0.2); color: #f43f5e; border-color: rgba(239, 68, 68, 0.5);" title="Kohteeseen ei päästy: ${esc(reasonText)}">🚫 Estynyt</span>`;
+                managerAlertHtml = `
+                    <div class="blocked-alert-banner" title="Esimieshuomio: Kohteeseen ei päästy tekemään">
+                        <span>🚫</span>
+                        <div>
+                            <strong style="color: #f43f5e;">Este kohteessa (Ilmoitus työnjohdolle):</strong> ${esc(reasonText)}
+                        </div>
+                    </div>`;
+                logBorderColor = 'border-left: 4px solid #ef4444; background: rgba(239, 68, 68, 0.05);';
+            } else if (log.manual_override || log.manager_alert) {
                 const distSuffix = (log.override_distance_meters != null) ? ` (${log.override_distance_meters} m kohteesta)` : '';
                 const reasonText = log.override_reason || 'Ei ilmoitettua syytä';
                 geofenceTag = `<span class="manager-alert-pill" title="Manuaalinen poikkeuskuittaus: ${esc(reasonText)}${esc(distSuffix)}">⚠️ Kuitattu manuaalisesti</span>`;
@@ -4125,13 +4265,14 @@
                             <strong>Esimieshuomio (Manuaalikuittaus${esc(distSuffix)}):</strong> ${esc(reasonText)}
                         </div>
                     </div>`;
+                logBorderColor = 'border-left: 4px solid var(--accent-amber);';
             } else if (log.verified_on_site) {
                 const distSuffix = (log.override_distance_meters != null) ? ` (${log.override_distance_meters} m)` : '';
                 geofenceTag = `<span class="geofence-verified-pill" title="Paikkatodennus vahvistettu kohteessa${esc(distSuffix)}">🛰️ Paikkatodennettu ✓</span>`;
             }
 
             return `
-                <div class="log-item" style="${(log.manual_override || log.manager_alert) ? 'border-left: 4px solid var(--accent-amber);' : ''}">
+                <div class="log-item" style="${logBorderColor}">
                     <div class="log-header">
                         <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                             <span class="log-title">${esc(log.customerName)}</span>
@@ -5262,6 +5403,10 @@
         const nowIso = new Date().toISOString();
         task.done = true;
         task.completed = true;
+        task.blocked = false;
+        task.blocked_reason = null;
+        task.blocked_at = null;
+        task.blocked_distance_meters = null;
         task.verified_on_site = true;
         task.manual_override = false;
         task.override_reason = null;
@@ -5488,6 +5633,10 @@
         // Tallennetaan vaadittu kuittausdata kohteelle
         t.done = true;
         t.completed = true;
+        t.blocked = false;
+        t.blocked_reason = null;
+        t.blocked_at = null;
+        t.blocked_distance_meters = null;
         t.verified_on_site = false;
         t.manual_override = true;
         t.override_reason = finalReason;
@@ -5543,6 +5692,286 @@
     }
     window.confirmGeofenceManualOverride = confirmGeofenceManualOverride;
 
+    // ============================================================
+    // 🚫 ESTEIDEN HALLINTA & ILMOITUS ETEENPÄIN (Ei pääse tekemään)
+    // ============================================================
+    let pendingObstacleTaskId = null;
+    let pendingObstacleDistanceMeters = null;
+
+    function openTaskObstacleModal(taskId) {
+        const t = tasks.find(x => String(x.id) === String(taskId));
+        if (!t) return;
+        pendingObstacleTaskId = t.id;
+        pendingObstacleDistanceMeters = null;
+
+        const targetInfoEl = document.getElementById('obstacleTargetInfo');
+        if (targetInfoEl) targetInfoEl.textContent = `Kohde: ${t.name} (${t.address})`;
+
+        const locInfoEl = document.getElementById('obstacleLocationInfo');
+        if (locInfoEl) {
+            if (t.blocked && t.blocked_reason) {
+                locInfoEl.textContent = `Aiemmin ilmoitettu este: ${t.blocked_reason}${t.blocked_at ? ` (${fmtDateTime(t.blocked_at)})` : ''}`;
+            } else {
+                locInfoEl.textContent = 'Valitse esteen syy ja vahvista ilmoitus esimiehelle/työnjohdolle.';
+            }
+        }
+
+        // Nollataan radiovalinnat ja tekstikenttä
+        let matchedRadio = false;
+        document.querySelectorAll('input[name="taskObstacleReason"]').forEach(r => {
+            if (t.blocked && t.blocked_reason && t.blocked_reason.startsWith(r.value)) {
+                r.checked = true;
+                matchedRadio = true;
+            } else {
+                r.checked = false;
+            }
+        });
+
+        const customBox = document.getElementById('obstacleCustomBox');
+        const customInput = document.getElementById('obstacleCustomReason');
+        if (customBox) customBox.style.display = 'none';
+        if (customInput) customInput.value = '';
+
+        if (t.blocked && t.blocked_reason && !matchedRadio) {
+            const muuRadio = document.querySelector('input[name="taskObstacleReason"][value="Muu syy"]');
+            if (muuRadio) muuRadio.checked = true;
+            if (customBox) customBox.style.display = 'block';
+            if (customInput) customInput.value = t.blocked_reason.replace(/^Muu syy:\s*/, '');
+        }
+
+        const photoNotice = document.getElementById('obstaclePhotoNotice');
+        if (photoNotice) photoNotice.style.display = 'none';
+
+        const removeBtn = document.getElementById('btnRemoveObstacle');
+        if (removeBtn) removeBtn.style.display = t.blocked ? 'inline-block' : 'none';
+
+        updateTaskObstacleModalState();
+
+        // Lasketaan likimääräinen etäisyys kohteeseen jos GPS on saatavilla
+        if (navigator.geolocation && t.lat && t.lon) {
+            navigator.geolocation.getCurrentPosition(pos => {
+                const d = calculateDistanceMeters(pos.coords.latitude, pos.coords.longitude, t.lat, t.lon);
+                if (d != null && !isNaN(d)) {
+                    pendingObstacleDistanceMeters = Math.round(d);
+                    if (locInfoEl) locInfoEl.textContent += ` · Etäisyys kohteesta: ${pendingObstacleDistanceMeters} m`;
+                }
+            }, () => {}, { timeout: 4000 });
+        }
+
+        const dlg = document.getElementById('taskObstacleDialog');
+        if (dlg && typeof dlg.showModal === 'function') dlg.showModal();
+    }
+    window.openTaskObstacleModal = openTaskObstacleModal;
+
+    function updateTaskObstacleModalState() {
+        const selected = document.querySelector('input[name="taskObstacleReason"]:checked')?.value || '';
+        const customBox = document.getElementById('obstacleCustomBox');
+        const customInput = document.getElementById('obstacleCustomReason');
+        const confirmBtn = document.getElementById('btnConfirmTaskObstacle');
+
+        if (selected === 'Muu syy') {
+            if (customBox) customBox.style.display = 'block';
+            const hasCustomText = !!(customInput && customInput.value.trim().length > 0);
+            if (confirmBtn) confirmBtn.disabled = !hasCustomText;
+        } else if (selected) {
+            if (customBox) customBox.style.display = 'none';
+            if (confirmBtn) confirmBtn.disabled = false;
+        } else {
+            if (customBox) customBox.style.display = 'none';
+            if (confirmBtn) confirmBtn.disabled = true;
+        }
+    }
+    window.updateTaskObstacleModalState = updateTaskObstacleModalState;
+
+    function cancelTaskObstacle() {
+        pendingObstacleTaskId = null;
+        pendingObstacleDistanceMeters = null;
+        const dlg = document.getElementById('taskObstacleDialog');
+        if (dlg) dlg.close('cancel');
+    }
+    window.cancelTaskObstacle = cancelTaskObstacle;
+
+    function removeObstacleFromTask() {
+        const t = tasks.find(x => String(x.id) === String(pendingObstacleTaskId));
+        if (!t) {
+            cancelTaskObstacle();
+            return;
+        }
+        t.blocked = false;
+        t.blocked_reason = null;
+        t.blocked_at = null;
+        t.blocked_distance_meters = null;
+        t.manager_alert = false;
+
+        const cust = customers.find(c =>
+            (t.customerId && String(c.id) === String(t.customerId)) ||
+            (c.name && t.name && c.name.toLowerCase() === t.name.toLowerCase())
+        );
+        if (cust) {
+            cust.manager_alert = false;
+            persistCustomers();
+        }
+
+        const dlg = document.getElementById('taskObstacleDialog');
+        if (dlg) dlg.close('cleared');
+        pendingObstacleTaskId = null;
+        pendingObstacleDistanceMeters = null;
+
+        saveAndRender();
+        showStatus(`Kohteen "${esc(t.name)}" este poistettu ja kohde palautettu normaalitilaan.`, 'info');
+    }
+    window.removeObstacleFromTask = removeObstacleFromTask;
+
+    async function capturePhotoForObstacle() {
+        const t = tasks.find(x => String(x.id) === String(pendingObstacleTaskId));
+        if (!t) return;
+        const selected = document.querySelector('input[name="taskObstacleReason"]:checked')?.value || 'Este kohteessa';
+        const custom = document.getElementById('obstacleCustomReason')?.value.trim() || '';
+        const reasonDesc = (selected === 'Muu syy' && custom) ? custom : selected;
+
+        pendingPhotoContext = {
+            taskId: t.id,
+            customerId: t.customerId || null,
+            customerName: t.name,
+            address: t.address,
+            logId: null
+        };
+        const titleEl = document.getElementById('photoTargetTitle');
+        if (titleEl) titleEl.textContent = `${t.name} (Este: ${reasonDesc})`;
+
+        resetPhotoDialog();
+        const tagObstacle = document.querySelector('input[name="photoTag"][value="Este/poikkeus"]') ||
+                            document.querySelector('input[name="photoTag"][value="Ennen työtä"]');
+        if (tagObstacle) tagObstacle.checked = true;
+
+        const notesInput = document.getElementById('photoNotesInput');
+        if (notesInput) notesInput.value = `🚫 Este kohteessa: ${reasonDesc}`;
+
+        const capDlg = document.getElementById('photoCaptureDialog');
+        if (capDlg) {
+            capDlg.returnValue = '';
+            capDlg.showModal();
+            capDlg.addEventListener('close', () => {
+                if (capDlg.returnValue === 'ok') {
+                    const notice = document.getElementById('obstaclePhotoNotice');
+                    if (notice) notice.style.display = 'inline';
+                }
+            }, { once: true });
+        }
+    }
+    window.capturePhotoForObstacle = capturePhotoForObstacle;
+
+    function confirmTaskObstacle() {
+        const selected = document.querySelector('input[name="taskObstacleReason"]:checked')?.value || '';
+        if (!selected) return;
+
+        const customInput = document.getElementById('obstacleCustomReason');
+        let finalReason = selected;
+        if (selected === 'Muu syy') {
+            const customText = customInput ? customInput.value.trim() : '';
+            if (!customText) {
+                alert('Kirjoita perustelu "Muu syy" -kenttään!');
+                return;
+            }
+            finalReason = `Muu syy: ${customText}`;
+        }
+
+        const t = tasks.find(x => String(x.id) === String(pendingObstacleTaskId));
+        if (!t) {
+            cancelTaskObstacle();
+            return;
+        }
+
+        const nowIso = new Date().toISOString();
+        const distVal = pendingObstacleDistanceMeters;
+
+        // Merkitään kohde estyneeksi
+        t.blocked = true;
+        t.blocked_reason = finalReason;
+        t.blocked_at = nowIso;
+        t.blocked_distance_meters = distVal;
+        t.manager_alert = true;
+        t.done = false;
+
+        // Synkronoidaan asiakastietoihin
+        const cust = customers.find(c =>
+            (t.customerId && String(c.id) === String(t.customerId)) ||
+            (c.name && t.name && c.name.toLowerCase() === t.name.toLowerCase())
+        );
+        if (cust) {
+            cust.manager_alert = true;
+            cust.last_blocked_reason = finalReason;
+            cust.last_blocked_at = nowIso;
+            persistCustomers();
+        }
+
+        // Tallennetaan työlokiin esteilmoitus
+        addWorkLogEntry({
+            id: newId(),
+            timestamp: nowIso,
+            completed_at: nowIso,
+            customerId: t.customerId || (cust ? cust.id : null),
+            customerName: t.name,
+            address: t.address,
+            type: '🚫 Ei päästy tekemään (Este)',
+            notes: `Este: ${finalReason}${distVal != null ? ` (Etäisyys: ${distVal} m)` : ''}`,
+            completed: false,
+            blocked: true,
+            blocked_reason: finalReason,
+            blocked_at: nowIso,
+            override_distance_meters: distVal,
+            manager_alert: true,
+            status: 'blocked'
+        });
+
+        // 🛰️ ILMOITUS ETEENPÄIN
+        // 1. Web Notification API (jos selain tukee)
+        if ('Notification' in window) {
+            if (Notification.permission === 'granted') {
+                try {
+                    new Notification(`YardFlow: Este kohteessa ${t.name}`, {
+                        body: `Syy: ${finalReason}\nOsoite: ${t.address}`,
+                        icon: './icons/icon-192.png'
+                    });
+                } catch (e) {}
+            } else if (Notification.permission !== 'denied') {
+                Notification.requestPermission();
+            }
+        }
+
+        // 2. Tärinäpalaute mobiililaitteessa
+        if (navigator.vibrate) {
+            navigator.vibrate([200, 100, 200]);
+        }
+
+        // 3. Tallenna esimieshälytysjonoon työnjohtoa varten
+        try {
+            const alerts = JSON.parse(localStorage.getItem('yardflow_manager_alerts_v1')) || [];
+            alerts.unshift({
+                id: newId(),
+                type: 'obstacle',
+                targetName: t.name,
+                address: t.address,
+                reason: finalReason,
+                timestamp: nowIso,
+                distanceMeters: distVal
+            });
+            localStorage.setItem('yardflow_manager_alerts_v1', JSON.stringify(alerts.slice(0, 50)));
+        } catch (e) {}
+
+        const dlg = document.getElementById('taskObstacleDialog');
+        if (dlg) dlg.close('ok');
+
+        pendingObstacleTaskId = null;
+        pendingObstacleDistanceMeters = null;
+
+        saveAndRender();
+        if (document.getElementById('viewCustomers').style.display !== 'none') renderCustomers();
+
+        showStatus(`🚨 Ilmoitus lähetetty työnjohdolle: "${esc(t.name)}" merkitty estyneeksi (${esc(finalReason)}).`, 'error');
+    }
+    window.confirmTaskObstacle = confirmTaskObstacle;
+
     function deleteTask(id) {
         if (confirm('Haluatko varmasti poistaa tämän kohteen?')) {
             tasks = tasks.filter(t => t.id !== id);
@@ -5565,6 +5994,10 @@
                 ...t,
                 done: false,
                 completed: false,
+                blocked: false,
+                blocked_reason: null,
+                blocked_at: null,
+                blocked_distance_meters: null,
                 verified_on_site: false,
                 manual_override: false,
                 override_reason: null,
@@ -6392,16 +6825,19 @@
             if (currentFilter === 'done' && !task.done) return;
             shown++;
 
+            const isBlocked = !!task.blocked;
             const isManualOverride = !!(task.done && (task.manual_override || task.manager_alert));
             const isVerifiedOnSite = !!(task.done && task.verified_on_site && !isManualOverride);
 
             const item = document.createElement('div');
-            item.className = `task-item yard-card ${task.done ? 'done' : ''} ${isManualOverride ? 'manual-override-card' : ''}`;
+            item.className = `task-item yard-card ${task.done ? 'done' : ''} ${isManualOverride ? 'manual-override-card' : ''} ${isBlocked ? 'is-blocked' : ''}`;
 
             const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(taskRef(task))}`;
 
             let headerBadge = '';
-            if (isManualOverride) {
+            if (isBlocked) {
+                headerBadge = `<span class="badge" style="background: rgba(239, 68, 68, 0.22); color: #f43f5e; border: 1px solid rgba(239, 68, 68, 0.5);" title="Kohteeseen ei päästy: ${esc(task.blocked_reason || '')}">🚫 Ei päästy tekemään</span>`;
+            } else if (isManualOverride) {
                 const reasonTip = task.override_reason ? `Kuskin perustelu: ${task.override_reason}` : 'Kuitattu manuaalisesti geofence-alueen ulkopuolelta';
                 headerBadge = `<span class="badge" style="background: rgba(245, 158, 11, 0.22); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.5);" title="${esc(reasonTip)}">⚠️ Kuitattu manuaalisesti</span>`;
             } else if (task.done) {
@@ -6423,7 +6859,21 @@
             const gfPill = `<span class="coord-badge" style="cursor:pointer;" onclick="openTaskOnYardMap(${task.id})" title="Kohteen paikkatodennus (Geofence) — klikkaa muokataksesi sädettä tai rajoja">🛰️ Geofence: ${esc(gfModeLabel)}</span>`;
 
             let verificationBannerHtml = '';
-            if (isManualOverride) {
+            if (isBlocked) {
+                const distStr = task.blocked_distance_meters != null ? ` · Etäisyys kohteesta: ${task.blocked_distance_meters} m` : '';
+                const timeStr = task.blocked_at ? ` · ${fmtDateTime(task.blocked_at)}` : '';
+                const reasonStr = task.blocked_reason || 'Ei eritelty';
+                verificationBannerHtml = `
+                    <div class="blocked-alert-banner" title="Työnjohdon huomioliputus — Este kohteessa">
+                        <span class="alert-icon" style="font-size: 1.15rem;">🚫</span>
+                        <div style="flex: 1;">
+                            <div class="alert-title" style="font-weight: 700; color: #f43f5e;">Ilmoitus työnjohdolle: Ei päästy tekemään kohdetta</div>
+                            <div style="margin-top: 2px;"><b>Syy:</b> ${esc(reasonStr)}${esc(distStr)}${esc(timeStr)}</div>
+                        </div>
+                        <button type="button" class="tiny-btn" onclick="openTaskObstacleModal(${task.id})" style="align-self: center;" title="Muokkaa esteen tietoja tai poista este">Muokkaa</button>
+                    </div>
+                `;
+            } else if (isManualOverride) {
                 const distStr = task.override_distance_meters != null ? ` · Etäisyys kohteesta: ${task.override_distance_meters} m` : '';
                 const timeStr = (task.completed_at || task.completedAt) ? ` · ${fmtDateTime(task.completed_at || task.completedAt)}` : '';
                 const reasonStr = task.override_reason || 'Ei ilmoitettua syytä';
@@ -6470,9 +6920,16 @@
                 ${task.notes ? `<div class="task-notes">⚠️ ${esc(task.notes)}</div>` : ''}
                 ${verificationBannerHtml}
 
-                <button type="button" class="${completeBtnClass}" onclick="handleCompleteTaskClick(${task.id}, this)" title="${task.done ? 'Klikkaa palauttaaksesi kohteen tekemättömäksi' : 'Tarkistaa GPS-sijainnin ja kuittaa pihan valmiiksi'}">
-                    ${completeBtnText}
-                </button>
+                <div class="task-action-row">
+                    <button type="button" class="${completeBtnClass}" onclick="handleCompleteTaskClick(${task.id}, this)" title="${task.done ? 'Klikkaa palauttaaksesi kohteen tekemättömäksi' : 'Tarkistaa GPS-sijainnin ja kuittaa pihan valmiiksi'}">
+                        ${isBlocked ? '✓ Kuittaa valmiiksi (este poistunut)' : completeBtnText}
+                    </button>
+                    ${!task.done ? `
+                    <button type="button" class="btn-obstacle-action ${isBlocked ? 'is-blocked' : ''}" onclick="openTaskObstacleModal(${task.id})" title="${isBlocked ? 'Muokkaa esteen syytä tai palauta normaaliksi' : 'Ilmoita este tai syy, miksi kohdetta ei päästä tekemään'}">
+                        ${isBlocked ? '🚫 Estynyt ✎' : '🚫 Ei pääse'}
+                    </button>
+                    ` : ''}
+                </div>
 
                 <div class="task-tools-row">
                     <div class="task-tools-group">
