@@ -1643,6 +1643,9 @@
                     <button type="button" class="btn-primary" id="btn-export-work-pdf" onclick="exportWorkHistoryPDF()" style="display: inline-flex; align-items: center; gap: 6px; min-height: 42px; padding: 0 16px; font-weight: 600;">
                         📄 Lataa työraportti (PDF)
                     </button>
+                    <button type="button" class="btn-outline" onclick="syncWorkLogsWithCloud(true)" style="display: inline-flex; align-items: center; gap: 6px; min-height: 42px; padding: 0 14px;" title="Synkronoi paikalliset työlokit pilveen">
+                        ☁️ Synkronoi pilveen
+                    </button>
                     <button type="button" class="btn-outline" onclick="openManualWorkLogModal()" style="display: inline-flex; align-items: center; gap: 6px; min-height: 42px; padding: 0 14px;">
                         ➕ Lisää merkintä
                     </button>
@@ -2403,6 +2406,21 @@
             .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
     const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+    let lastKnownDriverCoords = null;
+    function generateUUID() {
+        if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+            try {
+                return crypto.randomUUID();
+            } catch (e) {}
+        }
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            const r = Math.random() * 16 | 0;
+            const v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
+    window.generateUUID = generateUUID;
 
     let lastId = 0;
     function newId() {
@@ -3446,9 +3464,12 @@
                                 <div style="font-size: 0.78rem; color: var(--muted);">${esc(l.address)}</div>
                                 <div style="font-size: 0.74rem; color: var(--accent); margin-top: 2px;">🕒 ${esc(dateStr)} • ${esc(l.workType || 'Auraus')}</div>
                             </div>
-                            <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
                                 <span class="method-badge ${badgeClass}" style="font-size: 0.76rem; padding: 3px 8px;">
                                     ${badgeIcon} ${badgeText}
+                                </span>
+                                <span title="${l.synced ? 'Synkronoitu pilveen' : 'Odottaa pilveä'}" style="font-size: 0.85rem;">
+                                    ${l.synced ? '☁️' : '⏳'}
                                 </span>
                                 <span style="font-weight: 700; font-size: 0.9rem; color: var(--fg); white-space: nowrap;">
                                     ${priceNum.toFixed(2).replace('.', ',')} €
@@ -4129,7 +4150,29 @@
             const raw = localStorage.getItem(STORAGE_KEY_WORK_LOGS);
             if (raw) {
                 const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed)) return parsed;
+                if (Array.isArray(parsed)) {
+                    return parsed.map(item => {
+                        const propId = item.propertyId != null ? item.propertyId : (item.customerId || item.id || 0);
+                        const propName = item.propertyName || item.customerName || item.name || 'Kohde';
+                        const compAt = item.completedAt || item.completed_at || item.timestamp || new Date().toISOString();
+                        let coords = item.coordinates || null;
+                        if (!coords && item.lat != null && item.lon != null) {
+                            coords = { lat: Number(item.lat), lon: Number(item.lon) };
+                        }
+                        const methodVal = item.method || (item.verified_on_site ? 'Geofence' : (item.manual_override ? 'Manuaalinen' : 'Geofence'));
+                        const isSynced = item.synced !== undefined ? !!item.synced : true;
+                        return {
+                            ...item,
+                            id: item.id || generateUUID(),
+                            propertyId: propId,
+                            propertyName: propName,
+                            completedAt: compAt,
+                            coordinates: coords,
+                            method: methodVal,
+                            synced: isSynced
+                        };
+                    });
+                }
             }
         } catch (e) {
             console.error('Virhe työlokin lukemisessa:', e);
@@ -4146,6 +4189,44 @@
     }
     window.getStoredWorkLogs = getStoredWorkLogs;
     window.saveStoredWorkLogs = saveStoredWorkLogs;
+
+    // Pilvisynkronointi: merkitsee paikalliset työlokit synkronoiduiksi pilveen
+    function syncWorkLogsWithCloud(showToast = true) {
+        const logs = getStoredWorkLogs();
+        const unsynced = logs.filter(l => l.synced === false);
+        if (unsynced.length === 0) {
+            if (showToast) showStatus('Kaikki työlokit ovat jo synkronoitu pilveen ✓', 'info');
+            return;
+        }
+
+        let changed = false;
+        const updated = logs.map(l => {
+            if (l.synced === false) {
+                changed = true;
+                return { ...l, synced: true };
+            }
+            return l;
+        });
+
+        if (changed) {
+            saveStoredWorkLogs(updated);
+            const historyView = document.getElementById('work-history-view');
+            if (historyView && historyView.style.display !== 'none') {
+                renderWorkHistory();
+            }
+            if (typeof renderDashboardView === 'function') {
+                renderDashboardView();
+            }
+            if (showToast) {
+                showStatus(`☁️ ${unsynced.length} työlokia synkronoitu pilveen onnistuneesti! ✓`, 'success');
+            }
+        }
+    }
+    window.syncWorkLogsWithCloud = syncWorkLogsWithCloud;
+
+    window.addEventListener('online', () => {
+        syncWorkLogsWithCloud(true);
+    });
 
     function getPropertyDefaultPrice(propertyId, propertyName) {
         if (typeof tasks !== 'undefined' && Array.isArray(tasks)) {
@@ -4366,9 +4447,32 @@
     function addWorkLogEntry(data) {
         if (!data) return;
         const logs = getStoredWorkLogs();
-        const propId = data.propertyId || data.customerId || (data.task ? data.task.id : null) || data.id || '';
-        const propName = data.propertyName || data.customerName || (data.task ? data.task.name : null) || data.name || 'Kohde';
-        const addr = data.address || '';
+
+        // 1. UUID v4 -tunniste luodaan puhelimessa paikallisesti
+        const logId = (data.id && typeof data.id === 'string' && data.id.includes('-') && data.id.length >= 32)
+            ? data.id
+            : generateUUID();
+
+        // 2. propertyId & propertyName
+        let propId = data.propertyId != null ? data.propertyId : null;
+        let propName = data.propertyName || data.customerName || (data.task ? data.task.name : null) || data.name || 'Kohde';
+        const addr = data.address || (data.task ? data.task.address : '') || '';
+
+        let matchedTask = null;
+        if (typeof tasks !== 'undefined' && Array.isArray(tasks)) {
+            matchedTask = tasks.find(t =>
+                (propId != null && String(t.id) === String(propId)) ||
+                (propName && t.name && t.name.trim().toLowerCase() === propName.trim().toLowerCase())
+            );
+            if (matchedTask) {
+                if (propId == null) propId = matchedTask.id;
+                if (!propName) propName = matchedTask.name;
+            }
+        }
+        if (propId == null) {
+            propId = data.customerId || (data.task ? data.task.id : null) || 0;
+        }
+
         const priceVal = (data.price != null && !isNaN(data.price) && Number(data.price) > 0)
             ? Number(data.price)
             : getPropertyDefaultPrice(propId, propName);
@@ -4390,16 +4494,47 @@
         }
         if (!cname) cname = propName;
 
+        // 3. Täsmällinen suoritusaika kuittaushetkellä (ei synkronointihetkellä!)
+        const completedAt = data.completedAt || data.completed_at || data.timestamp || new Date().toISOString();
+
+        // 4. Koordinaatit { lat, lon }
+        let coords = null;
+        if (data.coordinates && typeof data.coordinates === 'object' && data.coordinates.lat != null && data.coordinates.lon != null) {
+            coords = { lat: Number(data.coordinates.lat), lon: Number(data.coordinates.lon) };
+        } else if (data.lat != null && data.lon != null) {
+            coords = { lat: Number(data.lat), lon: Number(data.lon) };
+        } else if (matchedTask && matchedTask.lat != null && matchedTask.lon != null) {
+            coords = { lat: Number(matchedTask.lat), lon: Number(matchedTask.lon) };
+        } else if (lastKnownDriverCoords && lastKnownDriverCoords.lat != null && lastKnownDriverCoords.lon != null) {
+            coords = { lat: Number(lastKnownDriverCoords.lat), lon: Number(lastKnownDriverCoords.lon) };
+        }
+
+        // 5. Menetelmä: "Geofence" tai "Manuaalinen"
+        let methodVal = 'Geofence';
+        if (data.method) {
+            methodVal = (data.method === 'Manuaalinen' || String(data.method).toLowerCase().includes('manuaali')) ? 'Manuaalinen' : 'Geofence';
+        } else if (data.manual_override || data.override_reason) {
+            methodVal = 'Manuaalinen';
+        } else if (data.verified_on_site) {
+            methodVal = 'Geofence';
+        }
+
+        // 6. synced: false oletuksena (muuttuu true:ksi kun saavuttaa pilven)
+        const syncedVal = (data.synced !== undefined) ? !!data.synced : false;
+
         const record = {
-            id: data.id || ('log_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6)),
+            id: logId,
             propertyId: propId,
             propertyName: propName,
+            completedAt: completedAt,
+            coordinates: coords,
+            method: methodVal,
+            synced: syncedVal,
+            // Yhteensopivuus- ja lisäkentät
             customerId: cid,
             customerName: cname,
             address: addr,
-            completedAt: data.completedAt || data.completed_at || data.timestamp || new Date().toISOString(),
             workType: data.workType || data.type || 'Auraus & Hiekoitus',
-            method: data.method || (data.manual_override ? 'Manuaalinen' : (data.verified_on_site ? 'Geofence' : 'Manuaalinen')),
             overrideReason: data.overrideReason || data.override_reason || null,
             price: priceVal
         };
@@ -4419,6 +4554,14 @@
         if (billingView && billingView.style.display !== 'none') {
             renderBillingSummary();
         }
+
+        // Jos verkkoyhteys on päällä, simuloidaan pilvisynkronointi automaattisesti taustalla
+        if (navigator.onLine) {
+            setTimeout(() => {
+                syncWorkLogsWithCloud(false);
+            }, 800);
+        }
+
         return record;
     }
     window.addWorkLogEntry = addWorkLogEntry;
@@ -4444,41 +4587,47 @@
 
             const seeds = [
                 {
-                    id: 'seed_1',
-                    propertyId: 'sample_1',
+                    id: generateUUID(),
+                    propertyId: 1,
                     propertyName: 'Asunto Oy Kissanmaankatu 3',
                     customerId: 'sample_1',
                     customerName: 'Asunto Oy Kissanmaankatu 3',
                     address: 'Kissanmaankatu 3, Tampere',
                     completedAt: todayIso,
-                    workType: 'Auraus & Hiekoitus',
+                    coordinates: { lat: 61.4981, lon: 23.8123 },
                     method: 'Geofence',
+                    synced: true,
+                    workType: 'Auraus & Hiekoitus',
                     overrideReason: null,
                     price: 45.00
                 },
                 {
-                    id: 'seed_2',
-                    propertyId: 'sample_2',
+                    id: generateUUID(),
+                    propertyId: 2,
                     propertyName: 'Kiinteistö Oy Hatanpään Valtatie 24',
                     customerId: 'sample_2',
                     customerName: 'Kiinteistö Oy Hatanpään Valtatie 24',
                     address: 'Hatanpään valtatie 24, Tampere',
                     completedAt: todayIso,
-                    workType: 'Auraus & Hiekoitus',
+                    coordinates: { lat: 61.4875, lon: 23.7562 },
                     method: 'Geofence',
+                    synced: true,
+                    workType: 'Auraus & Hiekoitus',
                     overrideReason: null,
                     price: 65.00
                 },
                 {
-                    id: 'seed_3',
-                    propertyId: 'sample_3',
+                    id: generateUUID(),
+                    propertyId: 3,
                     propertyName: 'Tampereen Logistiikkakeskus',
                     customerId: 'sample_3',
                     customerName: 'Tampereen Logistiikkakeskus',
                     address: 'Sammon valtatie 15, Tampere',
                     completedAt: yesterdayIso,
-                    workType: 'Auraus & Hiekoitus',
+                    coordinates: { lat: 61.4932, lon: 23.8341 },
                     method: 'Manuaalinen',
+                    synced: true,
+                    workType: 'Auraus & Hiekoitus',
                     overrideReason: 'Koneella ei päässyt puomin läpi ilman koodia',
                     price: 85.00
                 }
@@ -4800,19 +4949,33 @@
             const badgeText = isGeofence ? 'Geofence' : 'Manuaalinen';
             const priceNum = Number(log.price) || 0;
 
+            const isSynced = log.synced === true;
+            const syncBadge = isSynced
+                ? '<span style="display: inline-flex; align-items: center; gap: 3px; font-size: 0.72rem; padding: 2px 7px; border-radius: 999px; background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 600;" title="Synkronoitu pilveen">☁️ Synkronoitu</span>'
+                : '<span style="display: inline-flex; align-items: center; gap: 3px; font-size: 0.72rem; padding: 2px 7px; border-radius: 999px; background: rgba(245, 158, 11, 0.18); color: var(--accent-amber); font-weight: 600;" title="Odottaa pilvisynkronointia">⏳ Odottaa pilveä</span>';
+
+            const coordText = (log.coordinates && log.coordinates.lat != null && log.coordinates.lon != null)
+                ? '<div style="font-size: 0.72rem; color: var(--muted); margin-top: 2px;" title="Kuittauskoordinaatit: ' + log.coordinates.lat.toFixed(5) + ', ' + log.coordinates.lon.toFixed(5) + '">📍 ' + log.coordinates.lat.toFixed(3) + ', ' + log.coordinates.lon.toFixed(3) + '</div>'
+                : '';
+
             return '<tr>' +
                 '<td style="white-space: nowrap; font-size: 0.82rem; font-weight: 600;">' + esc(dateStr) + '</td>' +
                 '<td>' +
                     '<strong style="color: var(--fg);">' + esc(log.propertyName) + '</strong>' +
+                    (log.propertyId != null ? ' <span style="font-size: 0.74rem; color: var(--muted); font-weight: normal;">(#' + esc(log.propertyId) + ')</span>' : '') +
                     (log.customerName && log.customerName !== log.propertyName ? '<div style="font-size: 0.76rem; color: var(--accent); font-weight: 600;">👥 ' + esc(log.customerName) + '</div>' : '') +
                     '<div style="font-size: 0.78rem; color: var(--muted); margin-top: 2px;">' + esc(log.address) + '</div>' +
                 '</td>' +
                 '<td><span style="font-size: 0.82rem; color: var(--fg-secondary);">' + esc(log.workType || 'Auraus') + '</span></td>' +
                 '<td>' +
-                    '<span class="method-badge ' + badgeClass + '" title="' + esc(log.overrideReason || '') + '">' +
-                        badgeIcon + ' ' + badgeText +
-                    '</span>' +
-                    (log.overrideReason ? '<div style="font-size: 0.72rem; color: var(--accent-amber); margin-top: 2px;">' + esc(log.overrideReason) + '</div>' : '') +
+                    '<div style="display: flex; flex-direction: column; gap: 4px; align-items: flex-start;">' +
+                        '<span class="method-badge ' + badgeClass + '" title="' + esc(log.overrideReason || '') + '">' +
+                            badgeIcon + ' ' + badgeText +
+                        '</span>' +
+                        syncBadge +
+                        coordText +
+                        (log.overrideReason ? '<div style="font-size: 0.72rem; color: var(--accent-amber); margin-top: 2px;">' + esc(log.overrideReason) + '</div>' : '') +
+                    '</div>' +
                 '</td>' +
                 '<td style="text-align: right; font-weight: 700; white-space: nowrap;">' + priceNum.toFixed(2).replace('.', ',') + ' €</td>' +
                 '<td style="text-align: center;">' +
@@ -4890,6 +5053,7 @@
     window.handleManualLogPropertySelect = handleManualLogPropertySelect;
 
     function saveManualWorkLogFromModal() {
+        const selVal = document.getElementById('manualWorkLogPropertySelect')?.value || '';
         const name = document.getElementById('manualWorkLogName')?.value?.trim();
         const address = document.getElementById('manualWorkLogAddress')?.value?.trim();
         const date = document.getElementById('manualWorkLogDate')?.value;
@@ -4904,17 +5068,42 @@
             return;
         }
 
+        let propId = 0;
+        let coords = null;
+        if (selVal.startsWith('task_')) {
+            const tid = selVal.replace('task_', '');
+            const t = tasks.find(x => String(x.id) === String(tid));
+            if (t) {
+                propId = t.id;
+                if (t.lat && t.lon) coords = { lat: Number(t.lat), lon: Number(t.lon) };
+            }
+        } else if (selVal.startsWith('cust_')) {
+            const cid = selVal.replace('cust_', '');
+            const c = customers.find(x => String(x.id) === String(cid));
+            if (c) {
+                propId = c.id;
+                if (c.lat && c.lon) coords = { lat: Number(c.lat), lon: Number(c.lon) };
+            }
+        }
+
+        if (!coords && lastKnownDriverCoords) {
+            coords = { lat: Number(lastKnownDriverCoords.lat), lon: Number(lastKnownDriverCoords.lon) };
+        }
+
         const timeStr = time ? time : '12:00';
         const completedAt = new Date(date + 'T' + timeStr + ':00').toISOString();
 
         addWorkLogEntry({
-            id: 'man_' + Date.now(),
+            id: generateUUID(),
+            propertyId: propId,
             propertyName: name,
             customerName: name,
             address: address,
             completedAt: completedAt,
+            coordinates: coords,
             workType: workType,
             method: method,
+            synced: false,
             overrideReason: notes ? notes : (method === 'Manuaalinen' ? 'Kuljettajan manuaalikirjaus' : null),
             price: price
         });
@@ -6422,8 +6611,9 @@
     // 4. Kuittauspainikkeen työnkulku & Manuaalikuittaus (Override)
     let pendingOverrideTaskId = null;
     let pendingOverrideDistanceMeters = null;
+    let pendingOverrideCoords = null;
 
-    function completeTaskVerified(task, distanceMeters) {
+    function completeTaskVerified(task, distanceMeters, driverCoords = null) {
         const nowIso = new Date().toISOString();
         task.done = true;
         task.completed = true;
@@ -6452,10 +6642,18 @@
             persistCustomers();
         }
 
+        const taskCoords = (driverCoords && driverCoords.lat != null && driverCoords.lon != null)
+            ? { lat: Number(driverCoords.lat), lon: Number(driverCoords.lon) }
+            : ((task.lat && task.lon) ? { lat: Number(task.lat), lon: Number(task.lon) } : null);
+
         addWorkLogEntry({
-            id: newId(),
-            timestamp: nowIso,
-            completed_at: nowIso,
+            id: generateUUID(),
+            propertyId: task.id != null ? task.id : (cust ? cust.id : 0),
+            propertyName: task.name,
+            completedAt: nowIso,
+            coordinates: taskCoords,
+            method: 'Geofence',
+            synced: false,
             customerId: task.customerId || (cust ? cust.id : null),
             customerName: task.name,
             address: task.address,
@@ -6469,7 +6667,8 @@
             manual_override: false,
             override_reason: null,
             override_distance_meters: task.override_distance_meters,
-            manager_alert: false
+            manager_alert: false,
+            price: task.price || task.defaultPrice || 0
         });
 
         saveAndRender();
@@ -6526,7 +6725,7 @@
         }
 
         if (!navigator.geolocation) {
-            openGeofenceOverrideModal(t.id, null, 'Laitteen GPS-paikannus ei ole käytettävissä.');
+            openGeofenceOverrideModal(t.id, null, 'Laitteen GPS-paikannus ei ole käytettävissä.', null);
             return;
         }
 
@@ -6534,22 +6733,23 @@
             pos => {
                 const driverLat = pos.coords.latitude;
                 const driverLng = pos.coords.longitude;
+                lastKnownDriverCoords = { lat: driverLat, lon: driverLng };
                 const check = isDriverAtProperty(driverLat, driverLng, t, 50);
 
                 if (check.allowed) {
-                    completeTaskVerified(t, check.distanceMeters);
+                    completeTaskVerified(t, check.distanceMeters, { lat: driverLat, lon: driverLng });
                 } else {
                     const reasonMsg = check.distanceMeters != null
                         ? `Etäisyys kohteeseen: ${check.distanceMeters} m (sallittu raja: ${check.maxAllowedMeters} m sis. 50 m GPS-toleranssin)`
                         : 'Kohteen tarkkoja karttakoordinaatteja ei voitu varmentaa automaattisesti.';
-                    openGeofenceOverrideModal(t.id, check.distanceMeters, reasonMsg);
+                    openGeofenceOverrideModal(t.id, check.distanceMeters, reasonMsg, { lat: driverLat, lon: driverLng });
                 }
             },
             err => {
                 let errText = 'GPS-sijaintia ei saatu paikannettua (aikakatkaisu tai estetty).';
                 if (err && err.code === 1) errText = 'GPS-sijaintilupa on estetty selaimessa.';
                 else if (err && err.code === 3) errText = 'GPS-paikannus aikakatkaistiin (7 s).';
-                openGeofenceOverrideModal(t.id, null, errText);
+                openGeofenceOverrideModal(t.id, null, errText, null);
             },
             { enableHighAccuracy: true, timeout: 7000, maximumAge: 0 }
         );
@@ -6561,7 +6761,7 @@
         return handleCompleteTaskClick(id, btnEl);
     }
 
-    function openGeofenceOverrideModal(taskId, distanceMeters, statusText) {
+    function openGeofenceOverrideModal(taskId, distanceMeters, statusText, driverCoords = null) {
         const t = tasks.find(x => String(x.id) === String(taskId));
         if (!t) {
             renderTasks();
@@ -6569,6 +6769,7 @@
         }
         pendingOverrideTaskId = t.id;
         pendingOverrideDistanceMeters = (distanceMeters != null && !isNaN(distanceMeters)) ? Math.round(Number(distanceMeters)) : null;
+        pendingOverrideCoords = driverCoords || lastKnownDriverCoords || null;
 
         const targetInfoEl = document.getElementById('geofenceOverrideTargetInfo');
         if (targetInfoEl) {
@@ -6624,6 +6825,7 @@
     function cancelGeofenceManualOverride() {
         pendingOverrideTaskId = null;
         pendingOverrideDistanceMeters = null;
+        pendingOverrideCoords = null;
         const dlg = document.getElementById('geofenceOverrideDialog');
         if (dlg) dlg.close('cancel');
         renderTasks();
@@ -6683,11 +6885,21 @@
             persistCustomers();
         }
 
+        const manualCoords = pendingOverrideCoords
+            ? { lat: Number(pendingOverrideCoords.lat), lon: Number(pendingOverrideCoords.lon) }
+            : (lastKnownDriverCoords
+                ? { lat: Number(lastKnownDriverCoords.lat), lon: Number(lastKnownDriverCoords.lon) }
+                : ((t.lat && t.lon) ? { lat: Number(t.lat), lon: Number(t.lon) } : null));
+
         // Kirjataan työlokiin esimiesliputuksella
         addWorkLogEntry({
-            id: newId(),
-            timestamp: nowIso,
-            completed_at: nowIso,
+            id: generateUUID(),
+            propertyId: t.id != null ? t.id : (cust ? cust.id : 0),
+            propertyName: t.name,
+            completedAt: nowIso,
+            coordinates: manualCoords,
+            method: 'Manuaalinen',
+            synced: false,
             customerId: t.customerId || (cust ? cust.id : null),
             customerName: t.name,
             address: t.address,
@@ -6701,11 +6913,13 @@
             manual_override: true,
             override_reason: finalReason,
             override_distance_meters: distVal,
-            manager_alert: true
+            manager_alert: true,
+            price: t.price || t.defaultPrice || 0
         });
 
         pendingOverrideTaskId = null;
         pendingOverrideDistanceMeters = null;
+        pendingOverrideCoords = null;
 
         const dlg = document.getElementById('geofenceOverrideDialog');
         if (dlg) dlg.close('ok');
@@ -6931,11 +7145,19 @@
             persistCustomers();
         }
 
+        const obsCoords = (lastKnownDriverCoords && lastKnownDriverCoords.lat != null && lastKnownDriverCoords.lon != null)
+            ? { lat: Number(lastKnownDriverCoords.lat), lon: Number(lastKnownDriverCoords.lon) }
+            : ((t.lat && t.lon) ? { lat: Number(t.lat), lon: Number(t.lon) } : null);
+
         // Tallennetaan työlokiin esteilmoitus
         addWorkLogEntry({
-            id: newId(),
-            timestamp: nowIso,
-            completed_at: nowIso,
+            id: generateUUID(),
+            propertyId: t.id != null ? t.id : (cust ? cust.id : 0),
+            propertyName: t.name,
+            completedAt: nowIso,
+            coordinates: obsCoords,
+            method: 'Manuaalinen',
+            synced: false,
             customerId: t.customerId || (cust ? cust.id : null),
             customerName: t.name,
             address: t.address,
@@ -6945,9 +7167,11 @@
             blocked: true,
             blocked_reason: finalReason,
             blocked_at: nowIso,
+            override_reason: finalReason,
             override_distance_meters: distVal,
             manager_alert: true,
-            status: 'blocked'
+            status: 'blocked',
+            price: 0
         });
 
         // 🛰️ ILMOITUS ETEENPÄIN
