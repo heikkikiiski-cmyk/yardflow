@@ -1819,30 +1819,35 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
                 <div>
                     <h3 style="margin: 0; font-size: 1.25rem; display: flex; align-items: center; gap: 8px;">
-                        <span>🚜</span>
-                        <span>Kuljettajien hallinta (<span id="driversCountBadge">0</span>)</span>
+                        <span>👥</span>
+                        <span>Käyttäjien &amp; kuljettajien hallinta (<span id="driversCountBadge">0</span>)</span>
                     </h3>
                     <div style="font-size: 0.82rem; color: var(--muted); margin-top: 3px;">
-                        Hallinnoi kuljettajatietoja, kalustoa, yhteystietoja ja määritettyjä aurausreittejä
+                        Modulaarinen roolinhallinta: Admin, Työnjohto, Kuljettajat ja Tuuraajat oikeusmatriiseineen
                     </div>
                 </div>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                     <button type="button" class="btn-primary" onclick="openAddDriverDrawer()" style="min-height: 40px; padding: 0 16px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
-                        ➕ Lisää kuljettaja
+                        ➕ Lisää käyttäjä / kuljettaja
                     </button>
                 </div>
             </div>
 
-            <!-- AVATTAVA LOMAKE: Uuden kuljettajan lisäys (#modal-add-driver) -->
+            <!-- AVATTAVA LOMAKE: Uuden kuljettajan ja käyttäjän lisäys (#modal-add-driver) -->
             <div id="addDriverDrawer" class="drawer-panel modal-add-driver" data-modal-id="modal-add-driver" style="display: none; margin-bottom: 16px;">
                 <div class="drawer-header">
-                    <h4 id="driverFormTitle">➕ Lisää uusi kuljettaja</h4>
+                    <h4 id="driverFormTitle">➕ Lisää uusi käyttäjä / kuljettaja</h4>
                     <button class="tiny-btn" type="button" onclick="closeAddDriverDrawer()">✕ Sulje</button>
                 </div>
                 <input type="hidden" id="driverEditId" value="">
+
+                <!-- 1. Perustiedot -->
+                <div style="font-size: 0.82rem; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.03em;">
+                    👤 Perustiedot
+                </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px;">
                     <div>
-                        <label for="driverInputName" style="font-weight: 700;">Kuljettajan nimi *:</label>
+                        <label for="driverInputName" style="font-weight: 700;">Koko nimi *:</label>
                         <input type="text" id="driverInputName" placeholder="esim. Pekka Peltola" required style="margin-bottom: 0;">
                     </div>
                     <div>
@@ -1850,19 +1855,92 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                         <input type="tel" id="driverInputPhone" placeholder="esim. 040 123 4567" required style="margin-bottom: 0;">
                     </div>
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
                     <div>
                         <label for="driverInputEmail">Sähköposti:</label>
                         <input type="email" id="driverInputEmail" placeholder="esim. pekka@auraus.fi" style="margin-bottom: 0;">
                     </div>
                     <div>
                         <label for="driverInputVehicle">Ajoneuvo / Kalusto:</label>
-                        <input type="text" id="driverInputVehicle" placeholder="esim. Valtra N174 + lumiaura, Mönkijä, Wille" style="margin-bottom: 0;">
+                        <input type="text" id="driverInputVehicle" placeholder="esim. Valtra N174 + lumiaura, Wille, Avant" style="margin-bottom: 0;">
                     </div>
                 </div>
+
+                <!-- 2. Roolipohja & Määräaikaisuus -->
+                <div style="font-size: 0.82rem; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.03em;">
+                    🛡️ Roolipohja &amp; Määräaikaisuus
+                </div>
+                <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 12px; margin-bottom: 14px; align-items: start;">
+                    <div>
+                        <label for="driverRoleSelect" style="font-weight: 700;">Roolipohja:</label>
+                        <select id="driverRoleSelect" onchange="onDriverRoleChange(this.value)" style="margin-bottom: 0;">
+                            <option value="admin">Admin (Täydet oikeudet)</option>
+                            <option value="supervisor">Työnjohto (Suunnittelu &amp; seuranta)</option>
+                            <option value="driver" selected>Kuljettaja (Kenttätyö &amp; kuittaus)</option>
+                            <option value="temporary">Väliaikainen / Tuuraaja (Määräaikainen pääsy)</option>
+                        </select>
+                        <div id="driverRoleHint" style="font-size: 0.78rem; color: var(--muted); margin-top: 4px;">
+                            Kuljettaja: Kohteiden kuittaus, valokuvat ja omien reittien katselu.
+                        </div>
+                    </div>
+                    <div id="driverExpiresGroup">
+                        <label for="driverInputExpiresAt" style="font-weight: 700;">Päättymispäivämäärä (expires_at):</label>
+                        <input type="datetime-local" id="driverInputExpiresAt" style="margin-bottom: 0;">
+                        <div style="font-size: 0.78rem; color: var(--muted); margin-top: 4px;">
+                            Valinnainen. Jätä tyhjäksi toistaiseksi voimassa olevalle.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Modulaarinen oikeusmatriisi -->
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 14px; margin-bottom: 14px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <span style="font-weight: 700; font-size: 0.88rem; color: var(--fg);">📋 Modulaarinen oikeusmatriisi:</span>
+                        <span style="font-size: 0.75rem; color: var(--muted);">Admin voi räätälöidä yksittäisiä oikeuksia</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px;">
+                        <label class="check-row" style="margin: 0; font-size: 0.85rem; cursor: pointer;">
+                            <input type="checkbox" id="perm_can_complete_jobs" checked>
+                            <span><strong>can_complete_jobs</strong><br><span style="color: var(--muted); font-size: 0.75rem;">Kohteiden kuittaus ja kenttätila</span></span>
+                        </label>
+                        <label class="check-row" style="margin: 0; font-size: 0.85rem; cursor: pointer;">
+                            <input type="checkbox" id="perm_can_upload_photos" checked>
+                            <span><strong>can_upload_photos</strong><br><span style="color: var(--muted); font-size: 0.75rem;">Valokuvien ja huomioiden tallennus</span></span>
+                        </label>
+                        <label class="check-row" style="margin: 0; font-size: 0.85rem; cursor: pointer;">
+                            <input type="checkbox" id="perm_can_view_routes" checked>
+                            <span><strong>can_view_routes</strong><br><span style="color: var(--muted); font-size: 0.75rem;">Omien ja annettujen reittien katselu</span></span>
+                        </label>
+                        <label class="check-row" style="margin: 0; font-size: 0.85rem; cursor: pointer;">
+                            <input type="checkbox" id="perm_can_edit_routes">
+                            <span><strong>can_edit_routes</strong><br><span style="color: var(--muted); font-size: 0.75rem;">Reittien luonti, muokkaus ja optimointi</span></span>
+                        </label>
+                        <label class="check-row" style="margin: 0; font-size: 0.85rem; cursor: pointer;">
+                            <input type="checkbox" id="perm_can_view_map_planning">
+                            <span><strong>can_view_map_planning</strong><br><span style="color: var(--muted); font-size: 0.75rem;">Karttasuunnittelu ja rajojen muokkaus</span></span>
+                        </label>
+                        <label class="check-row" style="margin: 0; font-size: 0.85rem; cursor: pointer;">
+                            <input type="checkbox" id="perm_can_view_customers">
+                            <span><strong>can_view_customers</strong><br><span style="color: var(--muted); font-size: 0.75rem;">Asiakas- ja kiinteistörekisterin katselu</span></span>
+                        </label>
+                        <label class="check-row" style="margin: 0; font-size: 0.85rem; cursor: pointer;">
+                            <input type="checkbox" id="perm_can_edit_customers">
+                            <span><strong>can_edit_customers</strong><br><span style="color: var(--muted); font-size: 0.75rem;">Asiakastietojen, ovikoodien ja geofencen muokkaus</span></span>
+                        </label>
+                        <label class="check-row" style="margin: 0; font-size: 0.85rem; cursor: pointer;">
+                            <input type="checkbox" id="perm_can_view_reports">
+                            <span><strong>can_view_reports</strong><br><span style="color: var(--muted); font-size: 0.75rem;">Raporttien ja työlokien tarkastelu</span></span>
+                        </label>
+                        <label class="check-row" style="margin: 0; font-size: 0.85rem; cursor: pointer;">
+                            <input type="checkbox" id="perm_can_edit_drivers">
+                            <span><strong>can_edit_drivers</strong><br><span style="color: var(--muted); font-size: 0.75rem;">Käyttäjien ja kuskien luonti ja oikeuksien jako</span></span>
+                        </label>
+                    </div>
+                </div>
+
                 <div class="dialog-actions modal-action-buttons" style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 14px;">
                     <button type="button" class="btn-outline btn-form-cancel" style="min-width: 110px;" onclick="closeAddDriverDrawer()">✕ Peruuta</button>
-                    <button type="button" class="btn-primary btn-form-save" onclick="saveDriverFromForm()" style="min-width: 160px; padding: 10px 20px; font-weight: 700;">💾 Tallenna kuljettaja</button>
+                    <button type="button" class="btn-primary btn-form-save" id="btnSaveDriver" onclick="saveDriverFromForm()" style="min-width: 160px; padding: 10px 20px; font-weight: 700;">💾 Tallenna käyttäjä</button>
                 </div>
             </div>
 
@@ -3240,6 +3318,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         if (typeof updateDrawerBadges === 'function') updateDrawerBadges();
         if (typeof updateDriverLayerTogglesUi === 'function') updateDriverLayerTogglesUi();
         if (typeof updateDashboardView === 'function') updateDashboardView();
+        if (typeof applyPermissionsToUi === 'function') applyPermissionsToUi();
 
         if (typeof yardMap !== 'undefined' && yardMap) {
             setTimeout(() => {
@@ -4173,6 +4252,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         if (drawer) drawer.classList.add('open');
         if (backdrop) backdrop.classList.add('open');
         updateDrawerBadges();
+        if (typeof applyPermissionsToUi === 'function') applyPermissionsToUi();
     }
     window.openAppDrawer = openAppDrawer;
 
@@ -4504,7 +4584,27 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         if (tab === 'map') tab = 'routes';
         if (tab === 'home') tab = 'dashboard';
 
-        // Kuljettajalla sallitut näkymät ovat 'dashboard' (koti) ja 'routes' (kartta)
+        // Oikeuksien tarkistus näkymiin
+        if (typeof hasPermission === 'function') {
+            if (tab === 'routes-mgmt' && !hasPermission('can_edit_routes')) {
+                if (typeof showStatus === 'function') showStatus('Ei käyttöoikeutta reittien hallintaan.', 'warning');
+                tab = 'routes';
+            }
+            if (tab === 'drivers' && !hasPermission('can_edit_drivers') && currentAppMode !== 'admin') {
+                if (typeof showStatus === 'function') showStatus('Ei käyttöoikeutta käyttäjähallintaan.', 'warning');
+                tab = 'routes';
+            }
+            if (tab === 'customers' && !(hasPermission('can_view_customers') || hasPermission('can_edit_customers'))) {
+                if (typeof showStatus === 'function') showStatus('Ei käyttöoikeutta asiakasrekisteriin.', 'warning');
+                tab = 'routes';
+            }
+            if ((tab === 'history' || tab === 'billing') && !hasPermission('can_view_reports')) {
+                if (typeof showStatus === 'function') showStatus('Ei käyttöoikeutta raportteihin tai laskutukseen.', 'warning');
+                tab = 'routes';
+            }
+        }
+
+        // Kuljettajalla sallitut näkymät ovat 'dashboard' (koti) ja 'routes' (kartta) jos ei muita oikeuksia
         if (currentAppMode === 'field' && tab !== 'dashboard' && tab !== 'routes') {
             tab = 'routes';
         }
@@ -9143,8 +9243,110 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     window.restorePanelCollapseStates = restorePanelCollapseStates;
 
     // ============================================================
-    // 🚜 KULJETTAJAT -DATA JA HALLINTA (DRIVERS CRUD & STATE)
+    // 🚜 KULJETTAJAT & ROOLIT (DRIVERS CRUD & MODULAR PERMISSIONS)
     // ============================================================
+    const PERMISSION_KEYS = [
+        'can_complete_jobs',
+        'can_upload_photos',
+        'can_view_routes',
+        'can_edit_routes',
+        'can_view_map_planning',
+        'can_view_customers',
+        'can_edit_customers',
+        'can_view_reports',
+        'can_edit_drivers'
+    ];
+    window.PERMISSION_KEYS = PERMISSION_KEYS;
+
+    const PERMISSION_LABELS = {
+        can_complete_jobs: 'Kohteiden kuittaus ja kenttätila',
+        can_upload_photos: 'Valokuvien ja huomioiden tallennus',
+        can_view_routes: 'Omien ja annettujen reittien katselu',
+        can_edit_routes: 'Reittien luonti, muokkaus ja optimointi',
+        can_view_map_planning: 'Karttasuunnittelu ja rajojen muokkaus',
+        can_view_customers: 'Asiakas- ja kiinteistörekisterin katselu',
+        can_edit_customers: 'Asiakastietojen, ovikoodien ja geofencen muokkaus',
+        can_view_reports: 'Raporttien ja työlokien tarkastelu',
+        can_edit_drivers: 'Käyttäjien ja kuskien luonti ja oikeuksien jako'
+    };
+    window.PERMISSION_LABELS = PERMISSION_LABELS;
+
+    const ROLE_PRESETS = {
+        admin: {
+            name: 'Admin',
+            label: 'Admin (Täydet oikeudet)',
+            badge: '👑 Admin',
+            color: '#ef4444',
+            hint: 'Admin: Täydet oikeudet kaikkiin järjestelmän osiin ja käyttäjähallintaan.',
+            permissions: {
+                can_complete_jobs: true,
+                can_upload_photos: true,
+                can_view_routes: true,
+                can_edit_routes: true,
+                can_view_map_planning: true,
+                can_view_customers: true,
+                can_edit_customers: true,
+                can_view_reports: true,
+                can_edit_drivers: true
+            }
+        },
+        supervisor: {
+            name: 'Työnjohto',
+            label: 'Työnjohto (Suunnittelu & seuranta)',
+            badge: '👔 Työnjohto',
+            color: '#3b82f6',
+            hint: 'Työnjohto: Reittien suunnittelu, asiakashallinta ja raporttien seuranta.',
+            permissions: {
+                can_complete_jobs: true,
+                can_upload_photos: true,
+                can_view_routes: true,
+                can_edit_routes: true,
+                can_view_map_planning: true,
+                can_view_customers: true,
+                can_edit_customers: true,
+                can_view_reports: true,
+                can_edit_drivers: false
+            }
+        },
+        driver: {
+            name: 'Kuljettaja',
+            label: 'Kuljettaja (Kenttätyö & kuittaus)',
+            badge: '🚜 Kuljettaja',
+            color: '#10b981',
+            hint: 'Kuljettaja: Kohteiden kuittaus, valokuvat ja omien reittien katselu kentällä.',
+            permissions: {
+                can_complete_jobs: true,
+                can_upload_photos: true,
+                can_view_routes: true,
+                can_edit_routes: false,
+                can_view_map_planning: false,
+                can_view_customers: false,
+                can_edit_customers: false,
+                can_view_reports: false,
+                can_edit_drivers: false
+            }
+        },
+        temporary: {
+            name: 'Tuuraaja',
+            label: 'Väliaikainen / Tuuraaja (Määräaikainen pääsy)',
+            badge: '⏱️ Tuuraaja',
+            color: '#f59e0b',
+            hint: 'Tuuraaja: Määräaikainen kenttäpääsy kohteiden kuittaukseen ja reittien katseluun.',
+            permissions: {
+                can_complete_jobs: true,
+                can_upload_photos: true,
+                can_view_routes: true,
+                can_edit_routes: false,
+                can_view_map_planning: false,
+                can_view_customers: false,
+                can_edit_customers: false,
+                can_view_reports: false,
+                can_edit_drivers: false
+            }
+        }
+    };
+    window.ROLE_PRESETS = ROLE_PRESETS;
+
     function getStoredDrivers() {
         try {
             const raw = localStorage.getItem('yardflow_drivers_v1');
@@ -9158,6 +9360,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         } catch (e) {}
         return [];
     }
+    window.getStoredDrivers = getStoredDrivers;
 
     function persistDrivers(driversList) {
         try {
@@ -9165,6 +9368,176 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         } catch (e) {}
         if (typeof updateDrawerBadges === 'function') updateDrawerBadges();
     }
+    window.persistDrivers = persistDrivers;
+
+    function isUserExpired(user) {
+        if (!user || !user.expires_at) return false;
+        try {
+            const exp = new Date(user.expires_at).getTime();
+            return !isNaN(exp) && exp < Date.now();
+        } catch (e) {
+            return false;
+        }
+    }
+    window.isUserExpired = isUserExpired;
+
+    function getActiveUser() {
+        try {
+            const activeId = localStorage.getItem('yardflow_active_user_id');
+            if (activeId) {
+                const drivers = getStoredDrivers();
+                const found = drivers.find(d => String(d.id) === String(activeId));
+                if (found) return found;
+            }
+        } catch (e) {}
+        return null;
+    }
+    window.getActiveUser = getActiveUser;
+
+    function setActiveUser(driverId) {
+        if (!driverId) {
+            try { localStorage.removeItem('yardflow_active_user_id'); } catch (e) {}
+            if (typeof showStatus === 'function') showStatus('Aktiivinen käyttäjä nollattu. Oletusoikeudet käytössä.', 'info');
+        } else {
+            try { localStorage.setItem('yardflow_active_user_id', String(driverId)); } catch (e) {}
+            const drivers = getStoredDrivers();
+            const d = drivers.find(x => String(x.id) === String(driverId));
+            if (d && typeof showStatus === 'function') {
+                const roleBadge = ROLE_PRESETS[d.role]?.badge || d.role;
+                showStatus(`Aktiivinen käyttäjä: ${esc(d.name)} (${roleBadge})`, 'success');
+            }
+        }
+        applyPermissionsToUi();
+        renderDriversView();
+    }
+    window.setActiveUser = setActiveUser;
+
+    function getActiveUserPermissions() {
+        const user = getActiveUser();
+        if (!user) {
+            if (typeof currentAppMode !== 'undefined' && currentAppMode === 'admin') {
+                return { ...ROLE_PRESETS.admin.permissions };
+            }
+            return { ...ROLE_PRESETS.driver.permissions };
+        }
+
+        if (isUserExpired(user)) {
+            const empty = {};
+            PERMISSION_KEYS.forEach(k => { empty[k] = false; });
+            return empty;
+        }
+
+        const roleKey = user.role && ROLE_PRESETS[user.role] ? user.role : 'driver';
+        const preset = ROLE_PRESETS[roleKey].permissions;
+        const merged = { ...preset };
+
+        if (user.permissions && typeof user.permissions === 'object') {
+            PERMISSION_KEYS.forEach(k => {
+                if (typeof user.permissions[k] === 'boolean') {
+                    merged[k] = user.permissions[k];
+                }
+            });
+        }
+        return merged;
+    }
+    window.getActiveUserPermissions = getActiveUserPermissions;
+
+    function hasPermission(permissionKey) {
+        const user = getActiveUser();
+        if (!user && typeof currentAppMode !== 'undefined' && currentAppMode === 'admin') {
+            return true;
+        }
+        if (user && isUserExpired(user)) {
+            return false;
+        }
+        const perms = getActiveUserPermissions();
+        return !!perms[permissionKey];
+    }
+    window.hasPermission = hasPermission;
+
+    function applyPermissionsToUi() {
+        const user = getActiveUser();
+        const canRoutes = hasPermission('can_edit_routes');
+        const canDrivers = hasPermission('can_edit_drivers');
+        const canCustomers = hasPermission('can_view_customers') || hasPermission('can_edit_customers');
+        const canReports = hasPermission('can_view_reports');
+
+        const navHome = document.getElementById('nav-home');
+        const navMap = document.getElementById('nav-map');
+        const navRoutesMgmt = document.getElementById('nav-routes-mgmt');
+        const navDrivers = document.getElementById('nav-drivers');
+        const navCust = document.getElementById('nav-customers');
+        const navHistory = document.getElementById('nav-history');
+        const navBilling = document.getElementById('nav-billing');
+        const navSettings = document.getElementById('nav-settings');
+
+        if (navHome) navHome.style.display = 'flex';
+        if (navMap) navMap.style.display = 'flex';
+
+        if (navRoutesMgmt) {
+            navRoutesMgmt.style.setProperty('display', canRoutes ? 'flex' : 'none', 'important');
+        }
+        if (navDrivers) {
+            navDrivers.style.setProperty('display', (canDrivers || (currentAppMode === 'admin' && !user)) ? 'flex' : 'none', 'important');
+        }
+        if (navCust) {
+            navCust.style.setProperty('display', canCustomers ? 'flex' : 'none', 'important');
+        }
+        if (navHistory) {
+            navHistory.style.setProperty('display', canReports ? 'flex' : 'none', 'important');
+        }
+        if (navBilling) {
+            navBilling.style.setProperty('display', canReports ? 'flex' : 'none', 'important');
+        }
+        if (navSettings) {
+            navSettings.style.setProperty('display', (canDrivers || (currentAppMode === 'admin' && !user)) ? 'flex' : 'none', 'important');
+        }
+
+        let banner = document.getElementById('userExpiredBanner');
+        if (user && isUserExpired(user)) {
+            if (!banner) {
+                banner = document.createElement('div');
+                banner.id = 'userExpiredBanner';
+                banner.style.cssText = 'background: #dc2626; color: #fff; padding: 10px 16px; font-weight: 700; text-align: center; position: fixed; top: 64px; left: 0; right: 0; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.3);';
+                banner.innerHTML = `⚠️ Käyttäjän "${esc(user.name)}" käyttöoikeus on päättynyt (${new Date(user.expires_at).toLocaleString('fi-FI')}). Toiminnot on estetty.`;
+                document.body.appendChild(banner);
+            } else {
+                banner.style.display = 'block';
+                banner.innerHTML = `⚠️ Käyttäjän "${esc(user.name)}" käyttöoikeus on päättynyt (${new Date(user.expires_at).toLocaleString('fi-FI')}). Toiminnot on estetty.`;
+            }
+        } else if (banner) {
+            banner.style.display = 'none';
+        }
+    }
+    window.applyPermissionsToUi = applyPermissionsToUi;
+
+    function onDriverRoleChange(role) {
+        const preset = ROLE_PRESETS[role] || ROLE_PRESETS.driver;
+        const hintEl = document.getElementById('driverRoleHint');
+        if (hintEl) hintEl.textContent = preset.hint;
+
+        PERMISSION_KEYS.forEach(k => {
+            const cb = document.getElementById('perm_' + k);
+            if (cb) {
+                cb.checked = !!preset.permissions[k];
+            }
+        });
+
+        const expiresGroup = document.getElementById('driverExpiresGroup');
+        if (expiresGroup) {
+            if (role === 'temporary') {
+                expiresGroup.style.background = 'rgba(245, 158, 11, 0.08)';
+                expiresGroup.style.padding = '8px';
+                expiresGroup.style.borderRadius = 'var(--radius-md)';
+                expiresGroup.style.border = '1px solid rgba(245, 158, 11, 0.3)';
+            } else {
+                expiresGroup.style.background = 'transparent';
+                expiresGroup.style.padding = '0';
+                expiresGroup.style.border = 'none';
+            }
+        }
+    }
+    window.onDriverRoleChange = onDriverRoleChange;
 
     function openAddDriverDrawer(driverId = null) {
         const drawer = document.getElementById('addDriverDrawer');
@@ -9175,25 +9548,45 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         const phoneInput = document.getElementById('driverInputPhone');
         const emailInput = document.getElementById('driverInputEmail');
         const vehicleInput = document.getElementById('driverInputVehicle');
+        const roleSelect = document.getElementById('driverRoleSelect');
+        const expiresInput = document.getElementById('driverInputExpiresAt');
 
         if (driverId) {
             const drivers = getStoredDrivers();
             const d = drivers.find(x => String(x.id) === String(driverId));
             if (d) {
-                if (title) title.textContent = '✏️ Muokkaa kuljettajaa';
+                if (title) title.textContent = '✏️ Muokkaa käyttäjää / kuljettajaa';
                 if (editIdInput) editIdInput.value = d.id;
                 if (nameInput) nameInput.value = d.name || '';
                 if (phoneInput) phoneInput.value = d.phone || '';
                 if (emailInput) emailInput.value = d.email || '';
                 if (vehicleInput) vehicleInput.value = d.vehicle || '';
+                const role = d.role || 'driver';
+                if (roleSelect) roleSelect.value = role;
+                if (expiresInput) expiresInput.value = d.expires_at || '';
+
+                const preset = ROLE_PRESETS[role] || ROLE_PRESETS.driver;
+                const dPerms = d.permissions || {};
+                PERMISSION_KEYS.forEach(k => {
+                    const cb = document.getElementById('perm_' + k);
+                    if (cb) {
+                        cb.checked = (typeof dPerms[k] === 'boolean') ? dPerms[k] : !!preset.permissions[k];
+                    }
+                });
+
+                const hintEl = document.getElementById('driverRoleHint');
+                if (hintEl) hintEl.textContent = preset.hint;
             }
         } else {
-            if (title) title.textContent = '➕ Lisää uusi kuljettaja';
+            if (title) title.textContent = '➕ Lisää uusi käyttäjä / kuljettaja';
             if (editIdInput) editIdInput.value = '';
             if (nameInput) nameInput.value = '';
             if (phoneInput) phoneInput.value = '';
             if (emailInput) emailInput.value = '';
             if (vehicleInput) vehicleInput.value = '';
+            if (roleSelect) roleSelect.value = 'driver';
+            if (expiresInput) expiresInput.value = '';
+            onDriverRoleChange('driver');
         }
 
         drawer.style.display = 'block';
@@ -9213,17 +9606,35 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         const phone = document.getElementById('driverInputPhone')?.value.trim();
         const email = document.getElementById('driverInputEmail')?.value.trim();
         const vehicle = document.getElementById('driverInputVehicle')?.value.trim();
+        const role = document.getElementById('driverRoleSelect')?.value || 'driver';
+        const expiresAt = document.getElementById('driverInputExpiresAt')?.value || null;
 
         if (!name || !phone) {
             alert('Täytä vähintään kuljettajan nimi ja puhelinnumero!');
             return;
         }
 
+        const permissions = {};
+        PERMISSION_KEYS.forEach(k => {
+            const cb = document.getElementById('perm_' + k);
+            permissions[k] = cb ? cb.checked : false;
+        });
+
         const drivers = getStoredDrivers();
         if (editId) {
             const idx = drivers.findIndex(x => String(x.id) === String(editId));
             if (idx >= 0) {
-                drivers[idx] = { ...drivers[idx], name, phone, email, vehicle };
+                drivers[idx] = {
+                    ...drivers[idx],
+                    name,
+                    phone,
+                    email,
+                    vehicle,
+                    role,
+                    expires_at: expiresAt,
+                    permissions,
+                    updated_at: new Date().toISOString()
+                };
             }
         } else {
             drivers.push({
@@ -9231,14 +9642,19 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                 name,
                 phone,
                 email,
-                vehicle
+                vehicle,
+                role,
+                expires_at: expiresAt,
+                permissions,
+                created_at: new Date().toISOString()
             });
         }
 
         persistDrivers(drivers);
         closeAddDriverDrawer();
+        applyPermissionsToUi();
         renderDriversView();
-        showStatus(`Kuljettaja "${esc(name)}" tallennettu!`, 'success');
+        showStatus(`Käyttäjä "${esc(name)}" tallennettu!`, 'success');
     }
     window.saveDriverFromForm = saveDriverFromForm;
 
@@ -9246,12 +9662,19 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         const drivers = getStoredDrivers();
         const d = drivers.find(x => String(x.id) === String(driverId));
         if (!d) return;
-        if (!confirm(`Haluatko varmasti poistaa kuljettajan "${d.name}"?`)) return;
+        if (!confirm(`Haluatko varmasti poistaa käyttäjän "${d.name}"?`)) return;
 
         const updated = drivers.filter(x => String(x.id) !== String(driverId));
         persistDrivers(updated);
+
+        const activeId = localStorage.getItem('yardflow_active_user_id');
+        if (String(activeId) === String(driverId)) {
+            localStorage.removeItem('yardflow_active_user_id');
+        }
+
+        applyPermissionsToUi();
         renderDriversView();
-        showStatus(`Kuljettaja "${esc(d.name)}" poistettu.`, 'info');
+        showStatus(`Käyttäjä "${esc(d.name)}" poistettu.`, 'info');
     }
     window.deleteDriver = deleteDriver;
 
@@ -9264,18 +9687,22 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         if (badge) badge.textContent = drivers.length;
 
         if (drivers.length === 0) {
-            container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 36px 16px; color: var(--muted);"><div style="font-size: 2rem; margin-bottom: 8px;">🚜</div><div style="font-weight: 600;">Ei tallennettuja kuljettajia.</div><div>Lisää ensimmäinen kuljettaja "+ Lisää kuljettaja" -painikkeesta.</div></div>';
+            container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 36px 16px; color: var(--muted);"><div style="font-size: 2rem; margin-bottom: 8px;">👥</div><div style="font-weight: 600;">Ei tallennettuja käyttäjiä tai kuljettajia.</div><div>Lisää ensimmäinen käyttäjä "+ Lisää käyttäjä / kuljettaja" -painikkeesta.</div></div>';
             return;
         }
 
-        // Haetaan tallennetut reitit
+        const activeUserId = localStorage.getItem('yardflow_active_user_id');
         const allRoutes = (typeof routes !== 'undefined' && Array.isArray(routes)) ? routes : [];
 
         container.innerHTML = drivers.map(d => {
-            // Etsitään kuskille kuuluvat reitit
+            const roleKey = d.role && ROLE_PRESETS[d.role] ? d.role : 'driver';
+            const preset = ROLE_PRESETS[roleKey] || ROLE_PRESETS.driver;
+            const isActiveUser = String(d.id) === String(activeUserId);
+            const expired = isUserExpired(d);
+
+            // Haetaan kuskille kuuluvat reitit
             const assignedRoutes = allRoutes.filter(r => r.driver && r.driver.toLowerCase() === d.name.toLowerCase());
             
-            // Lasketaan tänään kuitatut kohteet tämän kuskin reiteiltä tai aktiivisesta tasks-listasta jos sama kuski
             let totalTasks = 0;
             let doneTasks = 0;
             assignedRoutes.forEach(r => {
@@ -9292,12 +9719,26 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
 
             const pct = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
 
+            // Selvitetään aktiiviset oikeudet
+            const userPerms = d.permissions || preset.permissions;
+            const activePermLabels = PERMISSION_KEYS
+                .filter(k => !!userPerms[k])
+                .map(k => PERMISSION_LABELS[k] || k);
+
             return `
-            <div class="card driver-card" style="border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; background: var(--bg-card); display: flex; flex-direction: column; gap: 12px;">
+            <div class="card driver-card ${isActiveUser ? 'active-user-card' : ''}" style="border: ${isActiveUser ? '2px solid var(--accent)' : '1px solid var(--border)'}; border-radius: var(--radius-lg); padding: 16px; background: var(--bg-card); display: flex; flex-direction: column; gap: 12px; position: relative;">
+                
+                <!-- Ylärivi: Rooli, Aktiivisuus & Toiminnot -->
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
                     <div>
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px;">
+                            <span class="badge" style="background: ${preset.color}22; color: ${preset.color}; border: 1px solid ${preset.color}66; font-size: 0.78rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-pill);">
+                                ${preset.badge}
+                            </span>
+                            ${isActiveUser ? `<span class="badge" style="background: rgba(16,185,129,0.2); color: #10b981; border: 1px solid rgba(16,185,129,0.4); font-size: 0.78rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-pill);">⭐ Aktiivinen profiili</span>` : ''}
+                            ${expired ? `<span class="badge" style="background: rgba(239,68,68,0.2); color: #ef4444; border: 1px solid rgba(239,68,68,0.4); font-size: 0.76rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-pill);">⚠️ Päättynyt ${new Date(d.expires_at).toLocaleString('fi-FI')}</span>` : (d.expires_at ? `<span class="badge" style="background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid rgba(245,158,11,0.4); font-size: 0.76rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-pill);">⏱️ Voimassa: ${new Date(d.expires_at).toLocaleString('fi-FI')}</span>` : '')}
+                        </div>
                         <div style="font-size: 1.15rem; font-weight: 800; color: var(--fg); display: flex; align-items: center; gap: 8px;">
-                            <span>🚜</span>
                             <span>${esc(d.name)}</span>
                         </div>
                         <div style="font-size: 0.8rem; color: var(--muted); margin-top: 2px;">
@@ -9305,12 +9746,12 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                         </div>
                     </div>
                     <div style="display: flex; gap: 6px;">
-                        <button type="button" class="tiny-btn" onclick="openAddDriverDrawer('${d.id}')" title="Muokkaa kuljettajaa">✏️</button>
-                        <button type="button" class="tiny-btn danger" onclick="deleteDriver('${d.id}')" title="Poista kuljettaja">🗑️</button>
+                        <button type="button" class="tiny-btn" onclick="openAddDriverDrawer('${d.id}')" title="Muokkaa käyttäjää">✏️</button>
+                        <button type="button" class="tiny-btn danger" onclick="deleteDriver('${d.id}')" title="Poista käyttäjä">🗑️</button>
                     </div>
                 </div>
 
-                <!-- Yhteystiedot suorilla linkeillä -->
+                <!-- Yhteystiedot -->
                 <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 10px 12px; font-size: 0.85rem; display: flex; flex-direction: column; gap: 6px;">
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <span>📞</span>
@@ -9321,6 +9762,16 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                         <span>✉️</span>
                         <a href="mailto:${esc(d.email)}" style="color: var(--muted); text-decoration: none; word-break: break-all;">${esc(d.email)}</a>
                     </div>` : ''}
+                </div>
+
+                <!-- Oikeusmatriisin yhteenvedot / tagit -->
+                <div style="background: rgba(0,0,0,0.12); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 8px 10px;">
+                    <div style="font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 6px;">
+                        🔑 Oikeudet (${activePermLabels.length}/${PERMISSION_KEYS.length}):
+                    </div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                        ${activePermLabels.map(lbl => `<span style="font-size: 0.72rem; padding: 2px 6px; background: rgba(255,255,255,0.06); border-radius: 4px; color: var(--fg);">${esc(lbl)}</span>`).join('')}
+                    </div>
                 </div>
 
                 <!-- Päivän eteneminen -->
@@ -9346,6 +9797,19 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                             </div>
                         `).join('')}
                     </div>`}
+                </div>
+
+                <!-- Aktiiviseksi asettaminen -->
+                <div style="margin-top: 4px; border-top: 1px solid var(--border); padding-top: 10px; display: flex; justify-content: flex-end;">
+                    ${isActiveUser ? `
+                        <button type="button" class="btn-outline" style="font-size: 0.82rem; padding: 4px 10px;" onclick="setActiveUser(null)">
+                            ✕ Poista aktiivinen valinta
+                        </button>
+                    ` : `
+                        <button type="button" class="btn-primary" style="font-size: 0.82rem; padding: 4px 12px;" onclick="setActiveUser('${d.id}')">
+                            👤 Valitse aktiiviseksi käyttäjäksi
+                        </button>
+                    `}
                 </div>
             </div>`;
         }).join('');
@@ -13140,6 +13604,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     populateCustomerFilterSelects();
     applyDashboardPrefs();
     updateDrawerBadges();
+    if (typeof applyPermissionsToUi === 'function') applyPermissionsToUi();
     restorePanelCollapseStates();
     setTimeout(() => {
         setWorkHistoryPeriod('month');
