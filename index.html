@@ -19,6 +19,7 @@
     <script src="https://unpkg.com/@turf/turf@6.5.0/turf.min.js" crossorigin=""></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/exifr@7.1.3/dist/lite.umd.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-path-transform@1.1.3/dist/L.Path.Transform.js" crossorigin=""></script>
     <script>
         (function() {
             try {
@@ -1788,7 +1789,7 @@
                 border-radius: var(--radius-lg);
             }
 
-            #viewCustomers, #viewLogs, #viewBilling {
+            #viewCustomers, #viewLogs, #viewBilling, #viewSettings {
                 height: 100%;
                 overflow-y: auto;
                 padding: 20px;
@@ -1814,6 +1815,146 @@
             .btn-action, .btn-secondary, .btn-complete-main, .btn-obstacle-action {
                 min-height: 48px;
             }
+            .mode-status-badge {
+                display: none !important;
+            }
+        }
+
+        /* ============================================================
+           KÄYTTÖTILAN VALINTA & RAJOITUKSET (Kenttätila vs. Hallintatila)
+           ============================================================ */
+        .mode-switch-group {
+            display: inline-flex;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-pill);
+            padding: 2px;
+            gap: 2px;
+            align-items: center;
+        }
+        .mode-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 5px 10px;
+            border-radius: var(--radius-pill);
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .mode-btn:hover {
+            color: var(--text-main);
+        }
+        .mode-btn.active {
+            background: var(--bg-card);
+            color: var(--text-main);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+        }
+        .mode-status-badge {
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.76rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: var(--radius-pill);
+            letter-spacing: 0.02em;
+            transition: var(--transition);
+        }
+        .mode-badge-field {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.35);
+        }
+        .mode-badge-admin {
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.35);
+        }
+
+        /* Kenttätilan rajoitukset ja korostukset */
+        html[data-app-mode="field"] .admin-only {
+            display: none !important;
+        }
+        html[data-app-mode="field"] .leaflet-pm-toolbar {
+            display: none !important;
+        }
+        html[data-app-mode="field"] .btn-complete-main,
+        html[data-app-mode="field"] .btn-obstacle-action {
+            transform: scale(1.01);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+        }
+
+        /* Kotinäkymän widgetit */
+        .dashboard-widget {
+            transition: var(--transition);
+        }
+        .widget-progress-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 10px 12px;
+        }
+        .progress-bar-track {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #059669);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        .widget-next-yard-card {
+            background: var(--bg-card);
+            border: 1px solid var(--accent);
+            border-radius: var(--radius-md);
+            padding: 10px 12px;
+        }
+        .widget-tickets-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 10px 12px;
+        }
+
+        /* Leaflet.Path.Transform kahvojen tyylit */
+        .leaflet-drag-transform-marker {
+            background: #ffffff !important;
+            border: 2px solid #0284c7 !important;
+            border-radius: 3px !important;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.45) !important;
+            cursor: nwse-resize !important;
+            width: 13px !important;
+            height: 13px !important;
+            margin-left: -6.5px !important;
+            margin-top: -6.5px !important;
+        }
+        .drag-marker--rotate,
+        .leaflet-drag-transform-marker[style*="border-radius: 50%"],
+        .leaflet-drag-transform-marker.drag-marker--rotate {
+            background: #f59e0b !important;
+            border: 2px solid #ffffff !important;
+            border-radius: 50% !important;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45) !important;
+            cursor: grab !important;
+            width: 15px !important;
+            height: 15px !important;
+            margin-left: -7.5px !important;
+            margin-top: -7.5px !important;
+        }
+        .leaflet-path-transform-rect {
+            stroke: #0284c7 !important;
+            stroke-width: 1.5 !important;
+            stroke-dasharray: 4, 4 !important;
+            fill: none !important;
         }
     </style>
 </head>
@@ -1829,6 +1970,17 @@
         <div class="logo-title">Yard<span>Flow</span></div>
     </div>
     <div class="header-actions">
+        <!-- Käyttötilan valinta (Kenttä vs. Hallinta) -->
+        <div class="mode-switch-group" role="group" aria-label="Käyttötilan valinta">
+            <button type="button" class="mode-btn active" id="btnModeField" onclick="setAppMode('field')" title="Kenttätila (Kuljettaja / Huoltomies)">
+                🚜 Kenttä
+            </button>
+            <button type="button" class="mode-btn" id="btnModeAdmin" onclick="setAppMode('admin')" title="Hallintatila (Työnjohto / Suunnittelu)">
+                🛠️ Hallinta
+            </button>
+        </div>
+        <span class="mode-status-badge mode-badge-field" id="appModeBadge" title="Nykyinen käyttötila">🚜 Kenttätila</span>
+
         <button id="themeToggleBtn" class="theme-toggle-btn" type="button" onclick="toggleTheme()" title="Vaihda teemaa (Kirkas / Tumma)" aria-label="Vaihda teemaa">
             <span class="theme-toggle-icon">☀️</span>
             <span class="theme-toggle-text">Vaalea</span>
@@ -1843,21 +1995,74 @@
         <button class="nav-tab" id="tabBtnCustomers" onclick="switchTab('customers')">👥 Asiakkaat (<span id="customerCountBadge">0</span>)</button>
         <button class="nav-tab" id="tabBtnLogs" onclick="switchTab('logs')">📋 Työloki (<span id="logCountBadge">0</span>)</button>
         <button class="nav-tab" id="tabBtnBilling" onclick="switchTab('billing')">💰 Laskutus</button>
+        <button class="nav-tab" id="tabBtnSettings" onclick="switchTab('settings')">⚙️ Asetukset</button>
     </div>
 
     <!-- NÄKYMÄ 1: AJO & REITIT (Ajolista heti ensimmäisenä!) -->
     <div id="viewRoutes">
         <div class="card sidebar-column" id="routeSidebarPanel">
-            <!-- Sivupalkin hakupalkki ja laskuri (Ihan ylhäällä työpöytä- ja mobiilinäkymässä) -->
-            <div class="property-search-wrapper" style="margin-bottom: 14px;">
-                <div style="position: relative; display: flex; align-items: center;">
-                    <span style="position: absolute; left: 12px; font-size: 0.95rem; pointer-events: none; opacity: 0.6;">🔍</span>
-                    <input type="text" id="property-search-input" placeholder="Hae nimellä tai osoitteella..." style="padding-left: 36px; padding-right: 32px; margin-bottom: 0;" oninput="handlePropertySearch(this.value)">
-                    <button type="button" id="property-search-clear" onclick="clearPropertySearch()" style="position: absolute; right: 8px; background: none; border: none; padding: 4px; font-size: 0.85rem; color: var(--muted); display: none; cursor: pointer;" title="Tyhjennä haku">✕</button>
+            <!-- Widget 1: Pikahaku sivupalkissa -->
+            <div id="widget-search" class="dashboard-widget">
+                <div class="property-search-wrapper" style="margin-bottom: 12px;">
+                    <div style="position: relative; display: flex; align-items: center;">
+                        <span style="position: absolute; left: 12px; font-size: 0.95rem; pointer-events: none; opacity: 0.6;">🔍</span>
+                        <input type="text" id="property-search-input" placeholder="Hae nimellä tai osoitteella..." style="padding-left: 36px; padding-right: 32px; margin-bottom: 0;" oninput="handlePropertySearch(this.value)">
+                        <button type="button" id="property-search-clear" onclick="clearPropertySearch()" style="position: absolute; right: 8px; background: none; border: none; padding: 4px; font-size: 0.85rem; color: var(--muted); display: none; cursor: pointer;" title="Tyhjennä haku">✕</button>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 0.78rem; color: var(--muted); padding: 0 2px;">
+                        <span id="search-count">0 kohdetta</span>
+                        <span id="search-filter-hint" style="display: none; color: var(--accent);">Suodatettu haulla</span>
+                    </div>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 0.78rem; color: var(--muted); padding: 0 2px;">
-                    <span id="search-count">0 kohdetta</span>
-                    <span id="search-filter-hint" style="display: none; color: var(--accent);">Suodatettu haulla</span>
+            </div>
+
+            <!-- Widget 2: Päivän edistymismittari (Kuitatut / Jäljellä) -->
+            <div id="widget-progress" class="dashboard-widget widget-progress-card" style="margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; font-size: 0.82rem;">
+                    <span style="font-weight: 700; color: var(--text-main);">📊 Päivän edistyminen</span>
+                    <span id="widgetProgressPercent" style="font-weight: 700; color: #10b981;">0%</span>
+                </div>
+                <div class="progress-bar-track">
+                    <div id="widgetProgressBarFill" class="progress-bar-fill" style="width: 0%;"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.76rem; color: var(--muted); margin-top: 6px;">
+                    <span>Kuitattu: <strong id="widgetDoneCount" style="color: #10b981;">0</strong></span>
+                    <span>Jäljellä: <strong id="widgetRemainingCount" style="color: var(--text-main);">0</strong></span>
+                    <span>Yhteensä: <strong id="widgetTotalCount">0</strong></span>
+                </div>
+            </div>
+
+            <!-- Widget 3: Seuraava ajokohde -pikaopas -->
+            <div id="widget-next-yard" class="dashboard-widget widget-next-yard-card" style="margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <span style="font-weight: 700; font-size: 0.78rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.04em;">📍 Seuraava ajokohde</span>
+                    <span class="status-pill status-ready" style="font-size: 0.72rem; padding: 2px 8px;">Reitin seuraava</span>
+                </div>
+                <div id="widgetNextYardContent">
+                    <div id="widgetNextYardEmpty" style="font-size: 0.84rem; color: var(--muted); display: none;">Kaikki päivän kohteet kuitattu! 🎉</div>
+                    <div id="widgetNextYardDetails">
+                        <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main); margin-bottom: 2px;" id="widgetNextYardName">-</div>
+                        <div style="font-size: 0.8rem; color: var(--muted); margin-bottom: 8px;" id="widgetNextYardAddress">-</div>
+                        <div style="display: flex; gap: 6px;">
+                            <button type="button" class="btn-primary" style="flex: 1; min-height: 40px; font-size: 0.85rem; padding: 6px 10px;" onclick="navigateToNextYard()">
+                                🧭 Navigoi
+                            </button>
+                            <button type="button" class="btn-success" style="flex: 1; min-height: 40px; font-size: 0.85rem; padding: 6px 10px;" onclick="completeNextYard()">
+                                ✓ Kuittaa
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Widget 4: Päivän työkeikat / huoltotilaukset / esteet -->
+            <div id="widget-tickets" class="dashboard-widget widget-tickets-card" style="margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <span style="font-weight: 700; font-size: 0.82rem; color: var(--text-main);">📋 Päivän työkeikat &amp; esteet</span>
+                    <span id="widgetTicketsCountBadge" class="status-pill" style="font-size: 0.72rem; padding: 2px 8px; background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3);">0 huomiota</span>
+                </div>
+                <div id="widgetTicketsList" style="font-size: 0.8rem; max-height: 120px; overflow-y: auto;">
+                    <div style="color: var(--muted);">Ei aktiivisia esteitä tai erityishuomioita.</div>
                 </div>
             </div>
 
@@ -1881,7 +2086,7 @@
             </div>
 
             <!-- Kompaktit lisätyökalut (avaavat lomakkeen tai asetukset vain tarvittaessa) -->
-            <div class="toolbar-row">
+            <div class="toolbar-row admin-only">
                 <button type="button" class="drawer-toggle-btn" id="btnToggleAddTask" onclick="toggleDrawer('addTaskDrawer', this)">
                     ➕ Lisää kohde
                 </button>
@@ -2042,13 +2247,15 @@
                 </button>
             </h3>
 
-            <label for="yardMapTargetSelect">Valitse tarkasteltava / piirrettävä kohde:</label>
-            <select id="yardMapTargetSelect" onchange="selectYardMapTarget(this.value)" style="margin-bottom: 10px;">
-                <option value="">-- Valitse kohde listalta --</option>
-            </select>
+            <div class="admin-only">
+                <label for="yardMapTargetSelect">Valitse tarkasteltava / piirrettävä kohde:</label>
+                <select id="yardMapTargetSelect" onchange="selectYardMapTarget(this.value)" style="margin-bottom: 10px;">
+                    <option value="">-- Valitse kohde listalta --</option>
+                </select>
+            </div>
 
             <!-- Geofencing-säteen ja tyypin pikamääritys suoraan satelliittikartalla (piirtää L.circle-ympyrän kartalle) -->
-            <div class="geofence-settings-box" style="margin-top: 0; margin-bottom: 10px;">
+            <div class="geofence-settings-box admin-only" style="margin-top: 0; margin-bottom: 10px;">
                 <div class="geofence-settings-title">
                     <span>📍 Kohteen Geofence-paikkatodennus</span>
                     <label class="check-row" style="margin: 0; font-size: 0.8rem;">
@@ -2072,7 +2279,7 @@
             </div>
 
             <!-- 3 piirtokategoriaa -->
-            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
+            <div class="map-draw-categories admin-only" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
                 <button type="button" class="drawer-toggle-btn" id="btnDrawMachine" onclick="startYardDraw('machine')" style="border-left: 4px solid #0ea5e9;">
                     🚜 Konealue
                 </button>
@@ -2084,19 +2291,13 @@
                 </button>
             </div>
 
-            <!-- Koon muutos, kääntö, valitun alueen poisto & kartan tyhjennys -->
+            <!-- All-in-One Transform: valitun alueen poisto & kartan tyhjennys -->
             <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;">
                 <span id="yardMapStatus" class="muted-text" style="font-size: 0.78rem; flex: 1; min-width: 200px;">
-                    Valitse kohde ja piirrä konealue, käsityöalue tai lumenkaatoalue. Vierekkäiset saman kohteen alueet yhdistyvät automaattisesti.
+                    Valitse kohde ja piirrä konealue, käsityöalue tai lumenkaatoalue. Muokkaa klikkaamalla aluetta suoraan kartalta.
                 </span>
-                <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                    <button type="button" class="tiny-btn" id="btnEditAreaSize" onclick="toggleYardEditMode()" title="Muuta alueen tai lumenkaatopaikan kokoa ja kulmapisteitä">
-                        📐 Muuta kokoa
-                    </button>
-                    <button type="button" class="tiny-btn" id="btnRotateArea" onclick="toggleYardRotateMode()" title="Käännä lumenkaatoaluetta tai muuta aluetta haluttuun kulmaan">
-                        🔄 Käännä
-                    </button>
-                    <button type="button" class="tiny-btn danger" id="btnDeleteSelectedArea" onclick="deleteSelectedYardFeature()" title="Poista valittu alue tai kytke poistotila päälle">
+                <div class="admin-only" style="display: flex; gap: 6px; flex-wrap: wrap;">
+                    <button type="button" class="tiny-btn danger" id="btnDeleteSelectedArea" onclick="deleteSelectedYardFeature()" title="Poista valittu alue">
                         🗑️ Poista valittu alue
                     </button>
                     <button type="button" class="tiny-btn danger" onclick="clearCurrentTargetMap()" title="Tyhjennä kaikki tämän kohteen piirretyt alueet">
@@ -2391,6 +2592,74 @@
                 <button type="button" class="btn-outline" style="width: auto;" onclick="copyInvoiceTextToClipboard()">
                     📋 Kopioi tekstinä
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NÄKYMÄ 5: ASETUKSET & KUSTOMOINTI -->
+    <div id="viewSettings" style="display: none;">
+        <div class="card" style="max-width: 800px; margin: 0 auto;">
+            <h3 style="margin-bottom: 14px;">
+                <span>⚙️ Järjestelmä- ja näkymäasetukset</span>
+            </h3>
+
+            <!-- Käyttötilan valinta (Kenttä vs. Hallinta) -->
+            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 18px;">
+                <h4 style="margin-top: 0; margin-bottom: 6px;">🚜 Käyttötila (Kenttätila vs. Hallintatila)</h4>
+                <p style="font-size: 0.84rem; color: var(--muted); margin-bottom: 12px; line-height: 1.45;">
+                    <b>Kenttätila:</b> Kaikki kartan alueet ja markkerit on lukittu, piirtotyökalut piilotettu ja suuret kuittaus- ja navigointipainikkeet korostettu turvallista ajoa varten.<br>
+                    <b>Hallintatila:</b> Karttojen piirtotyökalut, muokkauskahvat, kohteen tietojen muokkaus ja asetukset ovat aktiivisia.
+                </p>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button type="button" class="btn-primary" id="btnSettingsModeField" onclick="setAppMode('field')" style="flex: 1; min-height: 46px;">
+                        🚜 Kytke Kenttätila (Kuljettaja)
+                    </button>
+                    <button type="button" class="btn-secondary" id="btnSettingsModeAdmin" onclick="setAppMode('admin')" style="flex: 1; min-height: 46px;">
+                        🛠️ Kytke Hallintatila (Työnjohto)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Kotinäkymän mukautus (Dashboard Widgets) -->
+            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 18px;">
+                <h4 style="margin-top: 0; margin-bottom: 6px;">📱 Kotinäkymän mukautus (Dashboard Widgets)</h4>
+                <p style="font-size: 0.84rem; color: var(--muted); margin-bottom: 14px;">
+                    Valitse mitkä osiot näytetään ajolistan yläpuolella:
+                </p>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <label class="check-row" style="font-size: 0.9rem; cursor: pointer; margin: 0;">
+                        <input type="checkbox" id="show-widget-progress" checked onchange="handleHomeWidgetToggle('progress', this.checked)">
+                        <span><strong>Päivän edistymismittari (Kuitatut / Jäljellä)</strong></span>
+                    </label>
+                    <label class="check-row" style="font-size: 0.9rem; cursor: pointer; margin: 0;">
+                        <input type="checkbox" id="show-widget-next-yard" checked onchange="handleHomeWidgetToggle('nextYard', this.checked)">
+                        <span><strong>Seuraava ajokohde -pikaopas</strong></span>
+                    </label>
+                    <label class="check-row" style="font-size: 0.9rem; cursor: pointer; margin: 0;">
+                        <input type="checkbox" id="show-widget-tickets" checked onchange="handleHomeWidgetToggle('tickets', this.checked)">
+                        <span><strong>Päivän työkeikat / huoltotilaukset</strong></span>
+                    </label>
+                    <label class="check-row" style="font-size: 0.9rem; cursor: pointer; margin: 0;">
+                        <input type="checkbox" id="show-widget-search" checked onchange="handleHomeWidgetToggle('search', this.checked)">
+                        <span><strong>Pikahaku sivupalkissa</strong></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Tiedot ja varmuuskopiointi -->
+            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px;">
+                <h4 style="margin-top: 0; margin-bottom: 6px;">💾 Järjestelmän tiedot ja varmuuskopiot</h4>
+                <p style="font-size: 0.84rem; color: var(--muted); margin-bottom: 12px;">
+                    Tallenna kaikki asiakasrekisterin, kohteiden, reittien ja työlokien tiedot yhteen JSON-tiedostoon tai palauta aiemmin tallennettu varmuuskopio.
+                </p>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button type="button" class="btn-secondary" style="flex: 1; min-height: 44px;" onclick="exportBackup()" title="Lataa varmuuskopio koneellesi">
+                        💾 Lataa varmuuskopio (.json)
+                    </button>
+                    <button type="button" class="btn-outline" style="flex: 1; min-height: 44px;" onclick="document.getElementById('importFile').click()" title="Palauta tallennettu varmuuskopio">
+                        📂 Palauta varmuuskopio
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -2956,22 +3225,241 @@
     }
     window.updateThemeUI = updateThemeUI;
 
+    // ============================================================
+    // 🚜 KÄYTTÖTILAN HALLINTA (Kenttätila vs. Hallintatila)
+    // ============================================================
+    let currentAppMode = 'field'; // Oletuksena kenttätila turvalliseen ajoon
+
+    function setAppMode(mode) {
+        currentAppMode = (mode === 'admin') ? 'admin' : 'field';
+        try {
+            localStorage.setItem('yardflow_app_mode', currentAppMode);
+        } catch (e) {}
+
+        document.documentElement.setAttribute('data-app-mode', currentAppMode);
+
+        const btnField = document.getElementById('btnModeField');
+        const btnAdmin = document.getElementById('btnModeAdmin');
+        const badge = document.getElementById('appModeBadge');
+        const btnSettingsField = document.getElementById('btnSettingsModeField');
+        const btnSettingsAdmin = document.getElementById('btnSettingsModeAdmin');
+
+        if (btnField) btnField.classList.toggle('active', currentAppMode === 'field');
+        if (btnAdmin) btnAdmin.classList.toggle('active', currentAppMode === 'admin');
+
+        if (btnSettingsField) {
+            btnSettingsField.className = currentAppMode === 'field' ? 'btn-primary' : 'btn-outline';
+        }
+        if (btnSettingsAdmin) {
+            btnSettingsAdmin.className = currentAppMode === 'admin' ? 'btn-primary' : 'btn-outline';
+        }
+
+        if (badge) {
+            if (currentAppMode === 'field') {
+                badge.className = 'mode-status-badge mode-badge-field';
+                badge.textContent = '🚜 Kenttätila';
+                badge.title = 'Kenttätila aktiivinen: kartat ja markkerit lukittu, kuljettajanäkymä.';
+            } else {
+                badge.className = 'mode-status-badge mode-badge-admin';
+                badge.textContent = '🛠️ Hallintatila';
+                badge.title = 'Hallintatila aktiivinen: piirtotyökalut ja muokkaus käytettävissä.';
+            }
+        }
+
+        // Jos poistutaan hallintatilasta kenttätilaan, suljetaan avoimet piirto- ja muokkaustoiminnot
+        if (currentAppMode === 'field') {
+            if (yardMap && yardMap.pm) {
+                yardMap.pm.disableDraw();
+                yardMap.pm.disableGlobalEditMode();
+                yardMap.pm.disableGlobalRemovalMode();
+                if (typeof yardMap.pm.disableGlobalRotateMode === 'function') yardMap.pm.disableGlobalRotateMode();
+            }
+            if (selectedMapLayer) {
+                if (selectedMapLayer.transform && selectedMapLayer.transform._enabled) {
+                    selectedMapLayer.transform.disable();
+                }
+                if (selectedMapLayer.pm && typeof selectedMapLayer.pm.enabled === 'function' && selectedMapLayer.pm.enabled()) {
+                    selectedMapLayer.pm.disable();
+                }
+                selectedMapLayer = null;
+            }
+            if (typeof isPinDropModeActive !== 'undefined' && isPinDropModeActive) disableMapPinDropMode();
+            if (typeof activePinMovingTaskId !== 'undefined' && activePinMovingTaskId != null) {
+                activePinMovingTaskId = null;
+            }
+        }
+
+        if (typeof renderTasks === 'function') renderTasks();
+    }
+    window.setAppMode = setAppMode;
+
+    // ============================================================
+    // 📱 KOTINÄKYMÄN WIDGETIT & ASETUKSET
+    // ============================================================
+    const DEFAULT_HOME_WIDGETS = {
+        progress: true,
+        nextYard: true,
+        tickets: true,
+        search: true
+    };
+
+    function getHomeWidgetConfig() {
+        try {
+            const raw = localStorage.getItem('yardflow_home_widgets');
+            if (raw) return Object.assign({}, DEFAULT_HOME_WIDGETS, JSON.parse(raw));
+        } catch (e) {}
+        return Object.assign({}, DEFAULT_HOME_WIDGETS);
+    }
+
+    function saveHomeWidgetConfig(cfg) {
+        try {
+            localStorage.setItem('yardflow_home_widgets', JSON.stringify(cfg));
+        } catch (e) {}
+    }
+
+    function handleHomeWidgetToggle(key, isEnabled) {
+        const cfg = getHomeWidgetConfig();
+        cfg[key] = !!isEnabled;
+        saveHomeWidgetConfig(cfg);
+        applyHomeWidgetVisibility();
+    }
+    window.handleHomeWidgetToggle = handleHomeWidgetToggle;
+
+    function applyHomeWidgetVisibility() {
+        const cfg = getHomeWidgetConfig();
+
+        const wProgress = document.getElementById('widget-progress');
+        const wNextYard = document.getElementById('widget-next-yard');
+        const wTickets = document.getElementById('widget-tickets');
+        const wSearch = document.getElementById('widget-search');
+
+        if (wProgress) wProgress.style.display = cfg.progress ? '' : 'none';
+        if (wNextYard) wNextYard.style.display = cfg.nextYard ? '' : 'none';
+        if (wTickets) wTickets.style.display = cfg.tickets ? '' : 'none';
+        if (wSearch) wSearch.style.display = cfg.search ? '' : 'none';
+
+        const cbProgress = document.getElementById('show-widget-progress');
+        const cbNextYard = document.getElementById('show-widget-next-yard');
+        const cbTickets = document.getElementById('show-widget-tickets');
+        const cbSearch = document.getElementById('show-widget-search');
+
+        if (cbProgress) cbProgress.checked = !!cfg.progress;
+        if (cbNextYard) cbNextYard.checked = !!cfg.nextYard;
+        if (cbTickets) cbTickets.checked = !!cfg.tickets;
+        if (cbSearch) cbSearch.checked = !!cfg.search;
+    }
+    window.applyHomeWidgetVisibility = applyHomeWidgetVisibility;
+
+    function updateDashboardWidgets() {
+        if (!tasks) return;
+        const total = tasks.length;
+        const doneList = tasks.filter(t => t.done);
+        const done = doneList.length;
+        const remaining = total - done;
+        const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+        // 1. Edistymismittari
+        const elPct = document.getElementById('widgetProgressPercent');
+        const elDone = document.getElementById('widgetDoneCount');
+        const elRemaining = document.getElementById('widgetRemainingCount');
+        const elTotal = document.getElementById('widgetTotalCount');
+        const elFill = document.getElementById('widgetProgressBarFill');
+
+        if (elPct) elPct.textContent = `${pct}%`;
+        if (elDone) elDone.textContent = `${done}`;
+        if (elRemaining) elRemaining.textContent = `${remaining}`;
+        if (elTotal) elTotal.textContent = `${total}`;
+        if (elFill) elFill.style.width = `${pct}%`;
+
+        // 2. Seuraava ajokohde
+        const nextTask = tasks.find(t => !t.done && !t.blocked);
+        const wNextEmpty = document.getElementById('widgetNextYardEmpty');
+        const wNextDetails = document.getElementById('widgetNextYardDetails');
+        const wNextName = document.getElementById('widgetNextYardName');
+        const wNextAddr = document.getElementById('widgetNextYardAddress');
+
+        if (!nextTask) {
+            if (wNextEmpty) {
+                wNextEmpty.style.display = '';
+                wNextEmpty.textContent = total === 0 ? 'Ajolistalla ei ole vielä kohteita.' : 'Kaikki päivän kohteet kuitattu! 🎉';
+            }
+            if (wNextDetails) wNextDetails.style.display = 'none';
+        } else {
+            if (wNextEmpty) wNextEmpty.style.display = 'none';
+            if (wNextDetails) wNextDetails.style.display = '';
+            if (wNextName) wNextName.textContent = nextTask.name;
+            if (wNextAddr) wNextAddr.textContent = nextTask.address || 'Ei osoitetta';
+        }
+
+        // 3. Työkeikat ja huomiot
+        const ticketsList = document.getElementById('widgetTicketsList');
+        const ticketsBadge = document.getElementById('widgetTicketsCountBadge');
+        const attentionTasks = tasks.filter(t => t.blocked || t.manual_override || t.manager_alert || (t.notes && t.notes.trim()));
+
+        if (ticketsBadge) {
+            ticketsBadge.textContent = `${attentionTasks.length} huomiota`;
+        }
+        if (ticketsList) {
+            if (attentionTasks.length === 0) {
+                ticketsList.innerHTML = '<div style="color: var(--muted); font-size: 0.8rem;">Ei aktiivisia esteitä tai erityishuomioita.</div>';
+            } else {
+                ticketsList.innerHTML = attentionTasks.map(t => {
+                    const icon = t.blocked ? '🚫' : (t.manual_override ? '⚠️' : 'ℹ️');
+                    const label = t.blocked ? (t.blocked_reason || 'Ei pääse') : (t.manual_override ? (t.override_reason || 'Manuaalikuittaus') : t.notes);
+                    return `
+                        <div style="display: flex; gap: 6px; align-items: flex-start; margin-bottom: 6px; padding: 4px 6px; background: rgba(255,255,255,0.03); border-radius: 6px;">
+                            <span>${icon}</span>
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${esc(t.name)}</div>
+                                <div style="color: var(--muted); font-size: 0.74rem;">${esc(label)}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+    }
+
+    function navigateToNextYard() {
+        const nextTask = tasks.find(t => !t.done && !t.blocked) || tasks.find(t => !t.done);
+        if (!nextTask) {
+            alert('Ei tekemättömiä kohteita reitillä.');
+            return;
+        }
+        const q = encodeURIComponent(nextTask.address || nextTask.name);
+        window.open(`https://www.google.com/maps/dir/?api=1&destination=${q}`, '_blank');
+    }
+    window.navigateToNextYard = navigateToNextYard;
+
+    function completeNextYard() {
+        const nextTask = tasks.find(t => !t.done && !t.blocked) || tasks.find(t => !t.done);
+        if (!nextTask) {
+            alert('Ei tekemättömiä kohteita reitillä.');
+            return;
+        }
+        handleCompleteTaskClick(nextTask.id);
+    }
+    window.completeNextYard = completeNextYard;
+
     // ---------- Välilehtien vaihto ----------
     function switchTab(tab) {
         const routesView = document.getElementById('viewRoutes');
         const custView = document.getElementById('viewCustomers');
         const logsView = document.getElementById('viewLogs');
         const billingView = document.getElementById('viewBilling');
+        const settingsView = document.getElementById('viewSettings');
 
         const tabBtnRoutes = document.getElementById('tabBtnRoutes');
         const tabBtnCust = document.getElementById('tabBtnCustomers');
         const tabBtnLogs = document.getElementById('tabBtnLogs');
         const tabBtnBilling = document.getElementById('tabBtnBilling');
+        const tabBtnSettings = document.getElementById('tabBtnSettings');
 
         if (routesView) routesView.style.display = tab === 'routes' ? '' : 'none';
         if (custView) custView.style.display = tab === 'customers' ? '' : 'none';
         if (logsView) logsView.style.display = tab === 'logs' ? '' : 'none';
         if (billingView) billingView.style.display = tab === 'billing' ? '' : 'none';
+        if (settingsView) settingsView.style.display = tab === 'settings' ? '' : 'none';
 
         if (tab === 'routes' && typeof yardMap !== 'undefined' && yardMap) {
             setTimeout(() => {
@@ -2983,10 +3471,12 @@
         if (tabBtnCust) tabBtnCust.classList.toggle('active', tab === 'customers');
         if (tabBtnLogs) tabBtnLogs.classList.toggle('active', tab === 'logs');
         if (tabBtnBilling) tabBtnBilling.classList.toggle('active', tab === 'billing');
+        if (tabBtnSettings) tabBtnSettings.classList.toggle('active', tab === 'settings');
 
         if (tab === 'customers') renderCustomers();
         if (tab === 'logs') renderWorkLogs();
         if (tab === 'billing') initBillingTab();
+        if (tab === 'settings') applyHomeWidgetVisibility();
     }
 
     // ---------- Hinnoittelu & Laskutus ----------
@@ -7046,12 +7536,14 @@
         document.getElementById('taskCount').textContent = `${pending.length} jäljellä / ${tasks.length} yht.`;
         updateDistanceSummary(pending);
         renderActiveRoute();
+        updateDashboardWidgets();
 
         const searchCountEl = document.getElementById('search-count');
 
         if (tasks.length === 0) {
             listEl.innerHTML = '<p class="empty-state">Ei vielä kohteita ajolistalla. Paina yltä "➕ Lisää kohde" tai poimi asiakas Asiakkaat-välilehdeltä!</p>';
             if (searchCountEl) searchCountEl.textContent = '0 kohdetta';
+            updateDashboardWidgets();
             return;
         }
 
@@ -7204,19 +7696,19 @@
                 </div>
 
                 <div class="task-tools-row">
-                    <div class="task-tools-group">
+                    <div class="task-tools-group admin-only">
                         <button class="order-btn" title="Siirrä ylöspäin" onclick="moveTask(${index}, -1)" ${index === 0 ? 'disabled' : ''}>▲</button>
                         <button class="order-btn" title="Siirrä alaspäin" onclick="moveTask(${index}, 1)" ${index === tasks.length - 1 ? 'disabled' : ''}>▼</button>
                     </div>
                     <div class="task-tools-group">
                         <button class="tiny-btn" type="button" onclick="openTaskOnYardMap(${task.id})" title="Avaa satelliittikartta ja piirrä kone-/käsityöalueet sekä geofence-ympyrä">🛰️ Pihakartta</button>
-                        <button class="tiny-btn ${isMovingThisPin ? 'active' : ''}" style="${isMovingThisPin ? 'background: var(--accent-amber); color: #000; font-weight: 700; border-color: var(--accent-amber);' : ''}" type="button" onclick="toggleMoveCardPin(${task.id}, event)" title="${isMovingThisPin ? 'Tallenna ja lukitse kohteen sijainti' : 'Siirrä tämän kohteen sijaintipistettä kartalla'}">${isMovingThisPin ? '✓ Sijainti OK' : '📍 Siirrä sijaintia'}</button>
+                        <button class="tiny-btn admin-only ${isMovingThisPin ? 'active' : ''}" style="${isMovingThisPin ? 'background: var(--accent-amber); color: #000; font-weight: 700; border-color: var(--accent-amber);' : ''}" type="button" onclick="toggleMoveCardPin(${task.id}, event)" title="${isMovingThisPin ? 'Tallenna ja lukitse kohteen sijainti' : 'Siirrä tämän kohteen sijaintipistettä kartalla'}">${isMovingThisPin ? '✓ Sijainti OK' : '📍 Siirrä sijaintia'}</button>
                         <button class="tiny-btn" type="button" onclick="openStreetViewForTask(${task.id})" title="Avaa kohde Google Street View -katunäkymässä">🛣️ Avaa Street View</button>
                         <button class="tiny-btn" type="button" onclick="quickSnapPhoto(${task.id})" title="Ota valokuva kohteesta">📷 Ota kuva</button>
                         <button class="photo-btn" type="button" onclick="openCustomerPhotos(${task.customerId ? task.customerId : `'${esc(task.name)}'`})" title="Näytä kohteen valokuvat">🖼️ <span data-photo-count-for="${task.customerId || esc(task.name)}">${photoCounts[String(task.customerId || task.name)] || 0}</span></button>
-                        <button class="tiny-btn" type="button" onclick="setTaskGPS(${task.id})" title="Tallenna nykyinen GPS-sijaintisi tämän kohteen sijainniksi">📍 GPS</button>
-                        <button class="tiny-btn" type="button" onclick="editTask(${task.id})" title="Muokkaa kohteen tietoja ja geofence-asetuksia">✎</button>
-                        <button class="tiny-btn danger" type="button" onclick="deleteTask(${task.id})" title="Poista kohde ajolistalta">✕</button>
+                        <button class="tiny-btn admin-only" type="button" onclick="setTaskGPS(${task.id})" title="Tallenna nykyinen GPS-sijaintisi tämän kohteen sijainniksi">📍 GPS</button>
+                        <button class="tiny-btn admin-only" type="button" onclick="editTask(${task.id})" title="Muokkaa kohteen tietoja ja geofence-asetuksia">✎</button>
+                        <button class="tiny-btn danger admin-only" type="button" onclick="deleteTask(${task.id})" title="Poista kohde ajolistalta">✕</button>
                     </div>
                 </div>
             `;
@@ -7931,39 +8423,73 @@
 
     function attachLayerEvents(layer) {
         layer.on('click', e => {
+            if (currentAppMode !== 'admin') return;
             if (L && L.DomEvent) L.DomEvent.stopPropagation(e);
             selectMapLayer(layer);
         });
-        layer.on('pm:edit', () => {
+        layer.on('dblclick', e => {
+            if (currentAppMode !== 'admin') return;
+            if (L && L.DomEvent) L.DomEvent.stopPropagation(e);
+            if (layer.transform && layer.transform._enabled) {
+                layer.transform.disable();
+            }
+            if (layer.pm && typeof layer.pm.enable === 'function') {
+                layer.pm.enable({ allowSelfIntersection: false });
+                setYardMapStatus('Kulmapisteiden hienosäätö: muokkaa kulmapisteitä tai klikkaa kartan tyhjää kohtaa tallentaaksesi.');
+            }
+        });
+        layer.on('transform transformed rotateend scaleend dragend', () => {
             applyLayerCategoryStyle(layer, layer._yardCategory, layer._targetKey);
             saveCurrentTargetGeoJSON();
         });
-        layer.on('pm:dragend', () => {
+        layer.on('pm:edit pm:dragend pm:rotateend pm:cut pm:markerdragend', () => {
             const finalLayer = tryMergeAdjacentSameCategory(layer);
             applyLayerCategoryStyle(finalLayer, finalLayer._yardCategory, finalLayer._targetKey);
             saveCurrentTargetGeoJSON();
         });
-        layer.on('pm:rotateend', () => {
-            const finalLayer = tryMergeAdjacentSameCategory(layer);
-            applyLayerCategoryStyle(finalLayer, finalLayer._yardCategory, finalLayer._targetKey);
-            saveCurrentTargetGeoJSON();
-        });
-        layer.on('pm:cut', () => saveCurrentTargetGeoJSON());
-        layer.on('pm:markerdragend', () => saveCurrentTargetGeoJSON());
     }
 
     function selectMapLayer(layer) {
-        if (selectedMapLayer && selectedMapLayer !== layer && typeof selectedMapLayer.setStyle === 'function') {
-            const prevCat = YARD_CATEGORIES[selectedMapLayer._yardCategory] || YARD_CATEGORIES.machine;
-            selectedMapLayer.setStyle({ weight: prevCat.weight, dashArray: null });
+        if (currentAppMode !== 'admin') return;
+
+        if (selectedMapLayer && selectedMapLayer !== layer) {
+            if (selectedMapLayer.transform && selectedMapLayer.transform._enabled) {
+                selectedMapLayer.transform.disable();
+            }
+            if (selectedMapLayer.pm && typeof selectedMapLayer.pm.enabled === 'function' && selectedMapLayer.pm.enabled()) {
+                selectedMapLayer.pm.disable();
+            }
+            if (typeof selectedMapLayer.setStyle === 'function') {
+                const prevCat = YARD_CATEGORIES[selectedMapLayer._yardCategory] || YARD_CATEGORIES.machine;
+                selectedMapLayer.setStyle({ weight: prevCat.weight, dashArray: null });
+            }
         }
+
         selectedMapLayer = layer;
         if (layer) {
             const cat = YARD_CATEGORIES[layer._yardCategory] || YARD_CATEGORIES.machine;
             if (typeof layer.setStyle === 'function') {
-                layer.setStyle({ weight: 5, dashArray: '6, 4' });
+                layer.setStyle({ weight: Math.max(cat.weight, 4), dashArray: '6, 4' });
             }
-            setYardMapStatus(`Valittu: ${cat.label} — käytä "📐 Muuta kokoa", "🔄 Käännä" tai "🗑️ Poista valittu alue".`);
+
+            // Alustetaan ja aktivoidaan Leaflet.Path.Transform (All-in-One Transform)
+            if (!layer.transform && typeof L !== 'undefined' && L.Handler && L.Handler.PathTransform) {
+                layer.transform = new L.Handler.PathTransform(layer, {
+                    rotation: true,
+                    scaling: true,
+                    uniformScaling: false,
+                    handleLength: 26,
+                    boundsOptions: { color: '#0284c7', weight: 1.5, dashArray: '5, 5', fill: false },
+                    rotateHandleOptions: { color: '#f59e0b', weight: 2 },
+                    handlerOptions: { className: 'leaflet-drag-transform-marker' }
+                });
+            }
+
+            if (layer.transform) {
+                layer.transform.enable();
+            }
+
+            setYardMapStatus(`Valittu: ${cat.label} — Siirrä raahaamalla sisältä, muuta kokoa kulmista, käännä yläkahvasta. Tuplaklikkaa säätääksesi kulmapisteitä.`);
         }
     }
 
@@ -8386,13 +8912,17 @@
     }
 
     function clearToolbarActiveStates() {
-        ['btnDrawMachine', 'btnDrawManual', 'btnDrawSnowdump', 'btnEditAreaSize', 'btnRotateArea', 'btnDeleteSelectedArea'].forEach(id => {
+        ['btnDrawMachine', 'btnDrawManual', 'btnDrawSnowdump', 'btnDeleteSelectedArea'].forEach(id => {
             document.getElementById(id)?.classList.remove('active');
         });
     }
 
     function startYardDraw(category) {
         if (!yardMap || !yardMap.pm) return;
+        if (currentAppMode !== 'admin') {
+            alert('Kytke yläpalkista "🛠️ Hallintatila" piirtääksesi tai muokataksesi alueita.');
+            return;
+        }
         if (isPinDropModeActive) disableMapPinDropMode();
         currentDrawCategory = category;
         const cat = YARD_CATEGORIES[category] || YARD_CATEGORIES.machine;
@@ -8407,7 +8937,7 @@
         if (typeof yardMap.pm.disableGlobalRotateMode === 'function') yardMap.pm.disableGlobalRotateMode();
         yardMap.pm.disableDraw();
 
-        // Lumenkaatoalue piirretään oletuksena suorakulmiona (Rectangle), jonka kokoa ja kulmaa voi vapaasti muuttaa
+        // Lumenkaatoalue piirretään oletuksena suorakulmiona (Rectangle), jota voi vapaasti skaalata ja pyörittää
         const shapeType = category === 'snowdump' ? 'Rectangle' : 'Polygon';
         yardMap.pm.enableDraw(shapeType, {
             snappable: true,
@@ -8424,53 +8954,34 @@
         });
 
         if (category === 'snowdump') {
-            setYardMapStatus('❄️ Lumenkaatoalue: klikkaa laatikon alkukulma ja loppukulma kartalle. Voit sen jälkeen kääntää (🔄) ja muuttaa kokoa (📐).');
+            setYardMapStatus('❄️ Lumenkaatoalue: klikkaa laatikon kulmat kartalle. Voit sen jälkeen siirtää, kääntää ja muuttaa kokoa suoraan valintakahvoista.');
         } else {
-            setYardMapStatus(`${cat.label}: klikkaa alueen kulmapisteet kartalle ja sulje alue klikkaamalla aloitus- tai viimeistä pistettä.`);
+            setYardMapStatus(`${cat.label}: klikkaa alueen kulmapisteet kartalle ja sulje alue klikkaamalla aloitukseen. Muokkaa klikkaamalla aluetta.`);
         }
     }
 
+    // Yhteensopivuusfunktiot mahdollisille aiemmille kutsuille
     function toggleYardEditMode() {
-        if (!yardMap || !yardMap.pm) return;
-        if (isPinDropModeActive) disableMapPinDropMode();
-        yardMap.pm.disableDraw();
-        yardMap.pm.disableGlobalRemovalMode();
-        if (typeof yardMap.pm.disableGlobalRotateMode === 'function') yardMap.pm.disableGlobalRotateMode();
-
-        yardMap.pm.toggleGlobalEditMode();
-        const isEditing = yardMap.pm.globalEditModeEnabled();
-        clearToolbarActiveStates();
-        document.getElementById('btnEditAreaSize')?.classList.toggle('active', isEditing);
-        setYardMapStatus(isEditing
-            ? '📐 Koon ja muodon muokkaustila päällä: tartu kulmapisteisiin muuttaaksesi lumenkaatoalueen tai piha-alueen kokoa.'
-            : 'Muokkaustila suljettu.');
+        if (selectedMapLayer) selectMapLayer(selectedMapLayer);
     }
-
     function toggleYardRotateMode() {
-        if (!yardMap || !yardMap.pm) return;
-        if (isPinDropModeActive) disableMapPinDropMode();
-        yardMap.pm.disableDraw();
-        yardMap.pm.disableGlobalRemovalMode();
-        yardMap.pm.disableGlobalEditMode();
-
-        if (typeof yardMap.pm.toggleGlobalRotateMode === 'function') {
-            yardMap.pm.toggleGlobalRotateMode();
-            const isRotating = yardMap.pm.globalRotateModeEnabled();
-            clearToolbarActiveStates();
-            document.getElementById('btnRotateArea')?.classList.toggle('active', isRotating);
-            setYardMapStatus(isRotating
-                ? '🔄 Kääntötila päällä: tartu alueen kulmapisteeseen ja kierrä lumenkaatoaluetta tai muuta aluetta haluttuun suuntaan.'
-                : 'Kääntötila suljettu.');
-        } else if (selectedMapLayer && selectedMapLayer.pm && typeof selectedMapLayer.pm.enableRotate === 'function') {
-            selectedMapLayer.pm.enableRotate();
-            setYardMapStatus('🔄 Kierrä valittua aluetta kulmapisteestä vetämällä.');
-        }
+        if (selectedMapLayer) selectMapLayer(selectedMapLayer);
     }
 
     function deleteSelectedYardFeature() {
         if (!yardMap || !yardDrawnItems) return;
+        if (currentAppMode !== 'admin') {
+            alert('Kytke yläpalkista "🛠️ Hallintatila" poistaaksesi alueita.');
+            return;
+        }
         if (isPinDropModeActive) disableMapPinDropMode();
         if (selectedMapLayer && yardDrawnItems.hasLayer(selectedMapLayer)) {
+            if (selectedMapLayer.transform && selectedMapLayer.transform._enabled) {
+                selectedMapLayer.transform.disable();
+            }
+            if (selectedMapLayer.pm && typeof selectedMapLayer.pm.enabled === 'function' && selectedMapLayer.pm.enabled()) {
+                selectedMapLayer.pm.disable();
+            }
             yardDrawnItems.removeLayer(selectedMapLayer);
             yardMap.removeLayer(selectedMapLayer);
             selectedMapLayer = null;
@@ -8494,6 +9005,10 @@
 
     function clearCurrentTargetMap() {
         if (!yardDrawnItems) return;
+        if (currentAppMode !== 'admin') {
+            alert('Kytke yläpalkista "🛠️ Hallintatila" tyhjentääksesi kartan.');
+            return;
+        }
         const count = yardDrawnItems.getLayers().length;
         if (count === 0) {
             setYardMapStatus('Kartalla ei ole poistettavia alueita.');
@@ -8501,6 +9016,14 @@
         }
         if (!confirm('Haluatko varmasti tyhjentää kaikki tämän kohteen piirretyt alueet ja lumenkaatopaikat?')) {
             return;
+        }
+        if (selectedMapLayer) {
+            if (selectedMapLayer.transform && selectedMapLayer.transform._enabled) {
+                selectedMapLayer.transform.disable();
+            }
+            if (selectedMapLayer.pm && typeof selectedMapLayer.pm.enabled === 'function' && selectedMapLayer.pm.enabled()) {
+                selectedMapLayer.pm.disable();
+            }
         }
         yardDrawnItems.clearLayers();
         selectedMapLayer = null;
@@ -8592,11 +9115,21 @@
                 applyPinDropCoordinates(e.latlng.lat, e.latlng.lng, true);
                 return;
             }
-            if (selectedMapLayer && typeof selectedMapLayer.setStyle === 'function') {
-                const prevCat = YARD_CATEGORIES[selectedMapLayer._yardCategory] || YARD_CATEGORIES.machine;
-                selectedMapLayer.setStyle({ weight: prevCat.weight, dashArray: null });
+            if (selectedMapLayer) {
+                if (selectedMapLayer.transform && selectedMapLayer.transform._enabled) {
+                    selectedMapLayer.transform.disable();
+                }
+                if (selectedMapLayer.pm && typeof selectedMapLayer.pm.enabled === 'function' && selectedMapLayer.pm.enabled()) {
+                    selectedMapLayer.pm.disable();
+                }
+                if (typeof selectedMapLayer.setStyle === 'function') {
+                    const prevCat = YARD_CATEGORIES[selectedMapLayer._yardCategory] || YARD_CATEGORIES.machine;
+                    selectedMapLayer.setStyle({ weight: prevCat.weight, dashArray: null });
+                }
+                saveCurrentTargetGeoJSON();
+                selectedMapLayer = null;
+                setYardMapStatus('Alueen muokkaus suljettu ja koordinaatit tallennettu.');
             }
-            selectedMapLayer = null;
         });
 
         window.addEventListener('resize', () => {
@@ -8611,6 +9144,11 @@
 
     // Teeman alustus
     updateThemeUI(document.documentElement.getAttribute('data-theme') || 'dark');
+
+    // Käyttötilan ja kotinäkymän widgettien alustus
+    const savedAppMode = localStorage.getItem('yardflow_app_mode') || 'field';
+    setAppMode(savedAppMode);
+    applyHomeWidgetVisibility();
 
     renderTasks();
     renderRoutes();
