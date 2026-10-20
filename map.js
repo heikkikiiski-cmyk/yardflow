@@ -32,7 +32,7 @@ window.initYardMap = function() {
   // Pakotetaan Leaflet laskemaan oikeat mitat DOM-renderöinnin jälkeen
   setTimeout(() => {
     map.invalidateSize();
-  }, 150);
+  }, 200);
 
   // Satelliitin vaihtonappi
   let isSatellite = false;
@@ -105,7 +105,7 @@ function initMapInstance(containerId) {
 
   setTimeout(() => {
     map.invalidateSize();
-  }, 150);
+  }, 200);
 
   let isSat = false;
   const toggleBtn = document.getElementById('btn-toggle-basemap');

@@ -635,7 +635,7 @@
             #map, #yardMap {
               width: 100% !important;
               height: 100% !important;
-              min-height: 400px;
+              min-height: 500px;
               position: absolute;
               top: 0;
               left: 0;
@@ -4615,12 +4615,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                     if (window.yardMap && typeof window.yardMap.invalidateSize === 'function') {
                         window.yardMap.invalidateSize();
                     }
-                }, 150);
-                setTimeout(() => {
-                    if (window.yardMap && typeof window.yardMap.invalidateSize === 'function') {
-                        window.yardMap.invalidateSize();
-                    }
-                }, 300);
+                }, 200);
             }
         }
 
@@ -5897,7 +5892,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             }
             if (typeof yardMap !== 'undefined' && yardMap) {
                 setTimeout(() => yardMap.invalidateSize(), 50);
-                setTimeout(() => yardMap.invalidateSize(), 250);
+                setTimeout(() => yardMap.invalidateSize(), 200);
             }
         }
     }
@@ -16268,29 +16263,67 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     }
     if (typeof renderDashboardView === 'function') renderDashboardView();
 
-    function loadDrivers() {
+    async function loadDrivers() {
+        try {
+            const client = (typeof supabaseClient !== 'undefined' && supabaseClient) ? supabaseClient : (typeof window !== 'undefined' ? window.supabaseClient : null);
+            if (client && client.from) {
+                const { data, error } = await client.from('profiles').select('*');
+                if (!error && Array.isArray(data) && data.length > 0) {
+                    const localDrivers = (typeof getStoredDrivers === 'function') ? getStoredDrivers() : [];
+                    data.forEach(p => {
+                        const existing = localDrivers.find(d => d.id === p.id || (p.full_name && (d.name === p.full_name || d.full_name === p.full_name)));
+                        if (existing) {
+                            existing.name = p.full_name || p.name || existing.name;
+                            existing.full_name = p.full_name || existing.full_name;
+                            existing.phone = p.phone || existing.phone;
+                            existing.email = p.email || existing.email;
+                            existing.role = p.role || existing.role;
+                        } else {
+                            localDrivers.push({
+                                id: p.id || ('drv_' + Date.now()),
+                                name: p.full_name || p.name || 'Kuljettaja',
+                                full_name: p.full_name || p.name || 'Kuljettaja',
+                                phone: p.phone || '',
+                                email: p.email || '',
+                                role: p.role || 'driver'
+                            });
+                        }
+                    });
+                    if (typeof persistDrivers === 'function') persistDrivers(localDrivers);
+                }
+            }
+        } catch (e) {}
+        if (typeof closeAddDriverDrawer === 'function') closeAddDriverDrawer();
         if (typeof renderDriversView === 'function') renderDriversView();
         if (typeof renderDriverOverviewAccordion === 'function') renderDriverOverviewAccordion();
     }
     window.loadDrivers = loadDrivers;
 
-    const btnAddDriver = document.getElementById('btn-add-driver');
-    if (btnAddDriver) {
-        btnAddDriver.onclick = async function(e) {
+    const btnSave = document.getElementById('btn-add-driver') || document.getElementById('btnSaveDriver');
+    if (btnSave) {
+        btnSave.onclick = async function(e) {
             e.preventDefault();
-            const name = document.getElementById('driver-name')?.value || document.getElementById('driverInputName')?.value;
-            const phone = document.getElementById('driver-phone')?.value || document.getElementById('driverInputPhone')?.value;
+            const name = document.getElementById('driverInputName')?.value || document.getElementById('driver-name')?.value;
+            const phone = document.getElementById('driverInputPhone')?.value || document.getElementById('driver-phone')?.value;
+            const email = document.getElementById('driverInputEmail')?.value || null;
+            const role = document.getElementById('driverRoleSelect')?.value || 'driver';
+
             if (!name) return alert('Syötä kuljettajan nimi');
 
             const { data, error } = await supabaseClient
                 .from('profiles')
-                .insert([{ full_name: name, phone: phone, role: 'driver' }]);
+                .insert([{
+                    full_name: name,
+                    phone: phone,
+                    email: email,
+                    role: role
+                }]);
 
             if (error) {
-                console.error(error);
-                alert('Virhe tallennuksessa: ' + error.message);
+                console.error('Supabase virhe:', error);
+                alert('Tallennusvirhe: ' + error.message);
             } else {
-                alert('Kuljettaja lisätty!');
+                alert('Kuljettaja tallennettu onnistuneesti!');
                 if (typeof loadDrivers === 'function') loadDrivers();
             }
         };

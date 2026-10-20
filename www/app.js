@@ -220,12 +220,59 @@
         const target = document.getElementById(viewId) || (viewId === 'view-map' ? document.getElementById('viewRoutes') : null) || (viewId === 'viewRoutes' ? document.getElementById('view-map') : null) || (viewId === 'view-dashboard' ? document.getElementById('dashboard-view') : null) || (viewId === 'dashboard-view' ? document.getElementById('view-dashboard') : null);
         if (target) {
             target.style.display = 'block';
-            if ((viewId === 'view-map' || viewId === 'viewRoutes' || target.id === 'view-map' || target.id === 'viewRoutes') && (global.yardMap || (typeof window !== 'undefined' && window.yardMap))) {
+            if ((viewId === 'view-map' || viewId === 'viewRoutes' || viewId === 'routes' || viewId === 'map' || target.id === 'view-map' || target.id === 'viewRoutes') && (global.yardMap || (typeof window !== 'undefined' && window.yardMap))) {
                 const ym = global.yardMap || (typeof window !== 'undefined' && window.yardMap);
                 setTimeout(() => ym.invalidateSize(), 200);
             }
         }
         handleLayoutResize();
+    }
+
+    function initDriverFormHandlers() {
+        if (typeof document === 'undefined') return;
+        const btnSave = document.getElementById('btn-add-driver') || document.getElementById('btnSaveDriver');
+        if (btnSave) {
+            btnSave.onclick = async function(e) {
+                e.preventDefault();
+                const name = document.getElementById('driverInputName')?.value || document.getElementById('driver-name')?.value;
+                const phone = document.getElementById('driverInputPhone')?.value || document.getElementById('driver-phone')?.value;
+                const email = document.getElementById('driverInputEmail')?.value || null;
+                const role = document.getElementById('driverRoleSelect')?.value || 'driver';
+
+                if (!name) return alert('Syötä kuljettajan nimi');
+
+                const client = (typeof supabaseClient !== 'undefined' && supabaseClient) ? supabaseClient : (typeof window !== 'undefined' && window.supabaseClient ? window.supabaseClient : null);
+                if (!client) {
+                    console.error('Supabase virhe: supabaseClient puuttuu');
+                    return alert('Tallennusvirhe: SupabaseClient ei ole saatavilla');
+                }
+
+                const { data, error } = await client
+                    .from('profiles')
+                    .insert([{
+                        full_name: name,
+                        phone: phone,
+                        email: email,
+                        role: role
+                    }]);
+
+                if (error) {
+                    console.error('Supabase virhe:', error);
+                    alert('Tallennusvirhe: ' + error.message);
+                } else {
+                    alert('Kuljettaja tallennettu onnistuneesti!');
+                    if (typeof loadDrivers === 'function') loadDrivers();
+                }
+            };
+        }
+    }
+
+    if (typeof document !== 'undefined') {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initDriverFormHandlers);
+        } else {
+            initDriverFormHandlers();
+        }
     }
 
     const switchView = showView;
@@ -250,6 +297,7 @@
         showView,
         switchView,
         navigateToTask,
+        initDriverFormHandlers,
         initViewGrid,
         initAllGrids,
         initDashboardGrid,

@@ -434,7 +434,7 @@ html, body, .view-pane, .dashboard-grid, .view-section {
 #map, #yardMap {
   width: 100% !important;
   height: 100% !important;
-  min-height: 400px;
+  min-height: 500px;
   position: absolute;
   top: 0;
   left: 0;
