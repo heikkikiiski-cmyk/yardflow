@@ -128,6 +128,12 @@
 
         if (!gridEl) return null;
 
+        if (gridEl.gridstack) {
+            gridInstances[viewName] = gridEl.gridstack;
+            if (viewName === 'dashboard') global.dashboardGrid = gridEl.gridstack;
+            return gridEl.gridstack;
+        }
+
         const isLandscape = (typeof window !== 'undefined') ? (window.innerWidth > window.innerHeight) : false;
         const isMobile = (typeof window !== 'undefined') ? (window.innerWidth < 768) : false;
         const targetColumns = isMobile && !isLandscape ? 1 : (isLandscape && isMobile ? 6 : 12);
@@ -199,10 +205,11 @@
 
     function toggleDashboardEditMode(enable) {
         if (typeof enable === 'undefined') {
-            enable = !isEditMode;
+            enable = !(global.isEditMode || isEditMode);
         }
         isEditMode = !!enable;
         global.isEditMode = isEditMode;
+        global.isDashboardEditMode = isEditMode;
 
         getActiveGrid() || initViewGrid(getCurrentViewName());
 
@@ -224,6 +231,8 @@
 
             const addBtn = document.getElementById('btn-add-widget');
             if (addBtn) addBtn.style.display = enable ? 'inline-flex' : 'none';
+            const topAddBtn = document.getElementById('btn-topbar-add-widget');
+            if (topAddBtn) topAddBtn.style.display = enable ? 'inline-flex' : 'none';
 
             const editBtns = document.querySelectorAll('.btn-toggle-dashboard-edit');
             editBtns.forEach(btn => {
@@ -290,10 +299,11 @@
 
         gridEl.querySelectorAll('.grid-stack-item').forEach(el => {
             const id = el.getAttribute('gs-id') || el.id;
-            const x = parseInt(el.getAttribute('gs-x') || 0, 10);
-            const y = parseInt(el.getAttribute('gs-y') || 0, 10);
-            const w = parseInt(el.getAttribute('gs-w') || 6, 10);
-            const h = parseInt(el.getAttribute('gs-h') || 4, 10);
+            const node = el.gridstackNode || {};
+            const x = (typeof node.x === 'number') ? node.x : parseInt(el.getAttribute('gs-x') || 0, 10);
+            const y = (typeof node.y === 'number') ? node.y : parseInt(el.getAttribute('gs-y') || 0, 10);
+            const w = (typeof node.w === 'number') ? node.w : parseInt(el.getAttribute('gs-w') || 6, 10);
+            const h = (typeof node.h === 'number') ? node.h : parseInt(el.getAttribute('gs-h') || 4, 10);
             const hidden = el.style.display === 'none';
             items.push({ id, x, y, w, h, hidden });
         });
@@ -336,7 +346,10 @@
 
             const savedLayout = JSON.parse(raw);
             if (grid && Array.isArray(savedLayout)) {
-                savedLayout.forEach(item => {
+                const visibleItems = savedLayout.filter(i => !i.hidden);
+                const allZeroCoords = visibleItems.length > 1 && visibleItems.every(i => (i.x || 0) === 0 && (i.y || 0) === 0);
+
+                savedLayout.forEach((item, idx) => {
                     const itemEl = grid.el.querySelector(`[gs-id="${item.id}"]`) || document.getElementById(item.id);
                     if (itemEl) {
                         const parentGridItem = itemEl.classList.contains('grid-stack-item') ? itemEl : itemEl.closest('.grid-stack-item');
@@ -346,7 +359,11 @@
                                 grid.removeWidget(parentGridItem, false);
                             } else {
                                 parentGridItem.style.display = '';
-                                grid.update(parentGridItem, { x: item.x, y: item.y, w: item.w, h: item.h });
+                                const defX = parseInt(parentGridItem.getAttribute('gs-x') || ((idx % 2) * 6), 10);
+                                const defY = parseInt(parentGridItem.getAttribute('gs-y') || (Math.floor(idx / 2) * 4), 10);
+                                const targetX = allZeroCoords ? defX : item.x;
+                                const targetY = allZeroCoords ? defY : item.y;
+                                grid.update(parentGridItem, { x: targetX, y: targetY, w: item.w, h: item.h });
                             }
                         }
                     }

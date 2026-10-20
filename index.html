@@ -1044,7 +1044,10 @@
 /* Kuljettajan virtaviivainen dashboard: piilotetaan ylimääräiset laatikot ja pikalinkit */
 body.app-mode-field #dashboard-view #dash-widget-shortcuts,
 body.app-mode-field #dashboard-view #dash-widget-recent-logs,
-body.app-mode-field #dashboard-view #dash-widget-route-stats {
+body.app-mode-field #dashboard-view #dash-widget-route-stats,
+body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-shortcuts"],
+body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-recent-logs"],
+body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-stats"] {
     display: none !important;
 }
 
@@ -1278,6 +1281,9 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         <button type="button" id="btn-toggle-dashboard-edit" class="btn-toggle-dashboard-edit btn-outline" onclick="toggleDashboardEditMode()" title="Muokkaa näkymää" style="min-height: 38px; padding: 6px 14px; font-size: 0.82rem; font-weight: 600; border-radius: var(--radius-md); display: inline-flex; align-items: center; gap: 6px;">
             <span>✏️</span> <span class="edit-btn-text">Muokkaa näkymää</span>
         </button>
+        <button type="button" id="btn-topbar-add-widget" class="btn-primary" onclick="openAddWidgetModal()" title="Lisää piilotettu tai uusi kortti" style="display: none; min-height: 38px; padding: 6px 14px; font-size: 0.82rem; font-weight: 700; border-radius: var(--radius-md); align-items: center; gap: 6px; background: #0284c7;">
+            <span>➕</span> <span>Lisää kortti</span>
+        </button>
 
         <!-- Yhteystilakuvake ☁️ -->
         <div id="connectionStatusIndicator" class="connection-status-pill" title="Yhteystila: Yhdistetty paikallisesti ja pilveen" onclick="checkNetworkConnection(true)">
@@ -1337,7 +1343,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         <div class="dashboard-grid grid-stack" id="dashboard-grid">
             
             <!-- WIDGET 1: [Päivän tilanne] (#dash-widget-progress) -->
-            <div class="grid-stack-item" gs-id="dash-widget-progress" gs-w="6" gs-h="4" gs-min-w="3" gs-min-h="2">
+            <div class="grid-stack-item" gs-id="dash-widget-progress" gs-x="0" gs-y="0" gs-w="6" gs-h="4" gs-min-w="3" gs-min-h="2">
                 <div class="grid-stack-item-content card dash-widget-card collapsible-card" id="dash-widget-progress">
                     <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('dash-widget-progress')" title="Piilota kortti" style="display: none;">✕</button>
                     <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
@@ -1372,7 +1378,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             </div>
 
             <!-- WIDGET 2: [Seuraava kohde] (#dash-widget-next-stop) -->
-            <div class="grid-stack-item" gs-id="dash-widget-next-stop" gs-w="6" gs-h="4" gs-min-w="3" gs-min-h="2">
+            <div class="grid-stack-item" gs-id="dash-widget-next-stop" gs-x="6" gs-y="0" gs-w="6" gs-h="4" gs-min-w="3" gs-min-h="2">
                 <div class="grid-stack-item-content card dash-widget-card collapsible-card" id="dash-widget-next-stop">
                     <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('dash-widget-next-stop')" title="Piilota kortti" style="display: none;">✕</button>
                     <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
@@ -1393,7 +1399,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             </div>
 
             <!-- WIDGET 3: [Reitin pika-analyysi / Siirtymämatkat] (#dash-widget-route-stats) -->
-            <div class="grid-stack-item" gs-id="dash-widget-route-stats" gs-w="6" gs-h="4" gs-min-w="3" gs-min-h="2">
+            <div class="grid-stack-item admin-only" gs-id="dash-widget-route-stats" gs-x="0" gs-y="4" gs-w="6" gs-h="4" gs-min-w="3" gs-min-h="2">
                 <div class="grid-stack-item-content card dash-widget-card collapsible-card admin-only" id="dash-widget-route-stats">
                     <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('dash-widget-route-stats')" title="Piilota kortti" style="display: none;">✕</button>
                     <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
@@ -1429,7 +1435,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             </div>
 
             <!-- WIDGET 4: [Päivän esteet & huomiot] (#dash-widget-tickets) -->
-            <div class="grid-stack-item" gs-id="dash-widget-tickets" gs-w="6" gs-h="4" gs-min-w="3" gs-min-h="2">
+            <div class="grid-stack-item" gs-id="dash-widget-tickets" gs-x="6" gs-y="4" gs-w="6" gs-h="4" gs-min-w="3" gs-min-h="2">
                 <div class="grid-stack-item-content card dash-widget-card collapsible-card" id="dash-widget-tickets">
                     <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('dash-widget-tickets')" title="Piilota kortti" style="display: none;">✕</button>
                     <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
@@ -1447,7 +1453,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             </div>
 
             <!-- WIDGET 5: [Päivän työjono & ajojärjestys] (#dash-widget-queue) -->
-            <div class="grid-stack-item" gs-id="dash-widget-queue" gs-w="6" gs-h="4" gs-min-w="3" gs-min-h="2">
+            <div class="grid-stack-item" gs-id="dash-widget-queue" gs-x="0" gs-y="8" gs-w="6" gs-h="4" gs-min-w="3" gs-min-h="2">
                 <div class="grid-stack-item-content card dash-widget-card collapsible-card" id="dash-widget-queue">
                     <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('dash-widget-queue')" title="Piilota kortti" style="display: none;">✕</button>
                     <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
@@ -1465,7 +1471,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             </div>
 
             <!-- WIDGET 6: [Pikalinkit] (#dash-widget-shortcuts) -->
-            <div class="grid-stack-item" gs-id="dash-widget-shortcuts" gs-w="6" gs-h="4" gs-min-w="3" gs-min-h="2">
+            <div class="grid-stack-item admin-only" gs-id="dash-widget-shortcuts" gs-x="6" gs-y="8" gs-w="6" gs-h="4" gs-min-w="3" gs-min-h="2">
                 <div class="grid-stack-item-content card dash-widget-card collapsible-card admin-only" id="dash-widget-shortcuts">
                     <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('dash-widget-shortcuts')" title="Piilota kortti" style="display: none;">✕</button>
                     <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
@@ -1491,7 +1497,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             </div>
 
             <!-- WIDGET 7: [Viimeisimmät kuittaukset] (#dash-widget-recent-logs) -->
-            <div class="grid-stack-item" gs-id="dash-widget-recent-logs" gs-w="12" gs-h="4" gs-min-w="4" gs-min-h="2">
+            <div class="grid-stack-item admin-only" gs-id="dash-widget-recent-logs" gs-x="0" gs-y="12" gs-w="12" gs-h="4" gs-min-w="4" gs-min-h="2">
                 <div class="grid-stack-item-content card dash-widget-card collapsible-card admin-only" id="dash-widget-recent-logs">
                     <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('dash-widget-recent-logs')" title="Piilota kortti" style="display: none;">✕</button>
                     <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
@@ -4869,6 +4875,12 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
 
         if (!gridEl) return null;
 
+        if (gridEl.gridstack) {
+            gridInstances[viewName] = gridEl.gridstack;
+            if (viewName === 'dashboard') window.dashboardGrid = gridEl.gridstack;
+            return gridEl.gridstack;
+        }
+
         const isLandscape = window.innerWidth > window.innerHeight;
         const isMobile = window.innerWidth < 768;
         const targetColumns = isMobile && !isLandscape ? 1 : (isLandscape && isMobile ? 6 : 12);
@@ -4921,9 +4933,11 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
 
     function toggleDashboardEditMode(enable) {
         if (typeof enable === 'undefined') {
-            enable = !isDashboardEditMode;
+            enable = !(window.isEditMode || window.isDashboardEditMode || isDashboardEditMode);
         }
         isDashboardEditMode = !!enable;
+        window.isDashboardEditMode = isDashboardEditMode;
+        window.isEditMode = isDashboardEditMode;
 
         const grid = getActiveGrid() || initViewGrid('dashboard');
         if (grid) {
@@ -4948,6 +4962,8 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
 
         const addBtn = document.getElementById('btn-add-widget');
         if (addBtn) addBtn.style.display = enable ? 'inline-flex' : 'none';
+        const topAddBtn = document.getElementById('btn-topbar-add-widget');
+        if (topAddBtn) topAddBtn.style.display = enable ? 'inline-flex' : 'none';
 
         // Päivitetään muokkauspainikkeen tekstit ja ikonit
         const editBtns = document.querySelectorAll('.btn-toggle-dashboard-edit');
@@ -5108,10 +5124,11 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
 
         gridEl.querySelectorAll('.grid-stack-item').forEach(el => {
             const id = el.getAttribute('gs-id') || el.id;
-            const x = parseInt(el.getAttribute('gs-x') || 0, 10);
-            const y = parseInt(el.getAttribute('gs-y') || 0, 10);
-            const w = parseInt(el.getAttribute('gs-w') || 6, 10);
-            const h = parseInt(el.getAttribute('gs-h') || 4, 10);
+            const node = el.gridstackNode || {};
+            const x = (typeof node.x === 'number') ? node.x : parseInt(el.getAttribute('gs-x') || 0, 10);
+            const y = (typeof node.y === 'number') ? node.y : parseInt(el.getAttribute('gs-y') || 0, 10);
+            const w = (typeof node.w === 'number') ? node.w : parseInt(el.getAttribute('gs-w') || 6, 10);
+            const h = (typeof node.h === 'number') ? node.h : parseInt(el.getAttribute('gs-h') || 4, 10);
             const hidden = el.style.display === 'none';
             items.push({ id, x, y, w, h, hidden });
         });
@@ -5154,7 +5171,10 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             if (!raw) return null;
             const savedLayout = JSON.parse(raw);
             if (grid && Array.isArray(savedLayout)) {
-                savedLayout.forEach(item => {
+                const visibleItems = savedLayout.filter(i => !i.hidden);
+                const allZeroCoords = visibleItems.length > 1 && visibleItems.every(i => (i.x || 0) === 0 && (i.y || 0) === 0);
+
+                savedLayout.forEach((item, idx) => {
                     const itemEl = grid.el.querySelector(`[gs-id="${item.id}"]`) || document.getElementById(item.id);
                     if (itemEl) {
                         const parentGridItem = itemEl.classList.contains('grid-stack-item') ? itemEl : itemEl.closest('.grid-stack-item');
@@ -5164,7 +5184,11 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                                 grid.removeWidget(parentGridItem, false);
                             } else {
                                 parentGridItem.style.display = '';
-                                grid.update(parentGridItem, { x: item.x, y: item.y, w: item.w, h: item.h });
+                                const defX = parseInt(parentGridItem.getAttribute('gs-x') || ((idx % 2) * 6), 10);
+                                const defY = parseInt(parentGridItem.getAttribute('gs-y') || (Math.floor(idx / 2) * 4), 10);
+                                const targetX = allZeroCoords ? defX : item.x;
+                                const targetY = allZeroCoords ? defY : item.y;
+                                grid.update(parentGridItem, { x: targetX, y: targetY, w: item.w, h: item.h });
                             }
                         }
                     }
@@ -5537,8 +5561,8 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         const settingsView = document.getElementById('viewSettings');
 
         if (dashView) dashView.style.display = tab === 'dashboard' ? 'block' : 'none';
-        if (routesView) routesView.style.display = (tab === 'routes' || tab === 'driver' || tab === 'admin') ? '' : 'none';
-        if (driverView) driverView.style.display = (tab === 'driver' || (tab === 'routes' && currentAppMode === 'field')) ? 'block' : 'none';
+        if (routesView) routesView.style.display = tab === 'routes' ? '' : 'none';
+        if (driverView) driverView.style.display = tab === 'driver' ? 'block' : 'none';
         if (adminView) adminView.style.display = tab === 'admin' ? 'block' : 'none';
         if (targetsView) targetsView.style.display = tab === 'targets' ? 'block' : 'none';
         if (routesMgmtView) routesMgmtView.style.display = tab === 'routes-mgmt' ? 'block' : 'none';
