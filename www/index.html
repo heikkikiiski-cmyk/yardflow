@@ -9,8 +9,11 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="icon" type="image/png" href="icons/icon-192.png">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="64x64" href="favicon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <link rel="stylesheet" href="app.css">
     <!-- Leaflet, Leaflet-Geoman & Turf.js CDN -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
     <link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.17.0/dist/leaflet-geoman.css" crossorigin="">
@@ -200,9 +203,14 @@
         .app-header, #top-bar, .navbar, .header { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; height: var(--header-height, 64px); min-height: var(--header-height, 64px); display: flex; align-items: center; justify-content: space-between; padding: max(12px, env(safe-area-inset-top, 0px)) 16px 10px 16px; background: var(--header-bg); background-color: var(--header-bg); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); border-bottom: 1px solid var(--header-border); transition: background var(--transition), border-color var(--transition); box-sizing: border-box; flex-wrap: nowrap; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18); }
 
         .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--fg); user-select: none; }
-        .logo-mark { width: 32px; height: 32px; border-radius: 9px; background: linear-gradient(135deg, var(--accent) 0%, #30d158 100%); display: grid; place-items: center; color: #ffffff; box-shadow: 0 2px 8px rgba(0, 113, 227, 0.32); flex-shrink: 0; }
+        .logo-mark { width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; color: #ffffff; flex-shrink: 0; }
         .logo-title { font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; letter-spacing: -0.025em; color: var(--fg); }
         .logo-title span { color: var(--accent); font-weight: 400; }
+
+        /* YardFlow Brand Logo Styles */
+        .login-logo { width: 100px; height: 100px; object-fit: contain; filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3)); border-radius: 18px; margin: 0 auto 12px auto; display: block; transition: transform var(--transition); }
+        .login-logo:hover { transform: scale(1.03); }
+        .menu-logo { width: 40px; height: 40px; object-fit: contain; border-radius: 8px; margin-bottom: 0; flex-shrink: 0; filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.25)); }
 
         .header-actions { display: flex; align-items: center; gap: 8px; }
 
@@ -1031,11 +1039,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
 <!-- SISÄÄNKIRJAUTUMISNÄKYMÄ (#view-login) -->
 <div id="view-login" class="login-view" style="display: none; min-height: 100vh; position: fixed; inset: 0; z-index: 99999; background: var(--bg-main, #0f172a); align-items: center; justify-content: center; padding: 20px; overflow-y: auto;">
     <div class="login-card card" style="max-width: 420px; width: 100%; padding: 36px 28px; border-radius: 20px; background: var(--bg-card, #1e293b); border: 1px solid var(--border, rgba(255,255,255,0.1)); box-shadow: 0 16px 40px rgba(0,0,0,0.45); text-align: center;">
-        <div class="logo-mark" style="width: 56px; height: 56px; margin: 0 auto 16px auto; display: flex; align-items: center; justify-content: center; border-radius: 16px; background: linear-gradient(135deg, #0ea5e9, #2563eb); color: white; box-shadow: 0 4px 14px rgba(14,165,233,0.35);">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-            </svg>
-        </div>
+        <img src="assets/logo.png" alt="YardFlow Logo" class="login-logo" style="width: 100px; height: 100px; object-fit: contain; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3)); border-radius: 18px; margin: 0 auto 12px auto; display: block;">
         <h1 style="margin: 0; font-size: 1.95rem; font-weight: 800; letter-spacing: -0.02em; color: var(--fg, #fff);">Yard<span style="color: var(--accent, #0ea5e9);">Flow</span></h1>
         <p style="margin: 6px 0 26px 0; font-size: 0.92rem; color: var(--muted, #94a3b8); font-weight: 500;">Työnohjaus &amp; Kenttänhallinta</p>
 
@@ -1134,11 +1138,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
 <aside id="app-drawer" class="app-drawer side-menu" aria-label="Päävalikko">
     <div class="drawer-header">
         <div class="drawer-brand" onclick="navToTab('dashboard')" title="Siirry Dashboardiin">
-            <div class="logo-mark">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-                </svg>
-            </div>
+            <img src="assets/logo.png" alt="YardFlow Logo" class="menu-logo" style="width: 40px; height: 40px; object-fit: contain; border-radius: 8px; flex-shrink: 0;">
             <div class="logo-title">Yard<span>Flow</span></div>
         </div>
         <button type="button" class="drawer-close-btn" onclick="closeAppDrawer()" aria-label="Sulje valikko" title="Sulje valikko">✕</button>
@@ -1244,11 +1244,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             <span class="menu-text">Valikko</span>
         </button>
         <div class="logo" onclick="switchTab('dashboard')" style="cursor: pointer;" title="YardFlow Dashboard">
-            <div class="logo-mark">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-                </svg>
-            </div>
+            <img src="assets/logo.png" alt="YardFlow Logo" class="menu-logo" style="width: 32px; height: 32px; object-fit: contain; border-radius: 8px; flex-shrink: 0;">
             <div class="logo-title">Yard<span>Flow</span></div>
         </div>
     </div>
