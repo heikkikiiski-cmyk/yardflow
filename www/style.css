@@ -6,6 +6,7 @@
 .grid-stack {
     position: relative;
     min-height: 200px;
+    width: 100%;
 }
 
 .grid-stack-item {
@@ -100,13 +101,47 @@ body.dashboard-editing .grid-stack-item:nth-child(3n) .grid-stack-item-content {
     }
 }
 
-/* GridStack resizer kahvat */
-body.dashboard-editing .ui-resizable-handle {
-    opacity: 0.8;
+/* KOSKETUSELEIDEN OPTIMOINTI */
+/* Kun muokkaustila EI ole päällä: sormella selaaminen (scroll) toimii sujuvasti ilman viiveitä */
+body:not(.dashboard-editing) .grid-stack,
+body:not(.dashboard-editing) .grid-stack-item,
+body:not(.dashboard-editing) .grid-stack-item-content {
+    touch-action: pan-y !important;
 }
 
 body:not(.dashboard-editing) .ui-resizable-handle {
     display: none !important;
+}
+
+/* Kun muokkaustila aktivoidaan: widgeteille selkeät isot kosketusalueet kulmiin koon muuttamista varten mobiilissa */
+body.dashboard-editing .ui-resizable-handle {
+    opacity: 0.9;
+    display: block !important;
+}
+
+body.dashboard-editing .grid-stack-item > .ui-resizable-se,
+body.dashboard-editing .grid-stack-item > .ui-resizable-sw,
+body.dashboard-editing .grid-stack-item > .ui-resizable-ne,
+body.dashboard-editing .grid-stack-item > .ui-resizable-nw,
+body.dashboard-editing .grid-stack-item > .ui-resizable-handle {
+    width: 36px !important;
+    height: 36px !important;
+    right: 2px !important;
+    bottom: 2px !important;
+    z-index: 999 !important;
+    touch-action: none !important;
+}
+
+body.dashboard-editing .grid-stack-item > .ui-resizable-se::after {
+    content: '';
+    position: absolute;
+    right: 6px;
+    bottom: 6px;
+    width: 14px;
+    height: 14px;
+    border-right: 3px solid var(--accent, #0ea5e9);
+    border-bottom: 3px solid var(--accent, #0ea5e9);
+    border-radius: 2px;
 }
 
 /* Responsiveness: Puhelin pystyasennossa (portrait) */

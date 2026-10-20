@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YardFlow – Pihatyöt &amp; Reititys</title>
     <link rel="manifest" href="manifest.webmanifest">
+    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#090a0f" id="metaThemeColor">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -28,6 +29,7 @@
     <link href="https://cdn.jsdelivr.net/npm/gridstack@10.3.1/dist/gridstack.min.css" rel="stylesheet"/>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/gridstack@10.3.1/dist/gridstack-all.js"></script>
+    <script src="app.js"></script>
     <script src="dashboard.js"></script>
     <script src="map.js"></script>
     <script>
@@ -1984,6 +1986,169 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                 <button type="button" id="btn-driver-obstacle" class="btn-driver-obstacle" onclick="reportNextYardObstacle()" title="Ilmoita este tai syy, miksi kohdetta ei voida tehdä">
                     ⚠️ Ilmoita esteestä
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NÄKYMÄ 1A: KULJETTAJAN REITTI JA WIDGETIT (#view-driver) -->
+    <div id="view-driver" class="grid-stack view-pane view-driver-grid" data-view="driver" style="display: none; width: 100%; max-width: 1200px; margin: 0 auto;">
+        <!-- Widget 1: Driver HUD -->
+        <div class="grid-stack-item" gs-id="driver-widget-hud" gs-w="12" gs-h="4" gs-x="0" gs-y="0">
+            <div class="grid-stack-item-content">
+                <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('driver-widget-hud', 'driver')" title="Piilota kortti">✕</button>
+                <div class="card" style="height: 100%; box-sizing: border-box; overflow: auto; padding: 14px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-weight: 800; font-size: 0.88rem; color: #38bdf8; text-transform: uppercase;">📍 Nykyinen kohde</span>
+                        <div class="driver-hud-badge route-step-badge">
+                            <span class="hud-pulse-dot"></span>
+                            <span id="viewDriverHudStep" class="route-step-indicator">1 / 4</span>
+                        </div>
+                    </div>
+                    <div id="viewDriverHudName" style="font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px;">Kohteen nimi</div>
+                    <div id="viewDriverHudAddress" style="font-size: 0.88rem; color: var(--muted); margin-bottom: 10px;">📍 Osoite</div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button type="button" class="btn-primary" onclick="navigateToNextYard()" style="flex: 1; min-height: 40px; font-weight: 700;">🧭 Navigoi</button>
+                        <button type="button" class="btn-outline" onclick="openPhotoCaptureForActiveTarget()" style="flex: 1; min-height: 40px;">📷 Ota kuva</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Widget 2: Kartta -->
+        <div class="grid-stack-item" gs-id="driver-widget-map" gs-w="12" gs-h="7" gs-x="0" gs-y="4">
+            <div class="grid-stack-item-content">
+                <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('driver-widget-map', 'driver')" title="Piilota kortti">✕</button>
+                <div class="card" style="height: 100%; box-sizing: border-box; overflow: hidden; position: relative; padding: 0;">
+                    <div id="driverMapContainer" style="width: 100%; height: 100%; min-height: 280px; background: #1e293b; display: flex; align-items: center; justify-content: center;">
+                        <span style="color: var(--muted); font-size: 0.9rem;">🗺️ Reittikartta</span>
+                    </div>
+                    <button type="button" class="map-fab-gps" onclick="centerMapOnUserLocation()" title="Keskitä omaan sijaintiin (GPS)" style="position: absolute; right: 14px; bottom: 14px; z-index: 10;">
+                        <span class="gps-icon">🎯</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Widget 3: Kuittaus ja pikatoiminnot -->
+        <div class="grid-stack-item" gs-id="driver-widget-actions" gs-w="12" gs-h="3" gs-x="0" gs-y="11">
+            <div class="grid-stack-item-content">
+                <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('driver-widget-actions', 'driver')" title="Piilota kortti">✕</button>
+                <div class="card" style="height: 100%; box-sizing: border-box; display: flex; gap: 10px; align-items: center; padding: 12px;">
+                    <button type="button" class="btn-driver-complete" onclick="completeNextYard()" style="flex: 2; height: 100%; min-height: 46px;">
+                        <span>✓</span> <span>KUITTAA TEHDYKSI</span>
+                    </button>
+                    <button type="button" class="btn-driver-obstacle" onclick="reportNextYardObstacle()" style="flex: 1; height: 100%; min-height: 46px;">
+                        ⚠️ Este
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Widget 4: Päivän työjono -->
+        <div class="grid-stack-item" gs-id="driver-widget-queue" gs-w="12" gs-h="4" gs-x="0" gs-y="14">
+            <div class="grid-stack-item-content">
+                <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('driver-widget-queue', 'driver')" title="Piilota kortti">✕</button>
+                <div class="card" style="height: 100%; box-sizing: border-box; overflow: auto; padding: 14px;">
+                    <div style="font-weight: 700; margin-bottom: 8px;">📋 Päivän työjono</div>
+                    <div id="viewDriverQueueList" style="font-size: 0.85rem; color: var(--muted);">Reitin kohteet järjestyksessä...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NÄKYMÄ 1D: TYÖNJOHDON / ADMININ NÄKYMÄ (#view-admin) -->
+    <div id="view-admin" class="grid-stack view-pane view-admin-grid" data-view="admin" style="display: none; width: 100%; max-width: 1200px; margin: 0 auto;">
+        <!-- Widget 1: Admin Kartta & Piirto -->
+        <div class="grid-stack-item" gs-id="admin-widget-map" gs-w="8" gs-h="7" gs-x="0" gs-y="0">
+            <div class="grid-stack-item-content">
+                <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('admin-widget-map', 'admin')" title="Piilota kortti">✕</button>
+                <div class="card" style="height: 100%; box-sizing: border-box; overflow: hidden; padding: 14px;">
+                    <div style="font-weight: 700; margin-bottom: 6px;">🗺️ Kartta ja aluepiirto</div>
+                    <div style="font-size: 0.8rem; color: var(--muted); margin-bottom: 8px;">Piirrä ja muokkaa kiinteistöjen aurausalueita ja rajauksia</div>
+                    <div id="adminMapPlaceholder" style="height: calc(100% - 50px); background: #1e293b; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; color: var(--muted);">
+                        🛰️ Satelliittikartta ja piirtotyökalut
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Widget 2: Reitin kohteet -->
+        <div class="grid-stack-item" gs-id="admin-widget-targets" gs-w="4" gs-h="7" gs-x="8" gs-y="0">
+            <div class="grid-stack-item-content">
+                <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('admin-widget-targets', 'admin')" title="Piilota kortti">✕</button>
+                <div class="card" style="height: 100%; box-sizing: border-box; overflow: auto; padding: 14px;">
+                    <div style="font-weight: 700; margin-bottom: 8px;">📋 Reitin kohteet</div>
+                    <div id="adminTargetsList" style="font-size: 0.85rem; color: var(--muted);">Valitse ja järjestä reitin kiinteistöt...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Widget 3: Reittien optimointi & tilastot -->
+        <div class="grid-stack-item" gs-id="admin-widget-stats" gs-w="6" gs-h="4" gs-x="0" gs-y="7">
+            <div class="grid-stack-item-content">
+                <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('admin-widget-stats', 'admin')" title="Piilota kortti">✕</button>
+                <div class="card" style="height: 100%; box-sizing: border-box; padding: 14px;">
+                    <div style="font-weight: 700; margin-bottom: 6px;">⚡ Reittioptimointi &amp; siirtymät</div>
+                    <div style="font-size: 0.82rem; color: var(--muted);">OSRM-reitityksen siirtymämatkat ja ajoaikaennusteet</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Widget 4: Tallennetut reitit & hallinta -->
+        <div class="grid-stack-item" gs-id="admin-widget-routes" gs-w="6" gs-h="4" gs-x="6" gs-y="7">
+            <div class="grid-stack-item-content">
+                <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('admin-widget-routes', 'admin')" title="Piilota kortti">✕</button>
+                <div class="card" style="height: 100%; box-sizing: border-box; padding: 14px;">
+                    <div style="font-weight: 700; margin-bottom: 6px;">📁 Tallennetut reitit</div>
+                    <div style="font-size: 0.82rem; color: var(--muted);">Aktiiviset ajolenkit ja kuljettajamääritykset</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NÄKYMÄ 1E: KOHTEET & TYÖT (#view-targets) -->
+    <div id="view-targets" class="grid-stack view-pane view-targets-grid" data-view="targets" style="display: none; width: 100%; max-width: 1200px; margin: 0 auto;">
+        <!-- Widget 1: Pikahaku -->
+        <div class="grid-stack-item" gs-id="targets-widget-search" gs-w="4" gs-h="3" gs-x="0" gs-y="0">
+            <div class="grid-stack-item-content">
+                <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('targets-widget-search', 'targets')" title="Piilota kortti">✕</button>
+                <div class="card" style="height: 100%; box-sizing: border-box; padding: 14px;">
+                    <div style="font-weight: 700; margin-bottom: 6px;">🔍 Kohteiden pikahaku</div>
+                    <input type="text" placeholder="Hae nimellä tai osoitteella..." style="width: 100%; margin-bottom: 0;">
+                </div>
+            </div>
+        </div>
+
+        <!-- Widget 2: Päivän edistyminen -->
+        <div class="grid-stack-item" gs-id="targets-widget-progress" gs-w="4" gs-h="3" gs-x="4" gs-y="0">
+            <div class="grid-stack-item-content">
+                <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('targets-widget-progress', 'targets')" title="Piilota kortti">✕</button>
+                <div class="card" style="height: 100%; box-sizing: border-box; padding: 14px;">
+                    <div style="font-weight: 700; margin-bottom: 6px;">📊 Edistyminen</div>
+                    <div style="font-size: 0.85rem; color: var(--muted);">Kuitatut ja jäljellä olevat pihatyöt</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Widget 3: Seuraava ajokohde -->
+        <div class="grid-stack-item" gs-id="targets-widget-next-stop" gs-w="4" gs-h="3" gs-x="8" gs-y="0">
+            <div class="grid-stack-item-content">
+                <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('targets-widget-next-stop', 'targets')" title="Piilota kortti">✕</button>
+                <div class="card" style="height: 100%; box-sizing: border-box; padding: 14px;">
+                    <div style="font-weight: 700; margin-bottom: 6px;">📍 Seuraava ajokohde</div>
+                    <div style="font-size: 0.85rem; color: var(--muted);">Opastus seuraavaan kohteeseen</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Widget 4: Kohteet & Työt -lista -->
+        <div class="grid-stack-item" gs-id="targets-widget-list" gs-w="12" gs-h="6" gs-x="0" gs-y="3">
+            <div class="grid-stack-item-content">
+                <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('targets-widget-list', 'targets')" title="Piilota kortti">✕</button>
+                <div class="card" style="height: 100%; box-sizing: border-box; overflow: auto; padding: 14px;">
+                    <div style="font-weight: 700; margin-bottom: 8px;">🏢 Kaikki kiinteistöt ja työtehtävät</div>
+                    <div id="viewTargetsFullList" style="font-size: 0.85rem; color: var(--muted);">Kiinteistörekisterin kohteet ja tilat...</div>
+                </div>
             </div>
         </div>
     </div>
@@ -4640,21 +4805,76 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     ];
     window.DASHBOARD_AVAILABLE_WIDGETS = DASHBOARD_AVAILABLE_WIDGETS;
 
-    function initDashboardGrid() {
-        const gridEl = document.getElementById('dashboard-grid') || document.querySelector('.dashboard-grid');
+    // 1. SALLITAAN NÄYTÖN KÄÄNTÖ MOBIILISSA (Orientation Unlock)
+    if (typeof screen !== 'undefined' && screen.orientation && screen.orientation.unlock) {
+        screen.orientation.unlock().catch(() => {});
+    }
+
+    const gridInstances = window.gridInstances || {};
+    window.gridInstances = gridInstances;
+    let activeGrid = window.activeGrid || null;
+
+    // 3. MOBIILIN KOSKETUSTUKI JA SARAKEMUUTOS (Portrait vs. Landscape)
+    function handleLayoutResize() {
+        const isLandscape = window.innerWidth > window.innerHeight;
+        const isMobile = window.innerWidth < 768;
+
+        // Pystypuhelin: 1 sarake (helppo selata pystysuunnassa)
+        // Vaakapuhelin / Pystytabletti: 6 saraketta
+        // Vaakatabletti / Desktop: 12 saraketta
+        const targetColumns = isMobile && !isLandscape ? 1 : (isLandscape && isMobile ? 6 : 12);
+        
+        const curActive = (typeof window !== 'undefined' && window.activeGrid) || activeGrid || (typeof getActiveGrid === 'function' ? getActiveGrid() : null);
+        if (curActive && typeof curActive.getColumn === 'function' && curActive.getColumn() !== targetColumns) {
+            if (typeof curActive.column === 'function') {
+                curActive.column(targetColumns, 'moveScale');
+            }
+        }
+
+        // Päivitetään myös muut alustetut gridit
+        if (window.gridInstances) {
+            Object.values(window.gridInstances).forEach(grid => {
+                if (grid && typeof grid.getColumn === 'function' && grid.getColumn() !== targetColumns) {
+                    if (typeof grid.column === 'function') {
+                        grid.column(targetColumns, 'moveScale');
+                    }
+                }
+            });
+        }
+
+        // Päivitetään kartat välittömästi ilman leikkautumista
+        if (window.map && typeof window.map.invalidateSize === 'function') window.map.invalidateSize();
+        if (window.adminMap && typeof window.adminMap.invalidateSize === 'function') window.adminMap.invalidateSize();
+        if (window.yardMap && typeof window.yardMap.invalidateSize === 'function') window.yardMap.invalidateSize();
+        if (window.customerGeofenceMap && typeof window.customerGeofenceMap.invalidateSize === 'function') window.customerGeofenceMap.invalidateSize();
+    }
+    window.handleLayoutResize = handleLayoutResize;
+
+    window.addEventListener('resize', handleLayoutResize);
+    window.addEventListener('orientationchange', () => {
+        setTimeout(handleLayoutResize, 300);
+    });
+
+    function initViewGrid(viewName) {
+        if (!viewName) viewName = window.currentTabName || 'dashboard';
+        if (gridInstances[viewName]) return gridInstances[viewName];
+        if (typeof GridStack === 'undefined') return null;
+
+        let gridEl = null;
+        if (viewName === 'dashboard') gridEl = document.getElementById('dashboard-grid') || document.querySelector('.dashboard-grid');
+        else if (viewName === 'driver') gridEl = document.getElementById('view-driver');
+        else if (viewName === 'admin') gridEl = document.getElementById('view-admin');
+        else if (viewName === 'targets') gridEl = document.getElementById('view-targets');
+        else gridEl = document.getElementById('view-' + viewName) || document.getElementById(viewName);
+
         if (!gridEl) return null;
 
-        if (typeof GridStack === 'undefined') {
-            return null;
-        }
+        const isLandscape = window.innerWidth > window.innerHeight;
+        const isMobile = window.innerWidth < 768;
+        const targetColumns = isMobile && !isLandscape ? 1 : (isLandscape && isMobile ? 6 : 12);
 
-        if (window.dashboardGrid) {
-            return window.dashboardGrid;
-        }
-
-        // Alustus JS-tiedostossa:
         const grid = GridStack.init({
-            column: 12, // 12-sarakkeinen joustava gridi
+            column: targetColumns,
             cellHeight: '70px',
             margin: 10,
             animate: true,
@@ -4663,35 +4883,39 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             disableResize: true  // Oletuksena LUKITTU
         }, gridEl);
 
-        window.dashboardGrid = grid;
+        gridInstances[viewName] = grid;
+        if (viewName === 'dashboard') window.dashboardGrid = grid;
+        activeGrid = grid;
+        window.activeGrid = grid;
 
-        // Palautetaan tallennettu layout jos löytyy
-        const currentView = window.currentTabName || 'dashboard';
-        const savedLayout = loadDashboardGridLayout(currentView);
-        if (savedLayout && Array.isArray(savedLayout)) {
-            try {
-                savedLayout.forEach(item => {
-                    const itemEl = gridEl.querySelector(`[gs-id="${item.id}"]`) || document.getElementById(item.id);
-                    if (itemEl) {
-                        const parentGridItem = itemEl.classList.contains('grid-stack-item') ? itemEl : itemEl.closest('.grid-stack-item');
-                        if (parentGridItem) {
-                            if (item.hidden) {
-                                parentGridItem.style.display = 'none';
-                                grid.removeWidget(parentGridItem, false);
-                            } else {
-                                parentGridItem.style.display = '';
-                                grid.update(parentGridItem, { x: item.x, y: item.y, w: item.w, h: item.h });
-                            }
-                        }
-                    }
-                });
-            } catch (e) {
-                console.warn('Failed restoring grid layout:', e);
-            }
-        }
-
+        loadGridLayout(viewName, grid);
         initMapResizeListeners(grid);
         return grid;
+    }
+    window.initViewGrid = initViewGrid;
+
+    function initAllGrids() {
+        ['dashboard', 'driver', 'admin', 'targets'].forEach(v => {
+            try { initViewGrid(v); } catch (e) {}
+        });
+        handleLayoutResize();
+    }
+    window.initAllGrids = initAllGrids;
+
+    function getActiveGrid() {
+        const cur = window.currentTabName || 'dashboard';
+        return gridInstances[cur] || activeGrid || gridInstances['dashboard'] || null;
+    }
+    window.getActiveGrid = getActiveGrid;
+
+    function setActiveGrid(grid) {
+        activeGrid = grid;
+        window.activeGrid = grid;
+    }
+    window.setActiveGrid = setActiveGrid;
+
+    function initDashboardGrid() {
+        return initViewGrid('dashboard');
     }
     window.initDashboardGrid = initDashboardGrid;
 
@@ -4701,10 +4925,18 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         }
         isDashboardEditMode = !!enable;
 
-        const grid = window.dashboardGrid || (typeof GridStack !== 'undefined' ? initDashboardGrid() : null);
+        const grid = getActiveGrid() || initViewGrid('dashboard');
         if (grid) {
             grid.enableMove(enable);
             grid.enableResize(enable);
+        }
+        if (window.gridInstances) {
+            Object.values(window.gridInstances).forEach(g => {
+                if (g) {
+                    g.enableMove(enable);
+                    g.enableResize(enable);
+                }
+            });
         }
 
         document.body.classList.toggle('dashboard-editing', enable);
@@ -4734,6 +4966,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         });
 
         if (!enable) {
+            saveGridLayout();
             saveDashboardGridLayout();
             if (typeof showToast === 'function') {
                 showToast('Asettelu tallennettu ja lukittu!', 'success');
@@ -4741,21 +4974,25 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         }
     }
     window.toggleDashboardEditMode = toggleDashboardEditMode;
+    window.toggleEditMode = toggleDashboardEditMode;
 
-    function removeDashboardWidget(widgetId) {
+    function removeDashboardWidget(widgetId, viewName) {
         const itemEl = document.querySelector(`.grid-stack-item[gs-id="${widgetId}"]`) || document.getElementById(widgetId);
         if (!itemEl) return;
 
         const parentGridItem = itemEl.classList.contains('grid-stack-item') ? itemEl : itemEl.closest('.grid-stack-item');
+        const grid = (viewName && gridInstances[viewName]) || activeGrid || window.dashboardGrid;
+
         if (parentGridItem) {
             parentGridItem.style.display = 'none';
-            if (window.dashboardGrid) {
-                window.dashboardGrid.removeWidget(parentGridItem, false);
+            if (grid && typeof grid.removeWidget === 'function') {
+                grid.removeWidget(parentGridItem, false);
             }
         } else {
             itemEl.style.display = 'none';
         }
 
+        saveGridLayout(viewName);
         saveDashboardGridLayout();
         if (typeof showToast === 'function') {
             showToast('Kortti piilotettu. Voit palauttaa sen [➕ Lisää kortti] -valikosta.', 'info');
@@ -4763,13 +5000,16 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     }
     window.removeDashboardWidget = removeDashboardWidget;
 
-    function openAddWidgetModal() {
+    function openAddWidgetModal(viewName) {
         const modal = document.getElementById('modal-add-widget');
         const listEl = document.getElementById('available-widgets-list');
         if (!modal || !listEl) return;
 
+        const curView = viewName || window.currentTabName || 'dashboard';
+        const widgets = (typeof VIEW_WIDGETS !== 'undefined' && VIEW_WIDGETS[curView]) ? VIEW_WIDGETS[curView] : DASHBOARD_AVAILABLE_WIDGETS;
+
         listEl.innerHTML = '';
-        DASHBOARD_AVAILABLE_WIDGETS.forEach(w => {
+        widgets.forEach(w => {
             const itemEl = document.querySelector(`.grid-stack-item[gs-id="${w.id}"]`) || document.getElementById(w.id);
             const isVisible = itemEl && itemEl.style.display !== 'none' && (!itemEl.closest('.grid-stack-item') || itemEl.closest('.grid-stack-item').style.display !== 'none');
 
@@ -4787,7 +5027,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                 <div>
                     ${isVisible
                         ? '<span class="status-pill status-ready" style="font-size: 0.78rem;">✓ Näytöllä</span>'
-                        : `<button type="button" class="btn-primary tiny-btn" onclick="addDashboardWidget('${w.id}')" style="padding: 6px 14px; font-weight: 700; background: #0284c7;">➕ Lisää</button>`
+                        : `<button type="button" class="btn-primary tiny-btn" onclick="addDashboardWidget('${w.id}', '${curView}')" style="padding: 6px 14px; font-weight: 700; background: #0284c7;">➕ Lisää</button>`
                     }
                 </div>
             `;
@@ -4804,20 +5044,22 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     }
     window.closeAddWidgetModal = closeAddWidgetModal;
 
-    function addDashboardWidget(widgetId) {
+    function addDashboardWidget(widgetId, viewName) {
         const itemEl = document.querySelector(`.grid-stack-item[gs-id="${widgetId}"]`) || document.getElementById(widgetId);
         const parentGridItem = itemEl && itemEl.classList.contains('grid-stack-item') ? itemEl : (itemEl ? itemEl.closest('.grid-stack-item') : null);
+        const grid = (viewName && gridInstances[viewName]) || activeGrid || window.dashboardGrid;
 
         if (parentGridItem) {
             parentGridItem.style.display = '';
-            if (window.dashboardGrid) {
-                window.dashboardGrid.makeWidget(parentGridItem);
+            if (grid && typeof grid.makeWidget === 'function') {
+                grid.makeWidget(parentGridItem);
             }
         } else if (itemEl) {
             itemEl.style.display = '';
         }
 
         closeAddWidgetModal();
+        saveGridLayout(viewName);
         saveDashboardGridLayout();
         if (typeof showToast === 'function') {
             showToast('Kortti lisätty näkymään!', 'success');
@@ -4825,10 +5067,44 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     }
     window.addDashboardWidget = addDashboardWidget;
 
-    function getDashboardGridLayout() {
+    function getDashboardGridLayout(gridOrView) {
         const items = [];
-        const gridEl = document.getElementById('dashboard-grid') || document.querySelector('.dashboard-grid');
-        if (!gridEl) return items;
+        let gridEl = null;
+
+        if (typeof gridOrView === 'string') {
+            if (gridInstances[gridOrView] && gridInstances[gridOrView].el) {
+                gridEl = gridInstances[gridOrView].el;
+            } else if (gridOrView === 'dashboard') {
+                gridEl = document.getElementById('dashboard-grid') || document.querySelector('.dashboard-grid');
+            } else if (gridOrView === 'driver') {
+                gridEl = document.getElementById('view-driver');
+            } else if (gridOrView === 'admin') {
+                gridEl = document.getElementById('view-admin');
+            } else if (gridOrView === 'targets') {
+                gridEl = document.getElementById('view-targets');
+            } else {
+                gridEl = document.getElementById(gridOrView) || document.getElementById('view-' + gridOrView);
+            }
+        } else if (gridOrView && gridOrView.el) {
+            gridEl = gridOrView.el;
+        } else {
+            const cur = window.currentTabName || 'dashboard';
+            if (gridInstances[cur] && gridInstances[cur].el) {
+                gridEl = gridInstances[cur].el;
+            } else if (cur === 'dashboard') {
+                gridEl = document.getElementById('dashboard-grid') || document.querySelector('.dashboard-grid');
+            } else if (cur === 'driver') {
+                gridEl = document.getElementById('view-driver');
+            } else if (cur === 'admin') {
+                gridEl = document.getElementById('view-admin');
+            } else if (cur === 'targets') {
+                gridEl = document.getElementById('view-targets');
+            } else {
+                gridEl = document.getElementById('view-' + cur) || document.getElementById('dashboard-grid') || document.querySelector('.dashboard-grid');
+            }
+        }
+
+        if (!gridEl || typeof gridEl.querySelectorAll !== 'function') return items;
 
         gridEl.querySelectorAll('.grid-stack-item').forEach(el => {
             const id = el.getAttribute('gs-id') || el.id;
@@ -4842,30 +5118,65 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         return items;
     }
     window.getDashboardGridLayout = getDashboardGridLayout;
+    window.getGridLayout = getDashboardGridLayout;
 
-    function saveDashboardGridLayout() {
-        const currentView = window.currentTabName || 'dashboard';
-        const layoutData = getDashboardGridLayout();
+    function saveDashboardGridLayout(currentView = window.currentTabName || 'dashboard') {
+        const isLandscape = window.innerWidth > window.innerHeight;
+        const storageKey = `yf_grid_layout_${currentView}_${isLandscape ? 'land' : 'port'}`;
+        const layoutData = getDashboardGridLayout(currentView);
         if (layoutData && layoutData.length > 0) {
             try {
+                localStorage.setItem(storageKey, JSON.stringify(layoutData));
                 localStorage.setItem('yf_grid_layout_' + currentView, JSON.stringify(layoutData));
             } catch (e) {
                 console.warn('saveDashboardGridLayout error:', e);
             }
         }
+        return layoutData;
     }
     window.saveDashboardGridLayout = saveDashboardGridLayout;
+    window.saveGridLayout = saveDashboardGridLayout;
 
-    function loadDashboardGridLayout(currentView = window.currentTabName || 'dashboard') {
+    function loadDashboardGridLayout(currentView = window.currentTabName || 'dashboard', grid = null) {
+        const isLandscape = window.innerWidth > window.innerHeight;
+        const orient = isLandscape ? 'land' : 'port';
+        const storageKey = `yf_grid_layout_${currentView}_${orient}`;
+
         try {
-            const raw = localStorage.getItem('yf_grid_layout_' + currentView);
+            let raw = localStorage.getItem(storageKey);
+            if (!raw) {
+                raw = localStorage.getItem('yf_grid_layout_' + currentView);
+            }
+            if (!raw && currentView.startsWith('view-')) {
+                const stripped = currentView.replace('view-', '');
+                raw = localStorage.getItem(`yf_grid_layout_${stripped}_${orient}`) || localStorage.getItem(`yf_grid_layout_${stripped}`);
+            }
             if (!raw) return null;
-            return JSON.parse(raw);
+            const savedLayout = JSON.parse(raw);
+            if (grid && Array.isArray(savedLayout)) {
+                savedLayout.forEach(item => {
+                    const itemEl = grid.el.querySelector(`[gs-id="${item.id}"]`) || document.getElementById(item.id);
+                    if (itemEl) {
+                        const parentGridItem = itemEl.classList.contains('grid-stack-item') ? itemEl : itemEl.closest('.grid-stack-item');
+                        if (parentGridItem) {
+                            if (item.hidden) {
+                                parentGridItem.style.display = 'none';
+                                grid.removeWidget(parentGridItem, false);
+                            } else {
+                                parentGridItem.style.display = '';
+                                grid.update(parentGridItem, { x: item.x, y: item.y, w: item.w, h: item.h });
+                            }
+                        }
+                    }
+                });
+            }
+            return savedLayout;
         } catch (e) {
             return null;
         }
     }
     window.loadDashboardGridLayout = loadDashboardGridLayout;
+    window.loadGridLayout = loadDashboardGridLayout;
 
     function initMapResizeListeners(grid) {
         if (grid && typeof grid.on === 'function') {
@@ -5215,6 +5526,9 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
 
         const dashView = document.getElementById('dashboard-view');
         const routesView = document.getElementById('viewRoutes');
+        const driverView = document.getElementById('view-driver');
+        const adminView = document.getElementById('view-admin');
+        const targetsView = document.getElementById('view-targets');
         const routesMgmtView = document.getElementById('view-routes');
         const driversView = document.getElementById('view-drivers');
         const custView = document.getElementById('customers-view') || document.getElementById('viewCustomers');
@@ -5223,13 +5537,34 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         const settingsView = document.getElementById('viewSettings');
 
         if (dashView) dashView.style.display = tab === 'dashboard' ? 'block' : 'none';
-        if (routesView) routesView.style.display = tab === 'routes' ? '' : 'none';
+        if (routesView) routesView.style.display = (tab === 'routes' || tab === 'driver' || tab === 'admin') ? '' : 'none';
+        if (driverView) driverView.style.display = (tab === 'driver' || (tab === 'routes' && currentAppMode === 'field')) ? 'block' : 'none';
+        if (adminView) adminView.style.display = tab === 'admin' ? 'block' : 'none';
+        if (targetsView) targetsView.style.display = tab === 'targets' ? 'block' : 'none';
         if (routesMgmtView) routesMgmtView.style.display = tab === 'routes-mgmt' ? 'block' : 'none';
         if (driversView) driversView.style.display = tab === 'drivers' ? 'block' : 'none';
         if (custView) custView.style.display = tab === 'customers' ? '' : 'none';
         if (historyView) historyView.style.display = tab === 'history' ? '' : 'none';
         if (billingView) billingView.style.display = tab === 'billing' ? '' : 'none';
         if (settingsView) settingsView.style.display = tab === 'settings' ? '' : 'none';
+
+        // Ladataan aktiivisen näkymän tallennettu widget-asettelu ja säädetään sarakkeet
+        try {
+            if (typeof initViewGrid === 'function') {
+                const targetViewName = (tab === 'routes' && currentAppMode === 'field') ? 'driver' : (tab === 'routes' ? 'admin' : tab);
+                const curGrid = initViewGrid(targetViewName);
+                if (curGrid && typeof loadGridLayout === 'function') {
+                    loadGridLayout(targetViewName, curGrid);
+                }
+            } else if (typeof loadDashboardGridLayout === 'function') {
+                loadDashboardGridLayout(tab);
+            }
+            if (typeof handleLayoutResize === 'function') {
+                setTimeout(handleLayoutResize, 50);
+            }
+        } catch (e) {
+            console.warn('Tab grid refresh error:', e);
+        }
 
         // Päivitetään sivupalkkivalikon aktiivinen linkki
         const navItems = [

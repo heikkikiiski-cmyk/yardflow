@@ -1,37 +1,139 @@
 /**
  * YardFlow Android-Widget GridStack Dashboard & Card Customization (dashboard.js)
+ * Supports orientation unlocking, multi-view grids (#view-driver, #view-admin, #view-targets, #dashboard-grid),
+ * touch scrolling, and portrait/landscape column adaptation.
  */
 
 (function(global) {
-    let dashboardGridInstance = null;
-    let isDashboardEditMode = false;
+    // 1. SALLITAAN NÄYTÖN KÄÄNTÖ MOBIILISSA (Orientation Unlock)
+    if (typeof screen !== 'undefined' && screen.orientation && screen.orientation.unlock) {
+        screen.orientation.unlock().catch(() => {});
+    }
 
-    const DASHBOARD_AVAILABLE_WIDGETS = [
-        { id: 'dash-widget-progress', title: 'Päivän tilanne', icon: '📊', desc: 'Edistymispalkki, kuitatut ja jäljellä olevat kohteet', defaultW: 6, defaultH: 4 },
-        { id: 'dash-widget-next-stop', title: 'Seuraava ajokohde', icon: '📍', desc: 'Ajo-ohjeet, osoite ja pikakuittaus seuraavaan kohteeseen', defaultW: 6, defaultH: 4 },
-        { id: 'dash-widget-route-stats', title: 'Siirtymämatkat', icon: '⚡', desc: 'Siirtymäkilometrit, ajoaika ja reitin pikaoptimointi', defaultW: 6, defaultH: 4 },
-        { id: 'dash-widget-tickets', title: 'Päivän esteet', icon: '⚠️', desc: 'Kuljettajien raportoimat esteet, lumitilanne ja huomiot', defaultW: 6, defaultH: 4 },
-        { id: 'dash-widget-queue', title: 'Työjono', icon: '🚜', desc: 'Päivän kohteiden ajojärjestys ja käyntitilanne', defaultW: 6, defaultH: 4 },
-        { id: 'dash-widget-shortcuts', title: 'Pikalinkit', icon: '🚀', desc: 'Pikatoiminnot: uusi reitti, raportin lataus ja asiakasrekisteri', defaultW: 6, defaultH: 4 },
-        { id: 'dash-widget-recent-logs', title: 'Viimeisimmät kuittaukset', icon: '📋', desc: 'Tuoreimmat kuitatut pihatyöt ja aikaleimat', defaultW: 12, defaultH: 4 }
-    ];
+    const gridInstances = global.gridInstances || {};
+    global.gridInstances = gridInstances;
+    let activeGrid = global.activeGrid || null;
+    let isEditMode = false;
 
-    function initDashboardGrid() {
-        const gridEl = document.getElementById('dashboard-grid') || document.querySelector('.dashboard-grid');
-        if (!gridEl) return null;
+    const VIEW_WIDGETS = {
+        dashboard: [
+            { id: 'dash-widget-progress', title: 'Päivän tilanne', icon: '📊', desc: 'Edistymispalkki, kuitatut ja jäljellä olevat kohteet', defaultW: 6, defaultH: 4 },
+            { id: 'dash-widget-next-stop', title: 'Seuraava ajokohde', icon: '📍', desc: 'Ajo-ohjeet, osoite ja pikakuittaus seuraavaan kohteeseen', defaultW: 6, defaultH: 4 },
+            { id: 'dash-widget-route-stats', title: 'Siirtymämatkat', icon: '⚡', desc: 'Siirtymäkilometrit, ajoaika ja reitin pikaoptimointi', defaultW: 6, defaultH: 4 },
+            { id: 'dash-widget-tickets', title: 'Päivän esteet', icon: '⚠️', desc: 'Kuljettajien raportoimat esteet, lumitilanne ja huomiot', defaultW: 6, defaultH: 4 },
+            { id: 'dash-widget-queue', title: 'Työjono', icon: '🚜', desc: 'Päivän kohteiden ajojärjestys ja käyntitilanne', defaultW: 6, defaultH: 4 },
+            { id: 'dash-widget-shortcuts', title: 'Pikalinkit', icon: '🚀', desc: 'Pikatoiminnot: uusi reitti, raportin lataus ja asiakasrekisteri', defaultW: 6, defaultH: 4 },
+            { id: 'dash-widget-recent-logs', title: 'Viimeisimmät kuittaukset', icon: '📋', desc: 'Tuoreimmat kuitatut pihatyöt ja aikaleimat', defaultW: 12, defaultH: 4 }
+        ],
+        driver: [
+            { id: 'driver-widget-hud', title: 'Kohde-HUD ja tiedot', icon: '📍', desc: 'Nykyinen kohde, osoite, navigointi ja valokuvaus', defaultW: 12, defaultH: 4 },
+            { id: 'driver-widget-map', title: 'Kuljettajan kartta', icon: '🗺️', desc: 'Satelliittikartta, reittiviiva ja oma sijainti (GPS)', defaultW: 12, defaultH: 7 },
+            { id: 'driver-widget-actions', title: 'Kuittaus & esteet', icon: '✓', desc: 'Kuittaa tehdyksi ja ilmoita esteestä', defaultW: 12, defaultH: 3 },
+            { id: 'driver-widget-queue', title: 'Päivän työjono', icon: '📋', desc: 'Päivän kohteiden suoritusjärjestys', defaultW: 12, defaultH: 4 }
+        ],
+        admin: [
+            { id: 'admin-widget-map', title: 'Alueiden piirto & kartta', icon: '🗺️', desc: 'Satelliittikartta, kone- ja käsityöalueiden piirtotyökalut', defaultW: 8, defaultH: 7 },
+            { id: 'admin-widget-targets', title: 'Reitin kohteet', icon: '📋', desc: 'Kiinteistöjen kohdelista ja suodattimet', defaultW: 4, defaultH: 7 },
+            { id: 'admin-widget-stats', title: 'Reittioptimointi', icon: '⚡', desc: 'OSRM-siirtymämatkat ja tehokas reititys', defaultW: 6, defaultH: 4 },
+            { id: 'admin-widget-routes', title: 'Tallennetut reitit', icon: '📁', desc: 'Aktiiviset reitit ja kuljettajamääritykset', defaultW: 6, defaultH: 4 }
+        ],
+        targets: [
+            { id: 'targets-widget-search', title: 'Kohteiden pikahaku', icon: '🔍', desc: 'Etsi kiinteistöjä ja kohteita reaaliaikaisesti', defaultW: 4, defaultH: 3 },
+            { id: 'targets-widget-progress', title: 'Päivän edistyminen', icon: '📊', desc: 'Kuitattujen kohteiden tilannekatsaus', defaultW: 4, defaultH: 3 },
+            { id: 'targets-widget-next-stop', title: 'Seuraava ajokohde', icon: '📍', desc: 'Seuraavan kohteen pikaopastus', defaultW: 4, defaultH: 3 },
+            { id: 'targets-widget-list', title: 'Kiinteistö- ja työlista', icon: '🏢', desc: 'Kaikki kiinteistöt, huomiot ja tilat', defaultW: 12, defaultH: 6 }
+        ]
+    };
+
+    function getCurrentViewName() {
+        const tab = global.currentTabName || 'dashboard';
+        if (tab === 'dashboard' || tab === 'home') return 'dashboard';
+        if (tab === 'driver') return 'driver';
+        if (tab === 'admin') return 'admin';
+        if (tab === 'targets') return 'targets';
+        if (tab === 'routes') {
+            return (global.currentAppMode === 'field') ? 'driver' : 'admin';
+        }
+        return tab;
+    }
+
+    function getStorageKey(currentView) {
+        if (!currentView) currentView = getCurrentViewName();
+        const isLandscape = (typeof window !== 'undefined') ? (window.innerWidth > window.innerHeight) : false;
+        return `yf_grid_layout_${currentView}_${isLandscape ? 'land' : 'port'}`;
+    }
+
+    // 3. MOBIILIN KOSKETUSTUKI JA SARAKEMUUTOS (Portrait vs. Landscape)
+    function handleLayoutResize() {
+        const isLandscape = (typeof window !== 'undefined') ? (window.innerWidth > window.innerHeight) : false;
+        const isMobile = (typeof window !== 'undefined') ? (window.innerWidth < 768) : false;
+
+        // Pystypuhelin: 1 sarake (helppo selata pystysuunnassa)
+        // Vaakapuhelin / Pystytabletti: 6 saraketta
+        // Vaakatabletti / Desktop: 12 saraketta
+        const targetColumns = isMobile && !isLandscape ? 1 : (isLandscape && isMobile ? 6 : 12);
+        
+        const curActive = (typeof window !== 'undefined' && window.activeGrid) || global.activeGrid || (typeof globalThis !== 'undefined' && globalThis.activeGrid) || activeGrid || (typeof getActiveGrid === 'function' ? getActiveGrid() : null);
+        if (curActive && typeof curActive.getColumn === 'function' && curActive.getColumn() !== targetColumns) {
+            if (typeof curActive.column === 'function') {
+                curActive.column(targetColumns, 'moveScale');
+            }
+        }
+
+        // Päivitetään myös muut alustetut gridit
+        Object.values(gridInstances).forEach(grid => {
+            if (grid && typeof grid.getColumn === 'function' && grid.getColumn() !== targetColumns) {
+                if (typeof grid.column === 'function') {
+                    grid.column(targetColumns, 'moveScale');
+                }
+            }
+        });
+
+        // Päivitetään kartat välittömästi ilman leikkautumista
+        if (global.map && typeof global.map.invalidateSize === 'function') global.map.invalidateSize();
+        if (global.adminMap && typeof global.adminMap.invalidateSize === 'function') global.adminMap.invalidateSize();
+        if (global.yardMap && typeof global.yardMap.invalidateSize === 'function') global.yardMap.invalidateSize();
+        if (global.customerGeofenceMap && typeof global.customerGeofenceMap.invalidateSize === 'function') global.customerGeofenceMap.invalidateSize();
+    }
+
+    if (typeof window !== 'undefined') {
+        window.addEventListener('resize', handleLayoutResize);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(handleLayoutResize, 300);
+        });
+    }
+
+    function initViewGrid(viewName) {
+        if (!viewName) viewName = getCurrentViewName();
+        if (gridInstances[viewName]) {
+            return gridInstances[viewName];
+        }
 
         if (typeof GridStack === 'undefined') {
-            console.warn('GridStack not loaded, using CSS grid fallback');
             return null;
         }
 
-        if (dashboardGridInstance) {
-            return dashboardGridInstance;
+        let gridEl = null;
+        if (viewName === 'dashboard') {
+            gridEl = document.getElementById('dashboard-grid') || document.querySelector('.dashboard-grid');
+        } else if (viewName === 'driver') {
+            gridEl = document.getElementById('view-driver');
+        } else if (viewName === 'admin') {
+            gridEl = document.getElementById('view-admin');
+        } else if (viewName === 'targets') {
+            gridEl = document.getElementById('view-targets');
+        } else {
+            gridEl = document.getElementById('view-' + viewName);
         }
 
-        // Alustus JS-tiedostossa:
+        if (!gridEl) return null;
+
+        const isLandscape = (typeof window !== 'undefined') ? (window.innerWidth > window.innerHeight) : false;
+        const isMobile = (typeof window !== 'undefined') ? (window.innerWidth < 768) : false;
+        const targetColumns = isMobile && !isLandscape ? 1 : (isLandscape && isMobile ? 6 : 12);
+
         const grid = GridStack.init({
-            column: 12, // 12-sarakkeinen joustava gridi
+            column: targetColumns,
             cellHeight: '70px',
             margin: 10,
             animate: true,
@@ -40,16 +142,202 @@
             disableResize: true  // Oletuksena LUKITTU
         }, gridEl);
 
-        dashboardGridInstance = grid;
-        global.dashboardGrid = grid;
+        gridInstances[viewName] = grid;
+        if (viewName === 'dashboard') {
+            global.dashboardGrid = grid;
+        }
 
-        // Palautetaan tallennettu layout jos löytyy
-        const currentView = global.currentTabName || 'dashboard';
-        const savedLayout = loadDashboardGridLayout(currentView);
-        if (savedLayout && Array.isArray(savedLayout)) {
+        if (!activeGrid || viewName === getCurrentViewName()) {
+            activeGrid = grid;
+            global.activeGrid = grid;
+        }
+
+        loadGridLayout(viewName, grid);
+
+        grid.on('resizestop', function(event, el) {
+            if (global.map && typeof global.map.invalidateSize === 'function') global.map.invalidateSize();
+            if (global.adminMap && typeof global.adminMap.invalidateSize === 'function') global.adminMap.invalidateSize();
+            if (global.yardMap && typeof global.yardMap.invalidateSize === 'function') global.yardMap.invalidateSize();
+            if (global.customerGeofenceMap && typeof global.customerGeofenceMap.invalidateSize === 'function') global.customerGeofenceMap.invalidateSize();
+        });
+
+        return grid;
+    }
+
+    function initDashboardGrid() {
+        return initViewGrid('dashboard');
+    }
+
+    function initAllGrids() {
+        ['dashboard', 'driver', 'admin', 'targets'].forEach(v => {
             try {
+                initViewGrid(v);
+            } catch (e) {}
+        });
+        const current = getCurrentViewName();
+        activeGrid = gridInstances[current] || gridInstances['dashboard'] || null;
+        global.activeGrid = activeGrid;
+        handleLayoutResize();
+    }
+
+    function getActiveGrid() {
+        const cur = getCurrentViewName();
+        if (gridInstances[cur]) {
+            activeGrid = gridInstances[cur];
+            global.activeGrid = activeGrid;
+            return activeGrid;
+        }
+        return activeGrid || gridInstances['dashboard'] || null;
+    }
+
+    function setActiveGrid(grid) {
+        activeGrid = grid;
+        global.activeGrid = grid;
+        if (typeof window !== 'undefined') window.activeGrid = grid;
+        if (typeof globalThis !== 'undefined') globalThis.activeGrid = grid;
+    }
+
+    function toggleDashboardEditMode(enable) {
+        if (typeof enable === 'undefined') {
+            enable = !isEditMode;
+        }
+        isEditMode = !!enable;
+        global.isEditMode = isEditMode;
+
+        getActiveGrid() || initViewGrid(getCurrentViewName());
+
+        Object.values(gridInstances).forEach(grid => {
+            if (grid) {
+                grid.enableMove(enable);
+                grid.enableResize(enable);
+            }
+        });
+
+        if (document && document.body) {
+            document.body.classList.toggle('dashboard-editing', enable);
+        }
+
+        if (document) {
+            document.querySelectorAll('.card-remove-btn').forEach(b => {
+                b.style.display = enable ? 'flex' : 'none';
+            });
+
+            const addBtn = document.getElementById('btn-add-widget');
+            if (addBtn) addBtn.style.display = enable ? 'inline-flex' : 'none';
+
+            const editBtns = document.querySelectorAll('.btn-toggle-dashboard-edit');
+            editBtns.forEach(btn => {
+                if (enable) {
+                    btn.innerHTML = '<span>💾</span> <span class="edit-btn-text">Valmis / Tallenna</span>';
+                    btn.classList.add('is-editing', 'btn-primary');
+                    btn.classList.remove('btn-outline');
+                    btn.title = 'Tallenna asettelu ja lukitse ruutu';
+                } else {
+                    btn.innerHTML = '<span>✏️</span> <span class="edit-btn-text">Muokkaa näkymää</span>';
+                    btn.classList.remove('is-editing', 'btn-primary');
+                    btn.classList.add('btn-outline');
+                    btn.title = 'Muokkaa korttien asettelua ja kokoa';
+                }
+            });
+        }
+
+        if (!enable) {
+            saveGridLayout();
+            if (typeof showToast === 'function') {
+                showToast('Asettelu tallennettu ja lukittu!', 'success');
+            }
+        }
+    }
+
+    function getGridLayout(gridOrView) {
+        const items = [];
+        let gridEl = null;
+
+        if (typeof gridOrView === 'string') {
+            if (gridInstances[gridOrView] && gridInstances[gridOrView].el) {
+                gridEl = gridInstances[gridOrView].el;
+            } else if (gridOrView === 'dashboard') {
+                gridEl = document.getElementById('dashboard-grid') || document.querySelector('.dashboard-grid');
+            } else if (gridOrView === 'driver') {
+                gridEl = document.getElementById('view-driver');
+            } else if (gridOrView === 'admin') {
+                gridEl = document.getElementById('view-admin');
+            } else if (gridOrView === 'targets') {
+                gridEl = document.getElementById('view-targets');
+            } else {
+                gridEl = document.getElementById(gridOrView) || document.getElementById('view-' + gridOrView);
+            }
+        } else if (gridOrView && gridOrView.el) {
+            gridEl = gridOrView.el;
+        } else {
+            const cur = getCurrentViewName();
+            if (gridInstances[cur] && gridInstances[cur].el) {
+                gridEl = gridInstances[cur].el;
+            } else if (cur === 'dashboard') {
+                gridEl = document.getElementById('dashboard-grid') || document.querySelector('.dashboard-grid');
+            } else if (cur === 'driver') {
+                gridEl = document.getElementById('view-driver');
+            } else if (cur === 'admin') {
+                gridEl = document.getElementById('view-admin');
+            } else if (cur === 'targets') {
+                gridEl = document.getElementById('view-targets');
+            } else {
+                gridEl = document.getElementById('view-' + cur);
+            }
+        }
+
+        if (!gridEl || typeof gridEl.querySelectorAll !== 'function') return items;
+
+        gridEl.querySelectorAll('.grid-stack-item').forEach(el => {
+            const id = el.getAttribute('gs-id') || el.id;
+            const x = parseInt(el.getAttribute('gs-x') || 0, 10);
+            const y = parseInt(el.getAttribute('gs-y') || 0, 10);
+            const w = parseInt(el.getAttribute('gs-w') || 6, 10);
+            const h = parseInt(el.getAttribute('gs-h') || 4, 10);
+            const hidden = el.style.display === 'none';
+            items.push({ id, x, y, w, h, hidden });
+        });
+        return items;
+    }
+
+    function saveGridLayout(currentView) {
+        if (!currentView) currentView = getCurrentViewName();
+        const isLandscape = (typeof window !== 'undefined') ? (window.innerWidth > window.innerHeight) : false;
+        const storageKey = `yf_grid_layout_${currentView}_${isLandscape ? 'land' : 'port'}`;
+        const layoutData = getGridLayout(currentView);
+
+        if (layoutData && layoutData.length > 0) {
+            try {
+                localStorage.setItem(storageKey, JSON.stringify(layoutData));
+                localStorage.setItem('yf_grid_layout_' + currentView, JSON.stringify(layoutData));
+            } catch (e) {
+                console.warn('saveGridLayout error:', e);
+            }
+        }
+        return layoutData;
+    }
+
+    function loadGridLayout(currentView, grid) {
+        if (!currentView) currentView = getCurrentViewName();
+        const isLandscape = (typeof window !== 'undefined') ? (window.innerWidth > window.innerHeight) : false;
+        const orient = isLandscape ? 'land' : 'port';
+        const storageKey = `yf_grid_layout_${currentView}_${orient}`;
+
+        try {
+            let raw = localStorage.getItem(storageKey);
+            if (!raw) {
+                raw = localStorage.getItem('yf_grid_layout_' + currentView);
+            }
+            if (!raw && currentView.startsWith('view-')) {
+                const stripped = currentView.replace('view-', '');
+                raw = localStorage.getItem(`yf_grid_layout_${stripped}_${orient}`) || localStorage.getItem(`yf_grid_layout_${stripped}`);
+            }
+            if (!raw) return null;
+
+            const savedLayout = JSON.parse(raw);
+            if (grid && Array.isArray(savedLayout)) {
                 savedLayout.forEach(item => {
-                    const itemEl = gridEl.querySelector(`[gs-id="${item.id}"]`) || document.getElementById(item.id);
+                    const itemEl = grid.el.querySelector(`[gs-id="${item.id}"]`) || document.getElementById(item.id);
                     if (itemEl) {
                         const parentGridItem = itemEl.classList.contains('grid-stack-item') ? itemEl : itemEl.closest('.grid-stack-item');
                         if (parentGridItem) {
@@ -63,100 +351,47 @@
                         }
                     }
                 });
-            } catch (e) {
-                console.warn('Failed restoring grid layout:', e);
             }
-        }
-
-        // Kartan automaattinen päivitys koon muuttuessa
-        if (typeof initMapResizeListeners === 'function') {
-            initMapResizeListeners(grid);
-        } else {
-            grid.on('resizestop', function(event, el) {
-                if (el && (el.querySelector('#map') || el.querySelector('#admin-map') || el.querySelector('#yardSatelliteMap') || el.querySelector('#customerGeofenceMap'))) {
-                    if (global.map && typeof global.map.invalidateSize === 'function') global.map.invalidateSize();
-                    if (global.adminMap && typeof global.adminMap.invalidateSize === 'function') global.adminMap.invalidateSize();
-                    if (global.yardMap && typeof global.yardMap.invalidateSize === 'function') global.yardMap.invalidateSize();
-                }
-            });
-        }
-
-        return grid;
-    }
-
-    function toggleDashboardEditMode(enable) {
-        if (typeof enable === 'undefined') {
-            enable = !isDashboardEditMode;
-        }
-        isDashboardEditMode = !!enable;
-
-        const grid = dashboardGridInstance || (typeof GridStack !== 'undefined' ? initDashboardGrid() : null);
-        if (grid) {
-            grid.enableMove(enable);
-            grid.enableResize(enable);
-        }
-
-        document.body.classList.toggle('dashboard-editing', enable);
-
-        // Näytetään/piilotetaan muokkaustoiminnot (poistoraksit, lisäysvalikko)
-        document.querySelectorAll('.card-remove-btn').forEach(b => {
-            b.style.display = enable ? 'flex' : 'none';
-        });
-
-        const addBtn = document.getElementById('btn-add-widget');
-        if (addBtn) addBtn.style.display = enable ? 'inline-flex' : 'none';
-
-        // Päivitetään muokkauspainikkeen tekstit ja ikonit
-        const editBtns = document.querySelectorAll('.btn-toggle-dashboard-edit');
-        editBtns.forEach(btn => {
-            if (enable) {
-                btn.innerHTML = '<span>💾</span> <span class="edit-btn-text">Valmis / Tallenna</span>';
-                btn.classList.add('is-editing', 'btn-primary');
-                btn.classList.remove('btn-outline');
-                btn.title = 'Tallenna asettelu ja lukitse ruutu';
-            } else {
-                btn.innerHTML = '<span>✏️</span> <span class="edit-btn-text">Muokkaa näkymää</span>';
-                btn.classList.remove('is-editing', 'btn-primary');
-                btn.classList.add('btn-outline');
-                btn.title = 'Muokkaa korttien asettelua ja kokoa';
-            }
-        });
-
-        if (!enable) {
-            saveDashboardGridLayout();
-            if (typeof showToast === 'function') {
-                showToast('Asettelu tallennettu ja lukittu!', 'success');
-            }
+            return savedLayout;
+        } catch (e) {
+            console.warn('loadGridLayout error:', e);
+            return null;
         }
     }
 
-    function removeDashboardWidget(widgetId) {
+    function removeDashboardWidget(widgetId, viewName) {
+        if (!viewName) viewName = getCurrentViewName();
         const itemEl = document.querySelector(`.grid-stack-item[gs-id="${widgetId}"]`) || document.getElementById(widgetId);
         if (!itemEl) return;
 
         const parentGridItem = itemEl.classList.contains('grid-stack-item') ? itemEl : itemEl.closest('.grid-stack-item');
+        const grid = gridInstances[viewName] || activeGrid;
+
         if (parentGridItem) {
             parentGridItem.style.display = 'none';
-            if (dashboardGridInstance) {
-                dashboardGridInstance.removeWidget(parentGridItem, false);
+            if (grid) {
+                grid.removeWidget(parentGridItem, false);
             }
         } else {
             itemEl.style.display = 'none';
         }
 
-        saveDashboardGridLayout();
+        saveGridLayout(viewName);
         if (typeof showToast === 'function') {
             showToast('Kortti piilotettu. Voit palauttaa sen [➕ Lisää kortti] -valikosta.', 'info');
         }
     }
 
-    function openAddWidgetModal() {
+    function openAddWidgetModal(viewName) {
+        if (!viewName) viewName = getCurrentViewName();
         const modal = document.getElementById('modal-add-widget');
         const listEl = document.getElementById('available-widgets-list');
         if (!modal || !listEl) return;
 
+        const widgets = VIEW_WIDGETS[viewName] || VIEW_WIDGETS['dashboard'] || [];
+
         listEl.innerHTML = '';
-        DASHBOARD_AVAILABLE_WIDGETS.forEach(w => {
+        widgets.forEach(w => {
             const itemEl = document.querySelector(`.grid-stack-item[gs-id="${w.id}"]`) || document.getElementById(w.id);
             const isVisible = itemEl && itemEl.style.display !== 'none' && (!itemEl.closest('.grid-stack-item') || itemEl.closest('.grid-stack-item').style.display !== 'none');
 
@@ -174,7 +409,7 @@
                 <div>
                     ${isVisible
                         ? '<span class="status-pill status-ready" style="font-size: 0.78rem;">✓ Näytöllä</span>'
-                        : `<button type="button" class="btn-primary tiny-btn" onclick="addDashboardWidget('${w.id}')" style="padding: 6px 14px; font-weight: 700; background: #0284c7;">➕ Lisää</button>`
+                        : `<button type="button" class="btn-primary tiny-btn" onclick="addDashboardWidget('${w.id}', '${viewName}')" style="padding: 6px 14px; font-weight: 700; background: #0284c7;">➕ Lisää</button>`
                     }
                 </div>
             `;
@@ -189,112 +424,79 @@
         if (modal) modal.style.display = 'none';
     }
 
-    function addDashboardWidget(widgetId) {
+    function addDashboardWidget(widgetId, viewName) {
+        if (!viewName) viewName = getCurrentViewName();
         const itemEl = document.querySelector(`.grid-stack-item[gs-id="${widgetId}"]`) || document.getElementById(widgetId);
         const parentGridItem = itemEl && itemEl.classList.contains('grid-stack-item') ? itemEl : (itemEl ? itemEl.closest('.grid-stack-item') : null);
+        const grid = gridInstances[viewName] || activeGrid;
 
         if (parentGridItem) {
             parentGridItem.style.display = '';
-            if (dashboardGridInstance) {
-                dashboardGridInstance.makeWidget(parentGridItem);
+            if (grid) {
+                grid.makeWidget(parentGridItem);
             }
         } else if (itemEl) {
             itemEl.style.display = '';
         }
 
         closeAddWidgetModal();
-        saveDashboardGridLayout();
+        saveGridLayout(viewName);
         if (typeof showToast === 'function') {
             showToast('Kortti lisätty näkymään!', 'success');
         }
     }
 
-    function getDashboardGridLayout() {
-        const items = [];
-        const gridEl = document.getElementById('dashboard-grid') || document.querySelector('.dashboard-grid');
-        if (!gridEl) return items;
+    const saveDashboardGridLayout = saveGridLayout;
+    const loadDashboardGridLayout = loadGridLayout;
+    const getDashboardGridLayout = getGridLayout;
+    const toggleEditMode = toggleDashboardEditMode;
 
-        gridEl.querySelectorAll('.grid-stack-item').forEach(el => {
-            const id = el.getAttribute('gs-id') || el.id;
-            const x = parseInt(el.getAttribute('gs-x') || 0, 10);
-            const y = parseInt(el.getAttribute('gs-y') || 0, 10);
-            const w = parseInt(el.getAttribute('gs-w') || 6, 10);
-            const h = parseInt(el.getAttribute('gs-h') || 4, 10);
-            const hidden = el.style.display === 'none';
-            items.push({ id, x, y, w, h, hidden });
-        });
-        return items;
-    }
+    const exports = {
+        handleLayoutResize,
+        initViewGrid,
+        initAllGrids,
+        initDashboardGrid,
+        getActiveGrid,
+        setActiveGrid,
+        toggleDashboardEditMode,
+        toggleEditMode,
+        removeDashboardWidget,
+        addDashboardWidget,
+        openAddWidgetModal,
+        closeAddWidgetModal,
+        getDashboardGridLayout,
+        getGridLayout,
+        saveDashboardGridLayout,
+        saveGridLayout,
+        loadDashboardGridLayout,
+        loadGridLayout,
+        getCurrentViewName,
+        getStorageKey,
+        gridInstances,
+        VIEW_WIDGETS,
+        DASHBOARD_AVAILABLE_WIDGETS: VIEW_WIDGETS.dashboard,
+        DRIVER_AVAILABLE_WIDGETS: VIEW_WIDGETS.driver,
+        ADMIN_AVAILABLE_WIDGETS: VIEW_WIDGETS.admin,
+        TARGETS_AVAILABLE_WIDGETS: VIEW_WIDGETS.targets
+    };
 
-    function saveDashboardGridLayout() {
-        const currentView = global.currentTabName || 'dashboard';
-        const layoutData = getDashboardGridLayout();
-        if (layoutData && layoutData.length > 0) {
-            try {
-                localStorage.setItem('yf_grid_layout_' + currentView, JSON.stringify(layoutData));
-            } catch (e) {
-                console.warn('saveDashboardGridLayout error:', e);
-            }
-        }
-    }
-
-    function loadDashboardGridLayout(currentView = global.currentTabName || 'dashboard') {
-        try {
-            const raw = localStorage.getItem('yf_grid_layout_' + currentView);
-            if (!raw) return null;
-            return JSON.parse(raw);
-        } catch (e) {
-            return null;
-        }
-    }
-
-    // Exports
     const target = (typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : global));
-    target.initDashboardGrid = initDashboardGrid;
-    target.toggleDashboardEditMode = toggleDashboardEditMode;
-    target.removeDashboardWidget = removeDashboardWidget;
-    target.openAddWidgetModal = openAddWidgetModal;
-    target.closeAddWidgetModal = closeAddWidgetModal;
-    target.addDashboardWidget = addDashboardWidget;
-    target.getDashboardGridLayout = getDashboardGridLayout;
-    target.saveDashboardGridLayout = saveDashboardGridLayout;
-    target.loadDashboardGridLayout = loadDashboardGridLayout;
-    target.DASHBOARD_AVAILABLE_WIDGETS = DASHBOARD_AVAILABLE_WIDGETS;
+    Object.assign(target, exports);
 
     if (typeof globalThis !== 'undefined' && globalThis !== target) {
-        globalThis.initDashboardGrid = initDashboardGrid;
-        globalThis.toggleDashboardEditMode = toggleDashboardEditMode;
-        globalThis.removeDashboardWidget = removeDashboardWidget;
-        globalThis.openAddWidgetModal = openAddWidgetModal;
-        globalThis.closeAddWidgetModal = closeAddWidgetModal;
-        globalThis.addDashboardWidget = addDashboardWidget;
-        globalThis.getDashboardGridLayout = getDashboardGridLayout;
-        globalThis.saveDashboardGridLayout = saveDashboardGridLayout;
-        globalThis.loadDashboardGridLayout = loadDashboardGridLayout;
-        globalThis.DASHBOARD_AVAILABLE_WIDGETS = DASHBOARD_AVAILABLE_WIDGETS;
+        Object.assign(globalThis, exports);
     }
-
     if (typeof global !== 'undefined' && global !== target && global !== globalThis) {
-        global.initDashboardGrid = initDashboardGrid;
-        global.toggleDashboardEditMode = toggleDashboardEditMode;
-        global.removeDashboardWidget = removeDashboardWidget;
-        global.openAddWidgetModal = openAddWidgetModal;
-        global.closeAddWidgetModal = closeAddWidgetModal;
-        global.addDashboardWidget = addDashboardWidget;
-        global.getDashboardGridLayout = getDashboardGridLayout;
-        global.saveDashboardGridLayout = saveDashboardGridLayout;
-        global.loadDashboardGridLayout = loadDashboardGridLayout;
-        global.DASHBOARD_AVAILABLE_WIDGETS = DASHBOARD_AVAILABLE_WIDGETS;
+        Object.assign(global, exports);
     }
 
-    // Auto-init on DOMContentLoaded
     if (typeof document !== 'undefined' && typeof setTimeout === 'function') {
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
-                setTimeout(initDashboardGrid, 100);
+                setTimeout(initAllGrids, 100);
             });
         } else {
-            setTimeout(initDashboardGrid, 100);
+            setTimeout(initAllGrids, 100);
         }
     }
 })(typeof window !== 'undefined' ? window : global);

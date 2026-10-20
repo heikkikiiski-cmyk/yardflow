@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="com.heikkikiiski.yardflow" version="2.4.0" xmlns="http://www.w3.org/ns/widgets">
+    <name>YardFlow</name>
+    <description>YardFlow – Piha- ja kiinteistötöiden älykäs reititys, työlokit ja laskutus</description>
+    <preference name="Orientation" value="default" />
+</widget>
