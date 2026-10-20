@@ -622,6 +622,99 @@
         }
     }
 
+    // 4. SIVUNÄKYMIEN VAIHTO JA NAVIGOINTI (showView & switchView)
+    function showView(viewId) {
+        if (!viewId) return;
+
+        // View-nimien ja DOM-tunnisteiden normalisointi
+        const viewMap = {
+            'dashboard': 'dashboard-view',
+            'home': 'dashboard-view',
+            'dashboard-view': 'dashboard-view',
+            'routes': 'viewRoutes',
+            'map': 'viewRoutes',
+            'viewRoutes': 'viewRoutes',
+            'routes-mgmt': 'view-routes',
+            'routes-management': 'view-routes',
+            'view-routes': 'view-routes',
+            'drivers': 'view-drivers',
+            'tyonjohto': 'view-drivers',
+            'admin': 'view-drivers',
+            'view-drivers': 'view-drivers',
+            'customers': 'customers-view',
+            'customers-view': 'customers-view',
+            'viewCustomers': 'customers-view',
+            'history': 'work-history-view',
+            'reports': 'work-history-view',
+            'work-history-view': 'work-history-view',
+            'billing': 'billing-view',
+            'billing-view': 'billing-view',
+            'settings': 'viewSettings',
+            'viewSettings': 'viewSettings'
+        };
+
+        const targetId = viewMap[viewId] || viewId;
+
+        // Piilotetaan kaikki .view-section näkymät
+        if (typeof document !== 'undefined') {
+            document.querySelectorAll('.view-section').forEach(view => {
+                view.style.display = 'none';
+                view.classList.remove('active');
+            });
+
+            const target = document.getElementById(targetId);
+            if (target) {
+                if (targetId === 'viewRoutes' && typeof window !== 'undefined' && window.innerWidth >= 768) {
+                    target.style.display = 'flex';
+                } else {
+                    target.style.display = 'block';
+                }
+                target.classList.add('active');
+            }
+
+            // Päivitetään aktiivisen välilehden korostus valikoissa
+            const tabName = Object.keys(viewMap).find(k => viewMap[k] === targetId && !k.includes('-view') && k !== targetId) || targetId;
+            if (typeof window !== 'undefined') {
+                window.currentTabName = tabName;
+            }
+
+            document.querySelectorAll('.drawer-nav-item, .nav-tab').forEach(item => {
+                const itemTarget = item.getAttribute('data-view') || item.id;
+                const isActive = (item.getAttribute('data-view') === targetId) || (item.getAttribute('data-view') === tabName) || (item.id === 'nav-' + tabName) || (item.id === 'tab-' + tabName);
+                item.classList.toggle('active', !!isActive);
+            });
+        }
+
+        // Päivitetään kartan koko aina kun karttanäkymä avataan:
+        if (typeof setTimeout === 'function') {
+            setTimeout(() => {
+                if (typeof initMaps === 'function') {
+                    initMaps();
+                } else if (typeof window !== 'undefined' && typeof window.initMaps === 'function') {
+                    window.initMaps();
+                }
+                if (typeof window !== 'undefined') {
+                    if (window.map && typeof window.map.invalidateSize === 'function') window.map.invalidateSize();
+                    if (window.adminMap && typeof window.adminMap.invalidateSize === 'function') window.adminMap.invalidateSize();
+                    if (window.yardMap && typeof window.yardMap.invalidateSize === 'function') window.yardMap.invalidateSize();
+                    if (window.mapInstance && typeof window.mapInstance.invalidateSize === 'function') window.mapInstance.invalidateSize();
+                }
+            }, 150);
+        }
+
+        // GridStack alustus aktiiviselle näkymälle
+        const gridViewNames = ['dashboard', 'driver', 'admin', 'targets'];
+        if (gridViewNames.includes(viewId) || (viewId.startsWith('view-') && gridViewNames.includes(viewId.replace('view-', '')))) {
+            const vName = gridViewNames.includes(viewId) ? viewId : viewId.replace('view-', '');
+            const grid = initViewGrid(vName);
+            if (grid && typeof loadGridLayout === 'function') {
+                loadGridLayout(vName, grid);
+            }
+        }
+    }
+
+    const switchView = showView;
+
     // Yhteensopivuusfunktiot
     const initDashboardGrid = () => initViewGrid('dashboard');
     const toggleDashboardEditMode = toggleEditMode;
@@ -642,6 +735,8 @@
     // Vientiobjektit
     const exports = {
         handleLayoutResize,
+        showView,
+        switchView,
         navigateToTask,
         initViewGrid,
         initAllGrids,
@@ -683,9 +778,25 @@
         Object.assign(global, exports);
     }
 
+    // Delegointi [data-view] -painikkeille ja alustus
+    if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+        document.addEventListener('click', (e) => {
+            const btn = e.target && e.target.closest && e.target.closest('[data-view]');
+            if (btn && !btn.classList.contains('view-section')) {
+                const targetView = btn.getAttribute('data-view');
+                if (targetView) {
+                    showView(targetView);
+                    if (typeof window !== 'undefined' && typeof window.closeAppDrawer === 'function') {
+                        window.closeAppDrawer();
+                    }
+                }
+            }
+        });
+    }
+
     // Alustus DOMContentLoaded-vaiheessa
     if (typeof document !== 'undefined' && typeof setTimeout === 'function') {
-        if (document.readyState === 'loading') {
+        if (document.readyState === 'loading' && typeof document.addEventListener === 'function') {
             document.addEventListener('DOMContentLoaded', () => {
                 setTimeout(initAllGrids, 100);
             });

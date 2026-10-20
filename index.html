@@ -1186,10 +1186,10 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
             <span style="font-weight: 500; font-size: 0.72rem; text-transform: none; color: var(--muted);">Valitse rooli:</span>
         </div>
         <div class="drawer-mode-grid" role="group" aria-label="Käyttäjäroolin valinta">
-            <button type="button" class="drawer-mode-btn field-mode-active active" id="drawerBtnModeField" onclick="selectAppModeFromDrawer('field')" title="Siirry kuljettajan työnäkymään">
+            <button type="button" class="drawer-mode-btn field-mode-active active" id="drawerBtnModeField" onclick="selectAppModeFromDrawer('field')" data-view="viewRoutes" title="Siirry kuljettajan työnäkymään">
                 <span>🚜</span> <span>Kuljettaja</span>
             </button>
-            <button type="button" class="drawer-mode-btn admin-mode-active" id="drawerBtnModeAdmin" onclick="selectAppModeFromDrawer('admin')" title="Siirry työnjohdon hallintatilaan">
+            <button type="button" class="drawer-mode-btn admin-mode-active" id="drawerBtnModeAdmin" onclick="selectAppModeFromDrawer('admin')" data-view="view-drivers" title="Siirry työnjohdon hallintatilaan">
                 <span>🛠️</span> <span id="drawerBtnModeAdminLabel">Työnjohto</span>
             </button>
         </div>
@@ -1197,56 +1197,56 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
 
     <nav class="drawer-nav">
         <!-- 🏠 Koti (Kuski: Työpäivänäkymä / Admin: Dashboard) -->
-        <button type="button" class="drawer-nav-item active" id="nav-home" onclick="navToTab('dashboard')">
+        <button type="button" class="drawer-nav-item active" id="nav-home" onclick="navToTab('dashboard')" data-view="dashboard-view">
             <span class="nav-item-icon">🏠</span>
             <span class="nav-item-label" id="navHomeLabel">Koti / Dashboard</span>
         </button>
 
         <!-- 🗺️ Kartta (Kuski: Reittikartta ja aurattavat alueet / Admin: Kartta & Reittisuunnittelu) -->
-        <button type="button" class="drawer-nav-item" id="nav-map" onclick="navToTab('routes')">
+        <button type="button" class="drawer-nav-item" id="nav-map" onclick="navToTab('routes')" data-view="viewRoutes">
             <span class="nav-item-icon">🗺️</span>
             <span class="nav-item-label" id="navMapLabel">Kartta &amp; Reitinsuunnittelu</span>
         </button>
 
         <!-- ADMIN-ONLY NÄKYMÄT -->
         <!-- 🛣️ Reitit (Vain Admin: reittien luonti, hallinta ja listaus) -->
-        <button type="button" class="drawer-nav-item admin-only" id="nav-routes-mgmt" onclick="navToTab('routes-mgmt')">
+        <button type="button" class="drawer-nav-item" id="nav-routes-mgmt" onclick="navToTab('routes-mgmt')" data-view="view-routes">
             <span class="nav-item-icon">🛣️</span>
             <span class="nav-item-label">Reitit</span>
             <span class="nav-badge" id="drawerRouteCountBadge">0</span>
         </button>
 
         <!-- 🚜 Kuljettajat (Vain Admin: kuskien lisäys, yhteystiedot, määritetyt reitit) -->
-        <button type="button" class="drawer-nav-item admin-only" id="nav-drivers" onclick="navToTab('drivers')">
+        <button type="button" class="drawer-nav-item" id="nav-drivers" onclick="navToTab('drivers')" data-view="view-drivers">
             <span class="nav-item-icon">🚜</span>
-            <span class="nav-item-label">Kuljettajat</span>
+            <span class="nav-item-label">Työnjohto &amp; Kuljettajat</span>
             <span class="nav-badge" id="drawerDriverCountBadge">0</span>
         </button>
 
         <!-- 👥 Asiakkaat (Vain Admin) -->
-        <button type="button" class="drawer-nav-item admin-only" id="nav-customers" onclick="navToTab('customers')">
+        <button type="button" class="drawer-nav-item" id="nav-customers" onclick="navToTab('customers')" data-view="customers-view">
             <span class="nav-item-icon">👥</span>
             <span class="nav-item-label">Asiakkaat &amp; Kohteet</span>
             <span class="nav-badge" id="drawerCustomerBadge">0</span>
         </button>
 
         <!-- 📊 Raportit & Työlokit (Vain Admin) -->
-        <button type="button" class="drawer-nav-item admin-only" id="nav-history" onclick="navToTab('history')">
+        <button type="button" class="drawer-nav-item" id="nav-history" onclick="navToTab('history')" data-view="work-history-view">
             <span class="nav-item-icon">📊</span>
             <span class="nav-item-label">Raportit &amp; Työlokit</span>
             <span class="nav-badge" id="drawerHistoryBadge">0</span>
         </button>
 
         <!-- 💶 Laskutus (Vain Admin) -->
-        <button type="button" class="drawer-nav-item admin-only" id="nav-billing" onclick="navToTab('billing')">
+        <button type="button" class="drawer-nav-item" id="nav-billing" onclick="navToTab('billing')" data-view="billing-view">
             <span class="nav-item-icon">💶</span>
             <span class="nav-item-label">Laskutus</span>
         </button>
 
-        <div class="drawer-divider admin-only" id="drawerDividerAdmin"></div>
+        <div class="drawer-divider" id="drawerDividerAdmin"></div>
 
-        <!-- ⚙️ Asetukset (Vain Admin) -->
-        <button type="button" class="drawer-nav-item admin-only" id="nav-settings" onclick="navToTab('settings')">
+        <!-- ⚙️ Asetukset (Käytettävissä kaikille asetuksien ja käyttäjätilan hallintaan) -->
+        <button type="button" class="drawer-nav-item" id="nav-settings" onclick="navToTab('settings')" data-view="viewSettings">
             <span class="nav-item-icon">⚙️</span>
             <span class="nav-item-label">Asetukset</span>
         </button>
@@ -1317,7 +1317,7 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
 
     
     <!-- NÄKYMÄ 0: KOTIVALIKKO / DASHBOARD (#dashboard-view) -->
-    <div id="dashboard-view" class="dashboard-view" style="display: none;">
+    <div id="dashboard-view" class="dashboard-view view-section" data-view="dashboard-view" style="display: none;">
         <!-- Yläbanneri -->
         <div class="dashboard-hero card" style="margin-bottom: 16px; padding: 20px; background: linear-gradient(135deg, rgba(37,99,235,0.12) 0%, rgba(16,185,129,0.08) 100%); border: 1px solid var(--border);">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
@@ -1477,9 +1477,9 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
                 </div>
             </div>
 
-            <!-- WIDGET 6: [Pikalinkit] (#dash-widget-shortcuts) -->
-            <div class="grid-stack-item admin-only" gs-id="dash-widget-shortcuts" gs-x="6" gs-y="8" gs-w="6" gs-h="4" gs-min-w="3" gs-min-h="2">
-                <div class="grid-stack-item-content card dash-widget-card collapsible-card admin-only" id="dash-widget-shortcuts">
+            <!-- WIDGET 6: [Pikalinkit / Reitin pikatoiminnot] (#dash-widget-shortcuts) -->
+            <div class="grid-stack-item" gs-id="dash-widget-shortcuts" gs-x="6" gs-y="8" gs-w="6" gs-h="4" gs-min-w="3" gs-min-h="2">
+                <div class="grid-stack-item-content card dash-widget-card collapsible-card" id="dash-widget-shortcuts">
                     <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('dash-widget-shortcuts')" title="Piilota kortti" style="display: none;">✕</button>
                     <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
                         <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
@@ -1545,7 +1545,7 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
     </div>
 
     <!-- NÄKYMÄ 1: AJO & REITIT (Ajolista heti ensimmäisenä!) -->
-    <div id="viewRoutes">
+    <div id="viewRoutes" class="view-section" data-view="viewRoutes">
         <div class="card sidebar-column" id="routeSidebarPanel">
             <!-- Widget 1: Pikahaku sivupalkissa -->
             <div id="widget-search" class="dashboard-widget">
@@ -1998,7 +1998,7 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
     </div>
 
     <!-- NÄKYMÄ 1A: KULJETTAJAN REITTI JA WIDGETIT (#view-driver) -->
-    <div id="view-driver" class="grid-stack view-pane view-driver-grid" data-view="driver" style="display: none; width: 100%; max-width: 1200px; margin: 0 auto;">
+    <div id="view-driver" class="grid-stack view-pane view-driver-grid view-section" data-view="view-driver" style="display: none; width: 100%; max-width: 1200px; margin: 0 auto;">
         <!-- Widget 1: Driver HUD -->
         <div class="grid-stack-item" gs-id="driver-widget-hud" gs-w="12" gs-h="4" gs-x="0" gs-y="0">
             <div class="grid-stack-item-content">
@@ -2064,7 +2064,7 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
     </div>
 
     <!-- NÄKYMÄ 1D: TYÖNJOHDON / ADMININ NÄKYMÄ (#view-admin) -->
-    <div id="view-admin" class="grid-stack view-pane view-admin-grid" data-view="admin" style="display: none; width: 100%; max-width: 1200px; margin: 0 auto;">
+    <div id="view-admin" class="grid-stack view-pane view-admin-grid view-section" data-view="view-admin" style="display: none; width: 100%; max-width: 1200px; margin: 0 auto;">
         <!-- Widget 1: Admin Kartta & Piirto -->
         <div class="grid-stack-item" gs-id="admin-widget-map" gs-w="8" gs-h="7" gs-x="0" gs-y="0">
             <div class="grid-stack-item-content">
@@ -2114,7 +2114,7 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
     </div>
 
     <!-- NÄKYMÄ 1E: KOHTEET & TYÖT (#view-targets) -->
-    <div id="view-targets" class="grid-stack view-pane view-targets-grid" data-view="targets" style="display: none; width: 100%; max-width: 1200px; margin: 0 auto;">
+    <div id="view-targets" class="grid-stack view-pane view-targets-grid view-section" data-view="view-targets" style="display: none; width: 100%; max-width: 1200px; margin: 0 auto;">
         <!-- Widget 1: Pikahaku -->
         <div class="grid-stack-item" gs-id="targets-widget-search" gs-w="4" gs-h="3" gs-x="0" gs-y="0">
             <div class="grid-stack-item-content">
@@ -2161,7 +2161,7 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
     </div>
 
     <!-- NÄKYMÄ 1B: REITTIEN HALLINTA & LISTAUS (#view-routes / Vain Admin) -->
-    <div id="view-routes" style="display: none;">
+    <div id="view-routes" class="view-section" data-view="view-routes" style="display: none;">
         <div class="card" style="max-width: 1200px; margin: 0 auto;">
             <!-- Yläpalkki -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
@@ -2200,7 +2200,7 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
     </div>
 
     <!-- NÄKYMÄ 1C: KULJETTAJIEN HALLINTA (#view-drivers / Vain Admin) -->
-    <div id="view-drivers" style="display: none;">
+    <div id="view-drivers" class="view-section" data-view="view-drivers" style="display: none;">
         <div class="card" style="max-width: 1200px; margin: 0 auto;">
             <!-- Yläpalkki -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
@@ -2346,7 +2346,7 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
     </div>
 
     <!-- NÄKYMÄ 2: ASIAKASLISTA / ASIAKASREKISTERI (Lista ja haku heti ylhäällä!) -->
-    <div id="customers-view" style="display: none;">
+    <div id="customers-view" class="view-section" data-view="customers-view" style="display: none;">
         <div class="card" style="max-width: 1200px; margin: 0 auto;">
             <!-- Yläpalkki: Otsikko ja "+ Lisää uusi asiakas" (#btn-add-customer) -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
@@ -2510,7 +2510,7 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
     </div>
 
         <!-- NÄKYMÄ 3: TEHTYJEN TÖIDEN LOKI (#work-history-view) -->
-    <div id="work-history-view" style="display: none;">
+    <div id="work-history-view" class="view-section" data-view="work-history-view" style="display: none;">
         <div class="card" style="max-width: 1040px; margin: 0 auto;">
             <!-- Yläpalkki: Otsikko, vientinappi ja uuden työn lisäys -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
@@ -2629,7 +2629,7 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
     </div>
 
     <!-- NÄKYMÄ 4: LASKUTUSOSIO (#billing-view) -->
-    <div id="billing-view" style="display: none;">
+    <div id="billing-view" class="view-section" data-view="billing-view" style="display: none;">
         <div class="card" style="max-width: 1040px; margin: 0 auto;">
             <!-- Yläpalkki: Otsikko ja Vientinapit -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
@@ -2738,7 +2738,7 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
     </div>
 
     <!-- NÄKYMÄ 5: ASETUKSET & KUSTOMOINTI -->
-    <div id="viewSettings" style="display: none;">
+    <div id="viewSettings" class="view-section" data-view="viewSettings" style="display: none;">
         <div class="card" style="max-width: 800px; margin: 0 auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
                 <button type="button" id="btn-back-from-settings" data-alias-id="btn-back-to-home" class="btn-outline" style="min-height: 42px; padding: 6px 16px; font-weight: 600; font-size: 0.9rem;" onclick="returnToMainViewFromSettings()">
@@ -4696,22 +4696,28 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
 
     function navToTab(tab) {
         closeAppDrawer();
+        if (typeof showView === 'function') {
+            showView(tab);
+        }
         switchTab(tab);
     }
     window.navToTab = navToTab;
 
     function selectAppModeFromDrawer(mode) {
         closeAppDrawer();
-        const role = (typeof getUserRole === 'function') ? getUserRole() : 'driver';
-        if (mode === 'admin' && (role === 'driver' || role === 'temporary')) {
+        const user = (typeof getActiveUser === 'function') ? getActiveUser() : null;
+        const role = (typeof getUserRole === 'function') ? getUserRole() : (user ? user.role : 'admin');
+        if (user && mode === 'admin' && (role === 'driver' || role === 'temporary')) {
             if (typeof showStatus === 'function') showStatus('Ei käyttöoikeutta työnjohdon hallintatilaan.', 'warning');
             return;
         }
         setAppMode(mode);
         if (mode === 'field') {
-            switchTab('dashboard');
+            if (typeof showView === 'function') showView('routes');
+            switchTab('routes');
         } else {
-            switchTab('dashboard');
+            if (typeof showView === 'function') showView('drivers');
+            switchTab('drivers');
         }
     }
     window.selectAppModeFromDrawer = selectAppModeFromDrawer;
@@ -4720,6 +4726,72 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
         selectAppModeFromDrawer('field');
     }
     window.toggleFieldModeFromDrawer = toggleFieldModeFromDrawer;
+
+    // 📱 Luotettava sivunäkymien vaihto (showView & switchView)
+    function showView(viewId) {
+        if (!viewId) return;
+
+        const viewMap = {
+            'dashboard': 'dashboard-view',
+            'home': 'dashboard-view',
+            'dashboard-view': 'dashboard-view',
+            'routes': 'viewRoutes',
+            'map': 'viewRoutes',
+            'viewRoutes': 'viewRoutes',
+            'routes-mgmt': 'view-routes',
+            'routes-management': 'view-routes',
+            'view-routes': 'view-routes',
+            'drivers': 'view-drivers',
+            'tyonjohto': 'view-drivers',
+            'admin': 'view-drivers',
+            'view-drivers': 'view-drivers',
+            'customers': 'customers-view',
+            'customers-view': 'customers-view',
+            'viewCustomers': 'customers-view',
+            'history': 'work-history-view',
+            'reports': 'work-history-view',
+            'work-history-view': 'work-history-view',
+            'billing': 'billing-view',
+            'billing-view': 'billing-view',
+            'settings': 'viewSettings',
+            'viewSettings': 'viewSettings'
+        };
+
+        const targetId = viewMap[viewId] || viewId;
+
+        document.querySelectorAll('.view-section').forEach(view => {
+            view.style.display = 'none';
+            view.classList.remove('active');
+        });
+
+        const target = document.getElementById(targetId);
+        if (target) {
+            if (targetId === 'viewRoutes' && window.innerWidth >= 768) {
+                target.style.display = 'flex';
+            } else {
+                target.style.display = 'block';
+            }
+            target.classList.add('active');
+        }
+
+        const tabName = Object.keys(viewMap).find(k => viewMap[k] === targetId && !k.includes('-view') && k !== targetId) || targetId;
+        window.currentTabName = tabName;
+
+        document.querySelectorAll('.drawer-nav-item, .nav-tab').forEach(item => {
+            const isActive = (item.getAttribute('data-view') === targetId) || (item.getAttribute('data-view') === tabName) || (item.id === 'nav-' + tabName) || (item.id === 'tab-' + tabName);
+            item.classList.toggle('active', !!isActive);
+        });
+
+        setTimeout(() => {
+            if (typeof initMaps === 'function') initMaps();
+            if (window.map && typeof window.map.invalidateSize === 'function') window.map.invalidateSize();
+            if (window.adminMap && typeof window.adminMap.invalidateSize === 'function') window.adminMap.invalidateSize();
+            if (window.yardMap && typeof window.yardMap.invalidateSize === 'function') window.yardMap.invalidateSize();
+            if (window.mapInstance && typeof window.mapInstance.invalidateSize === 'function') window.mapInstance.invalidateSize();
+        }, 150);
+    }
+    window.showView = showView;
+    window.switchView = showView;
 
     function checkNetworkConnection(notify = false) {
         const isOnline = navigator.onLine !== false;
@@ -5085,21 +5157,32 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
         window.isDashboardEditMode = isDashboardEditMode;
         window.isEditMode = isDashboardEditMode;
 
-        getActiveGrid() || initViewGrid(getCurrentViewName());
-
-        if (window.gridInstances) {
-            Object.values(window.gridInstances).forEach(g => {
-                if (g) {
-                    try {
-                        if (typeof g.setStatic === 'function') g.setStatic(!enable);
-                        if (typeof g.enableMove === 'function') g.enableMove(enable);
-                        if (typeof g.enableResize === 'function') g.enableResize(enable);
-                    } catch (e) {
-                        console.warn('toggleDashboardEditMode grid update error:', e);
-                    }
-                }
-            });
+        let curGrid = getActiveGrid();
+        if (!curGrid && typeof initViewGrid === 'function') {
+            curGrid = initViewGrid('dashboard') || initViewGrid(getCurrentViewName());
         }
+        if (!curGrid && window.dashboardGrid) {
+            curGrid = window.dashboardGrid;
+        }
+
+        const allGrids = new Set([
+            curGrid,
+            window.activeGrid,
+            window.dashboardGrid,
+            ...(window.gridInstances ? Object.values(window.gridInstances) : [])
+        ]);
+
+        allGrids.forEach(g => {
+            if (g) {
+                try {
+                    if (typeof g.setStatic === 'function') g.setStatic(!enable);
+                    if (typeof g.enableMove === 'function') g.enableMove(enable);
+                    if (typeof g.enableResize === 'function') g.enableResize(enable);
+                } catch (e) {
+                    console.warn('toggleDashboardEditMode grid update error:', e);
+                }
+            }
+        });
 
         document.body.classList.toggle('dashboard-editing', enable);
 
@@ -5704,8 +5787,19 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
         if (tab === 'map') tab = 'routes';
         if (tab === 'home') tab = 'dashboard';
 
+        const user = (typeof getActiveUser === 'function') ? getActiveUser() : null;
+        const role = (typeof getUserRole === 'function') ? getUserRole() : (user ? user.role : 'admin');
+        const adminViews = ['routes-mgmt', 'drivers', 'customers', 'history', 'billing', 'settings'];
+
+        // Jos siirrytään hallintanäkymään, sallitaan automaattinen tilanpäivitys jos ei rajoittavaa kuskisessiota
+        if (adminViews.includes(tab) && currentAppMode === 'field') {
+            if (!user || role === 'admin' || role === 'supervisor') {
+                setAppMode('admin');
+            }
+        }
+
         // Oikeuksien tarkistus näkymiin
-        if (typeof hasPermission === 'function') {
+        if (user && typeof hasPermission === 'function') {
             if (tab === 'routes-mgmt' && !hasPermission('can_edit_routes')) {
                 if (typeof showStatus === 'function') showStatus('Ei käyttöoikeutta reittien hallintaan.', 'warning');
                 tab = 'routes';
@@ -5725,19 +5819,13 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
         }
 
         // Kuljettajalla sallitut näkymät ovat 'dashboard' (koti) ja 'routes' (kartta) jos ei muita oikeuksia
-        if (currentAppMode === 'field' && tab !== 'dashboard' && tab !== 'routes') {
+        if (user && (role === 'driver' || role === 'temporary') && currentAppMode === 'field' && tab !== 'dashboard' && tab !== 'routes') {
             tab = 'routes';
         }
 
-        if (typeof getUserRole === 'function') {
-            const r = getUserRole();
-            if (r === 'supervisor' && (tab === 'billing' || tab === 'settings')) {
-                if (typeof showStatus === 'function') showStatus('Ei käyttöoikeutta kyseiseen osioon.', 'warning');
-                tab = 'dashboard';
-            }
-            if ((r === 'driver' || r === 'temporary') && tab !== 'dashboard' && tab !== 'routes') {
-                tab = 'routes';
-            }
+        if (role === 'supervisor' && (tab === 'billing' || tab === 'settings')) {
+            if (typeof showStatus === 'function') showStatus('Ei käyttöoikeutta kyseiseen osioon.', 'warning');
+            tab = 'dashboard';
         }
 
         window.currentTabName = tab;
@@ -15886,26 +15974,57 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
     }
     window.updateMapSettingsUi = updateMapSettingsUi;
 
+    function initMaps() {
+        if (typeof document === 'undefined' || typeof document.getElementById !== 'function') return;
+        const mapEl = document.getElementById('map') || document.getElementById('admin-map') || document.getElementById('yardSatelliteMap');
+        if (!mapEl || typeof L === 'undefined') return;
+        try {
+            if (!window.mapInstance && !mapEl._leaflet_id) {
+                window.mapInstance = L.map(mapEl.id).setView([61.4981, 23.7610], 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '© OpenStreetMap'
+                }).addTo(window.mapInstance);
+            }
+            if (window.mapInstance && typeof window.mapInstance.invalidateSize === 'function') {
+                window.mapInstance.invalidateSize();
+            }
+            if (!window.map && window.mapInstance) {
+                window.map = window.mapInstance;
+            }
+        } catch (err) {
+            console.error('Kartan alustusvirhe (initMaps):', err);
+        }
+    }
+    window.initMaps = initMaps;
+
     function initYardSatelliteMap() {
         const mapEl = document.getElementById('yardSatelliteMap');
         if (!mapEl || typeof L === 'undefined') return;
 
-        const initLat = (depot && depot.lat) ? depot.lat : 61.4978;
-        const initLon = (depot && depot.lon) ? depot.lon : 23.7610;
+        if (yardMap || mapEl._leaflet_id) {
+            safeInvalidateMap(yardMap || window.map);
+            return;
+        }
 
-        yardMap = L.map('yardSatelliteMap', {
-            center: [initLat, initLon],
-            zoom: 18,
-            maxZoom: 21,
-            dragging: true,
-            touchZoom: true,
-            scrollWheelZoom: true,
-            doubleClickZoom: true,
-            boxZoom: true,
-            keyboard: true
-        });
-        window.map = yardMap;
-        window.yardMap = yardMap;
+        try {
+            const initLat = (depot && depot.lat) ? depot.lat : 61.4978;
+            const initLon = (depot && depot.lon) ? depot.lon : 23.7610;
+
+            yardMap = L.map('yardSatelliteMap', {
+                center: [initLat, initLon],
+                zoom: 18,
+                maxZoom: 21,
+                dragging: true,
+                touchZoom: true,
+                scrollWheelZoom: true,
+                doubleClickZoom: true,
+                boxZoom: true,
+                keyboard: true
+            });
+            window.map = yardMap;
+            window.yardMap = yardMap;
+            window.mapInstance = yardMap;
 
         // Karttapohja tallennetun valinnan mukaan (satellite tai street)
         const layers = getBaseLayers();
@@ -16046,6 +16165,9 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
 
         refreshYardMapTargetSelect();
         renderTargetGeoJSONOnMap(currentMapTargetKey, true);
+        } catch (err) {
+            console.error('Kartan alustusvirhe (initYardSatelliteMap):', err);
+        }
     }
 
     // Teeman alustus

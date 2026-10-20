@@ -1,5 +1,5 @@
 /**
- * YardFlow Map Resize & Orientation Handling (map.js)
+ * YardFlow Map Resize, Initialization & Orientation Handling (map.js)
  */
 
 (function(global) {
@@ -14,6 +14,30 @@
         }
     }
 
+    function initMaps() {
+        if (typeof document === 'undefined' || typeof document.getElementById !== 'function') return;
+        const mapEl = document.getElementById('map') || document.getElementById('admin-map') || document.getElementById('yardSatelliteMap');
+        if (!mapEl || typeof L === 'undefined') return;
+        const win = typeof window !== 'undefined' ? window : global;
+        try {
+            if (!win.mapInstance && !mapEl._leaflet_id) {
+                win.mapInstance = L.map(mapEl.id).setView([61.4981, 23.7610], 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '© OpenStreetMap'
+                }).addTo(win.mapInstance);
+            }
+            if (win.mapInstance && typeof win.mapInstance.invalidateSize === 'function') {
+                win.mapInstance.invalidateSize();
+            }
+            if (!win.map && win.mapInstance) {
+                win.map = win.mapInstance;
+            }
+        } catch (err) {
+            console.error('Kartan alustusvirhe:', err);
+        }
+    }
+
     function initMapResizeListeners(grid) {
         if (grid && typeof grid.on === 'function') {
             grid.on('resizestop', function(event, el) {
@@ -22,6 +46,7 @@
                     safeInvalidateMap(global.adminMap || (typeof window !== 'undefined' ? window.adminMap : null));
                     safeInvalidateMap(global.yardMap || (typeof window !== 'undefined' ? window.yardMap : null));
                     safeInvalidateMap(global.customerGeofenceMap || (typeof window !== 'undefined' ? window.customerGeofenceMap : null));
+                    safeInvalidateMap(global.mapInstance || (typeof window !== 'undefined' ? window.mapInstance : null));
                 }
             });
         }
@@ -31,6 +56,7 @@
             safeInvalidateMap(global.adminMap || (typeof window !== 'undefined' ? window.adminMap : null));
             safeInvalidateMap(global.yardMap || (typeof window !== 'undefined' ? window.yardMap : null));
             safeInvalidateMap(global.customerGeofenceMap || (typeof window !== 'undefined' ? window.customerGeofenceMap : null));
+            safeInvalidateMap(global.mapInstance || (typeof window !== 'undefined' ? window.mapInstance : null));
         };
 
         if (typeof global.addEventListener === 'function') {
@@ -45,22 +71,27 @@
 
     const target = (typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : global));
     target.safeInvalidateMap = safeInvalidateMap;
+    target.initMaps = initMaps;
     target.initMapResizeListeners = initMapResizeListeners;
     if (typeof globalThis !== 'undefined' && globalThis !== target) {
         globalThis.safeInvalidateMap = safeInvalidateMap;
+        globalThis.initMaps = initMaps;
         globalThis.initMapResizeListeners = initMapResizeListeners;
     }
     if (typeof global !== 'undefined' && global !== target && global !== globalThis) {
         global.safeInvalidateMap = safeInvalidateMap;
+        global.initMaps = initMaps;
         global.initMapResizeListeners = initMapResizeListeners;
     }
 
     if (typeof document !== 'undefined' && typeof setTimeout === 'function') {
-        if (document.readyState === 'loading') {
+        if (document.readyState === 'loading' && typeof document.addEventListener === 'function') {
             document.addEventListener('DOMContentLoaded', () => {
+                initMaps();
                 initMapResizeListeners(global.dashboardGrid);
             });
         } else {
+            initMaps();
             initMapResizeListeners(global.dashboardGrid);
         }
     }

@@ -605,6 +605,82 @@
         }
     }
 
+    // 4. SIVUNÄKYMIEN VAIHTO JA NAVIGOINTI (showView & switchView)
+    function showView(viewId) {
+        if (!viewId) return;
+
+        const viewMap = {
+            'dashboard': 'dashboard-view',
+            'home': 'dashboard-view',
+            'dashboard-view': 'dashboard-view',
+            'routes': 'viewRoutes',
+            'map': 'viewRoutes',
+            'viewRoutes': 'viewRoutes',
+            'routes-mgmt': 'view-routes',
+            'routes-management': 'view-routes',
+            'view-routes': 'view-routes',
+            'drivers': 'view-drivers',
+            'tyonjohto': 'view-drivers',
+            'admin': 'view-drivers',
+            'view-drivers': 'view-drivers',
+            'customers': 'customers-view',
+            'customers-view': 'customers-view',
+            'viewCustomers': 'customers-view',
+            'history': 'work-history-view',
+            'reports': 'work-history-view',
+            'work-history-view': 'work-history-view',
+            'billing': 'billing-view',
+            'billing-view': 'billing-view',
+            'settings': 'viewSettings',
+            'viewSettings': 'viewSettings'
+        };
+
+        const targetId = viewMap[viewId] || viewId;
+
+        if (typeof document !== 'undefined') {
+            document.querySelectorAll('.view-section').forEach(view => {
+                view.style.display = 'none';
+                view.classList.remove('active');
+            });
+
+            const target = document.getElementById(targetId);
+            if (target) {
+                if (targetId === 'viewRoutes' && typeof window !== 'undefined' && window.innerWidth >= 768) {
+                    target.style.display = 'flex';
+                } else {
+                    target.style.display = 'block';
+                }
+                target.classList.add('active');
+            }
+
+            const tabName = Object.keys(viewMap).find(k => viewMap[k] === targetId && !k.includes('-view') && k !== targetId) || targetId;
+            if (typeof window !== 'undefined') {
+                window.currentTabName = tabName;
+            }
+
+            document.querySelectorAll('.drawer-nav-item, .nav-tab').forEach(item => {
+                const isActive = (item.getAttribute('data-view') === targetId) || (item.getAttribute('data-view') === tabName) || (item.id === 'nav-' + tabName) || (item.id === 'tab-' + tabName);
+                item.classList.toggle('active', !!isActive);
+            });
+        }
+
+        setTimeout(() => {
+            if (typeof initMaps === 'function') {
+                initMaps();
+            } else if (typeof window !== 'undefined' && typeof window.initMaps === 'function') {
+                window.initMaps();
+            }
+            if (typeof window !== 'undefined') {
+                if (window.map && typeof window.map.invalidateSize === 'function') window.map.invalidateSize();
+                if (window.adminMap && typeof window.adminMap.invalidateSize === 'function') window.adminMap.invalidateSize();
+                if (window.yardMap && typeof window.yardMap.invalidateSize === 'function') window.yardMap.invalidateSize();
+                if (window.mapInstance && typeof window.mapInstance.invalidateSize === 'function') window.mapInstance.invalidateSize();
+            }
+        }, 150);
+    }
+
+    const switchView = showView;
+
     const saveDashboardGridLayout = saveGridLayout;
     const loadDashboardGridLayout = loadGridLayout;
     const getDashboardGridLayout = getGridLayout;
@@ -622,6 +698,8 @@
 
     const exports = {
         handleLayoutResize,
+        showView,
+        switchView,
         navigateToTask,
         initViewGrid,
         initAllGrids,
