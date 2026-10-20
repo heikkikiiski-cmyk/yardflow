@@ -627,11 +627,22 @@
     const toggleDashboardEditMode = toggleEditMode;
     const saveDashboardGridLayout = saveGridLayout;
     const loadDashboardGridLayout = loadGridLayout;
+    function navigateToTask(taskId) {
+        let task = null;
+        if (typeof taskId === 'object' && taskId) task = taskId;
+        else if (typeof global.tasks !== 'undefined' && Array.isArray(global.tasks)) task = global.tasks.find(t => t.id === taskId || String(t.id) === String(taskId));
+        else if (typeof window !== 'undefined' && Array.isArray(window.tasks)) task = window.tasks.find(t => t.id === taskId || String(t.id) === String(taskId));
+        if (!task) return;
+        const dest = (task.lat && (task.lon || task.lng)) ? `${task.lat},${task.lon || task.lng}` : encodeURIComponent(task.address || task.name);
+        if (typeof window !== 'undefined') window.open(`https://www.google.com/maps/dir/?api=1&destination=${dest}`, '_blank');
+    }
+
     const getDashboardGridLayout = getGridLayout;
 
     // Vientiobjektit
     const exports = {
         handleLayoutResize,
+        navigateToTask,
         initViewGrid,
         initAllGrids,
         initDashboardGrid,

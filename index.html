@@ -29,6 +29,7 @@
     <link href="https://cdn.jsdelivr.net/npm/gridstack@10.3.1/dist/gridstack.min.css" rel="stylesheet"/>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/gridstack@10.3.1/dist/gridstack-all.js"></script>
+    <script src="theme.js"></script>
     <script src="app.js"></script>
     <script src="dashboard.js"></script>
     <script src="map.js"></script>
@@ -40,7 +41,7 @@
                 const theme = saved || (prefersDark ? 'dark' : 'light');
                 document.documentElement.setAttribute('data-theme', theme);
                 const meta = document.getElementById('metaThemeColor');
-                if (meta) meta.setAttribute('content', theme === 'dark' ? '#0f172a' : '#f8fafc');
+                if (meta) meta.setAttribute('content', theme === 'dark' ? '#0d1117' : '#ffffff');
             } catch (e) {}
         })();
     </script>
@@ -1266,34 +1267,39 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
 </aside>
 
 <header class="app-header navbar header" id="top-bar">
-    <div style="display: flex; align-items: center; gap: 10px;">
-        <button type="button" id="btn-open-menu" class="btn-menu-toggle" onclick="toggleAppDrawer()" aria-label="Valikko" title="Avaa valikko">
+    <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+        <button type="button" id="btn-open-menu" class="btn-menu-toggle btn" onclick="toggleAppDrawer()" aria-label="Valikko" title="Avaa valikko">
             <span class="menu-icon">☰</span>
             <span class="menu-text">Valikko</span>
         </button>
-        <div class="logo" onclick="switchTab('dashboard')" style="cursor: pointer;" title="YardFlow Dashboard">
-            <img src="assets/logo.png" alt="YardFlow Logo" class="menu-logo" style="width: 32px; height: 32px; object-fit: contain; border-radius: 8px; flex-shrink: 0;">
+        <div class="logo" onclick="switchTab('dashboard')" style="cursor: pointer; display: flex; align-items: center; gap: 8px; text-decoration: none;" title="YardFlow Dashboard">
+            <img src="assets/logo.png" alt="YardFlow Logo" class="menu-logo" style="width: 28px; height: 28px; object-fit: contain; border-radius: 6px; flex-shrink: 0;">
             <div class="logo-title">Yard<span>Flow</span></div>
+        </div>
+        <!-- Aktiivisen reitin / käyttäjän lyhyt nimi vasemmalla -->
+        <div id="topbarActiveBadge" class="header-active-info" style="font-size: 0.8rem; color: var(--fg-muted); border-left: 1px solid var(--border-default); padding-left: 10px; margin-left: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px;" title="Aktiivinen reitti ja käyttäjä">
+            <span id="topbarActiveRouteName">YardFlow</span>
         </div>
     </div>
     <div class="header-actions">
         <!-- Muokkaa näkymää / Valmis & Tallenna -->
-        <button type="button" id="btn-toggle-dashboard-edit" class="btn-toggle-dashboard-edit btn-outline" onclick="toggleDashboardEditMode()" title="Muokkaa näkymää" style="min-height: 38px; padding: 6px 14px; font-size: 0.82rem; font-weight: 600; border-radius: var(--radius-md); display: inline-flex; align-items: center; gap: 6px;">
-            <span>✏️</span> <span class="edit-btn-text">Muokkaa näkymää</span>
+        <button type="button" id="btn-toggle-dashboard-edit" class="btn-toggle-dashboard-edit btn btn-outline" onclick="toggleDashboardEditMode()" title="Muokkaa näkymää">
+            <span>✏️</span> <span class="edit-btn-text">Muokkaa</span>
         </button>
-        <button type="button" id="btn-topbar-add-widget" class="btn-primary" onclick="openAddWidgetModal()" title="Lisää piilotettu tai uusi kortti" style="display: none; min-height: 38px; padding: 6px 14px; font-size: 0.82rem; font-weight: 700; border-radius: var(--radius-md); align-items: center; gap: 6px; background: #0284c7;">
+        <button type="button" id="btn-topbar-add-widget" class="btn btn-primary" onclick="openAddWidgetModal()" title="Lisää piilotettu tai uusi kortti" style="display: none;">
             <span>➕</span> <span>Lisää kortti</span>
         </button>
 
         <!-- Yhteystilakuvake ☁️ -->
         <div id="connectionStatusIndicator" class="connection-status-pill" title="Yhteystila: Yhdistetty paikallisesti ja pilveen" onclick="checkNetworkConnection(true)">
             <span class="connection-status-dot"></span>
-            <span class="connection-status-text">☁️ Online</span>
+            <span class="connection-status-text">Online</span>
         </div>
 
-        <button id="themeToggleBtn" class="theme-toggle-btn" type="button" onclick="toggleTheme()" title="Vaihda teemaa (Kirkas / Tumma)" aria-label="Vaihda teemaa">
-            <span class="theme-toggle-icon">☀️</span>
-            <span class="theme-toggle-text">Vaalea</span>
+        <!-- Pikanappi teeman vaihtoon [ 🌙 / ☀️ ] -->
+        <button id="themeToggleBtn" class="theme-toggle-btn btn btn-outline" type="button" onclick="toggleTheme()" title="Vaihda teemaa (Tumma / Vaalea)" aria-label="Vaihda teemaa">
+            <span class="theme-toggle-icon">🌙</span>
+            <span class="theme-toggle-text">Teema</span>
         </button>
     </div>
 </header>
@@ -1582,15 +1588,15 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
                     <div id="widgetNextYardDetails">
                         <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main); margin-bottom: 2px;" id="widgetNextYardName">-</div>
                         <div style="font-size: 0.8rem; color: var(--muted); margin-bottom: 8px;" id="widgetNextYardAddress">-</div>
-                        <div style="display: flex; gap: 6px;">
-                            <button type="button" class="btn-primary" style="flex: 1; min-height: 40px; font-size: 0.85rem; padding: 6px 10px;" onclick="navigateToNextYard()">
-                                🧭 Navigoi
+                        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                            <button type="button" class="btn btn-outline" style="flex: 1; min-height: 38px; font-size: 0.85rem; padding: 6px 10px;" onclick="navigateToNextYard()" title="Avaa ulkoinen Google Maps / Waze -opastus">
+                                ↗ Navigoi
                             </button>
-                            <button type="button" class="btn-success driver-only" style="flex: 1; min-height: 40px; font-size: 0.85rem; padding: 6px 10px;" onclick="completeNextYard()">
+                            <button type="button" class="btn btn-outline" style="flex: 1; min-height: 38px; font-size: 0.85rem; padding: 6px 10px;" onclick="centerMapOnCurrentTarget()" title="Keskitä sisäinen kartta kohteeseen">
+                                📍 Keskitä
+                            </button>
+                            <button type="button" class="btn btn-primary driver-only" style="flex: 1; min-height: 38px; font-size: 0.85rem; padding: 6px 10px;" onclick="completeNextYard()">
                                 ✓ Kuittaa
-                            </button>
-                            <button type="button" class="btn-outline admin-only" style="flex: 1; min-height: 40px; font-size: 0.85rem; padding: 6px 10px;" onclick="switchTab('routes')" title="Näytä kohde kartalla">
-                                📍 Kartalle
                             </button>
                         </div>
                     </div>
@@ -1608,39 +1614,30 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
                 </div>
             </div>
 
-            <h3 style="margin-bottom: 10px;">
-                <span>🚜 Päivän ajolista (<span id="taskCount">0</span>)</span>
-                <span class="summary-km" id="summaryDistance"></span>
-            </h3>
-            <div id="activeRoute" class="active-route-badge"></div>
+            <!-- Reitin hallintapalkki / siisti työkalurivi -->
+            <div class="route-toolbar Box" style="padding: 10px 12px; margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;">
+                    <div id="activeRoute" class="active-route-badge" style="margin: 0; font-weight: 600; font-size: 0.9rem;"></div>
+                    <div id="route-analytics-panel" class="route-analytics-panel" style="margin: 0; padding: 0;"></div>
+                </div>
+                <div id="optimizerStatus" class="status-box"></div>
+                <div id="routeLinks"></div>
 
-            <div id="optimizerStatus" class="status-box"></div>
-            <div id="routeLinks"></div>
-
-            <!-- Hallintapaneelin siirtymäyhteenveto ja kululaskenta (#route-analytics-panel) -->
-            <div id="route-analytics-panel" class="route-analytics-panel"></div>
-
-            <!-- 2 selkeää päätoimintoa kuljettajalle -->
-            <div class="primary-actions-row">
-                <button class="btn-action" onclick="autoOptimizeRoute()" id="btnOptimize">
-                    ⚡ Optimoi reitti
-                </button>
-                <button class="btn-secondary" style="min-height: 52px; font-size: 0.95rem;" onclick="openRouteInGoogleMaps()">
-                    🗺️ Avaa Mapsissa
-                </button>
-            </div>
-
-            <!-- Kompaktit lisätyökalut (avaavat lomakkeen tai asetukset vain tarvittaessa) -->
-            <div class="toolbar-row admin-only">
-                <button type="button" class="btn-primary" id="btn-create-new-route" onclick="openCreateRouteModal()" style="font-weight: 700; padding: 6px 14px;">
-                    ➕ Luo uusi reitti
-                </button>
-                <button type="button" class="drawer-toggle-btn" id="btnToggleAddTask" onclick="toggleDrawer('addTaskDrawer', this)">
-                    ➕ Lisää kohde
-                </button>
-                <button type="button" class="drawer-toggle-btn" id="btnToggleRouteConfig" onclick="toggleDrawer('routeConfigDrawer', this)">
-                    ⚙️ Reitit &amp; Varikko (<span id="routeCount">0</span>)
-                </button>
+                <!-- Ryhmitellyt toimintopainikkeet reitin hallintapalkissa -->
+                <div class="toolbar-actions" style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                    <button type="button" class="btn btn-outline" onclick="autoOptimizeRoute()" id="btnOptimize" title="Optimoi ajojärjestys lyhimmän siirtymän mukaan">
+                        ⚡ Optimoi reitti
+                    </button>
+                    <button type="button" class="btn btn-primary admin-only" id="btn-create-new-route" onclick="openCreateRouteModal()" title="Luo kokonaan uusi reitti">
+                        ➕ Luo uusi reitti
+                    </button>
+                    <button type="button" class="btn btn-outline admin-only drawer-toggle-btn" id="btnToggleAddTask" onclick="toggleDrawer('addTaskDrawer', this)" title="Lisää kohde reitille">
+                        ➕ Lisää kohde
+                    </button>
+                    <button type="button" class="btn btn-outline admin-only drawer-toggle-btn" id="btnToggleRouteConfig" onclick="toggleDrawer('routeConfigDrawer', this)" title="Reitit ja varikon asetukset">
+                        ⚙️ Reitit &amp; Varikko (<span id="routeCount">0</span>)
+                    </button>
+                </div>
             </div>
 
             <!-- AVATTAVA PANEELI 1: Uuden kohteen lisäys -->
@@ -1779,18 +1776,21 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
                 </div>
             </div>
 
-            <!-- KOKOONTAITETTAVA REITIN KOHTEET -KORTTI (#route-planning-card) -->
-            <div id="route-planning-card" class="card collapsible-card" style="margin-top: 12px; padding: 12px;">
-                <div class="card-header-clickable" onclick="toggleCardCollapse(this)" style="margin-bottom: 8px;">
-                    <div style="font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
+            <!-- YHDISTETTY TIIVIS TYÖJONO (#route-planning-card) -->
+            <div id="route-planning-card" class="card Box collapsible-card" style="margin-top: 12px; padding: 0; overflow: hidden;">
+                <div class="card-header Box-header card-header-clickable" onclick="toggleCardCollapse(this)" style="display: flex; justify-content: space-between; align-items: center; gap: 8px; cursor: pointer; padding: 10px 14px;">
+                    <div style="font-weight: 600; font-size: 0.92rem; display: flex; align-items: center; gap: 6px;">
                         <span>📋</span>
-                        <span>Reitin kohteet</span>
+                        <span>Työjono (<span id="taskCount">0 / 0 jäljellä</span>)</span>
                     </div>
-                    <span class="collapse-chevron">▾</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="summary-km" id="summaryDistance" style="font-size: 0.8rem; color: var(--fg-muted);"></span>
+                        <span class="collapse-chevron">▾</span>
+                    </div>
                 </div>
-                <div class="card-collapsible-body">
+                <div class="card-collapsible-body" style="padding: 10px 12px;">
                     <!-- Suodattimet ja itse kohdelista -->
-                    <div class="filter-bar">
+                    <div class="filter-bar" style="margin-bottom: 8px;">
                         <button class="filter-btn active" onclick="setFilter('all', this)">Kaikki</button>
                         <button class="filter-btn" onclick="setFilter('pending', this)">Tekemättä</button>
                         <button class="filter-btn" onclick="setFilter('done', this)">Valmiit</button>
@@ -1826,11 +1826,11 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                         <div id="driverHudRouteInfo" style="font-size: 0.76rem; color: var(--accent-light, #38bdf8); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 140px;" title="Aktiivinen reitti ja kuljettaja"></div>
-                        <button type="button" id="btn-center-target-hud" class="driver-nav-quick-btn" onclick="centerMapOnCurrentTarget()" title="Keskitä kartta valittuun kohteeseen" style="background: rgba(14, 165, 233, 0.2); border: 1px solid #38bdf8; color: #38bdf8; display: inline-flex; align-items: center; gap: 4px;">
-                            <span>📍</span> <span>Keskitä kohteeseen</span>
+                        <button type="button" id="btn-center-target-hud" class="driver-nav-quick-btn btn btn-outline" onclick="centerMapOnCurrentTarget()" title="Keskitä sisäinen kartta valittuun kohteeseen">
+                            <span>📍</span> <span>Keskitä</span>
                         </button>
-                        <button type="button" class="driver-nav-quick-btn" onclick="navigateToNextYard()" title="Avaa navigointi Google Mapsissa">
-                            🧭 Navigoi
+                        <button type="button" class="driver-nav-quick-btn btn btn-primary" onclick="navigateToNextYard()" title="Avaa ulkoinen Google Maps / Waze -opastus">
+                            <span>↗</span> <span>Navigoi</span>
                         </button>
                     </div>
                 </div>
@@ -4159,7 +4159,8 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
                 '</div>' +
                 badgeHtml +
                 '<div class="driver-queue-actions">' +
-                    '<button type="button" class="driver-queue-center-btn" onclick="event.stopPropagation(); centerMapOnTarget(' + task.id + ');" title="Keskitä kohteeseen kartalla" style="font-size: 0.74rem; padding: 3px 8px; border-radius: var(--radius-sm); background: rgba(14, 165, 233, 0.15); border: 1px solid #38bdf8; color: #38bdf8; cursor: pointer; white-space: nowrap;">📍 Keskitä</button>' +
+                    '<button type="button" class="driver-queue-center-btn btn btn-outline" onclick="event.stopPropagation(); centerMapOnTarget(' + task.id + ');" title="Keskitä sisäinen kartta kohteeseen" style="font-size: 0.74rem; padding: 3px 8px; white-space: nowrap;">📍 Keskitä</button>' +
+                    '<button type="button" class="driver-queue-center-btn btn btn-outline" onclick="event.stopPropagation(); navigateToTask(' + task.id + ');" title="Avaa ulkoinen opastus" style="font-size: 0.74rem; padding: 3px 8px; white-space: nowrap;">↗ Navigoi</button>' +
                     '<button type="button" class="driver-queue-move-btn" onclick="moveDriverQueueItem(' + index + ', -1)" ' + (isFirst ? 'disabled' : '') + ' title="Siirrä ylemmäs">▲ Ylös</button>' +
                     '<button type="button" class="driver-queue-move-btn" onclick="moveDriverQueueItem(' + index + ', 1)" ' + (isLast ? 'disabled' : '') + ' title="Siirrä alemmas">▼ Alas</button>' +
                     (currentAppMode === 'admin' ? '<button type="button" class="tiny-btn danger btn-delete-task" style="padding: 2px 7px; font-size: 0.72rem; margin-left: 2px;" onclick="event.stopPropagation(); deleteTask(' + task.id + ', event);" title="Poista kohde ajolistalta">🗑️</button>' : '') +
@@ -4181,6 +4182,16 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
         renderRouteAnalytics();
     }
     window.moveDriverQueueItem = moveDriverQueueItem;
+
+    function navigateToTask(taskId) {
+        let task = null;
+        if (typeof taskId === 'object' && taskId) task = taskId;
+        else if (typeof tasks !== 'undefined' && Array.isArray(tasks)) task = tasks.find(t => t.id === taskId || String(t.id) === String(taskId));
+        if (!task) return;
+        const dest = (task.lat && (task.lon || task.lng)) ? `${task.lat},${task.lon || task.lng}` : encodeURIComponent(task.address || task.name);
+        window.open(`https://www.google.com/maps/dir/?api=1&destination=${dest}`, '_blank');
+    }
+    window.navigateToTask = navigateToTask;
 
     // ---------- KULJETTAJAN REITTIN OPTIMOINTI (NEAREST NEIGHBOR + GPS) ----------
     async function optimizeDriverRoute() {
@@ -10341,12 +10352,16 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
     }
 
     function renderActiveRoute() {
+        const cur = getCurrentRoute();
+        const topEl = document.getElementById('topbarActiveRouteName');
+        if (topEl) {
+            topEl.textContent = (cur && cur.name) ? cur.name : 'YardFlow';
+        }
         const el = document.getElementById('activeRoute');
         if (!el) return;
-        const cur = getCurrentRoute();
         if (!cur) { el.innerHTML = ''; return; }
         const dirty = taskSig(tasks) !== taskSig(cur.tasks || []);
-        const driverBadge = cur.driver ? ` <span style="font-size: 0.8rem; color: #38bdf8; font-weight: normal;">(Kuljettaja: <strong>${esc(cur.driver)}</strong>)</span>` : '';
+        const driverBadge = cur.driver ? ` <span style="font-size: 0.8rem; color: var(--accent); font-weight: normal;">(Kuljettaja: <strong>${esc(cur.driver)}</strong>)</span>` : '';
         el.innerHTML = `Reitti: <b>${esc(cur.name)}</b>${driverBadge}` + (dirty ? ' <span class="dirty">● tallentamattomia muutoksia</span>' : '');
     }
 
@@ -13350,7 +13365,10 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
         listEl.innerHTML = '';
 
         const pending = tasks.filter(t => !t.done);
-        document.getElementById('taskCount').textContent = `${pending.length} jäljellä / ${tasks.length} yht.`;
+        const taskCountEl = document.getElementById('taskCount');
+        if (taskCountEl) {
+            taskCountEl.textContent = `${pending.length} / ${tasks.length} jäljellä`;
+        }
         updateDistanceSummary(pending);
         renderActiveRoute();
         updateDashboardWidgets();
@@ -13478,70 +13496,71 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
                 completeBtnText = 'Kuitattu valmiiksi ✓';
             }
 
+            const estTime = task.estimated_minutes ? `~${task.estimated_minutes} min` : (task.type && task.type.includes('Nurm') ? '~25 min' : '~15 min');
+            const statusIcon = isBlocked ? '🚫' : (task.done ? '✓' : (task.id === (window.activeTargetId || (tasks[0] && tasks[0].id)) ? '📍' : '⏳'));
+
             item.innerHTML = `
-                <!-- Ylärivi: Kohteen nimi lihavoituna ja nykyinen status (Badge: esim. "Auraamatta" / "Kuitattu") -->
-                <div class="task-header" style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
-                    <span class="task-title yard-title" style="margin-bottom: 0; font-weight: 700; font-size: 1.05rem;">${shown}. ${esc(task.name)}</span>
-                    <div style="display: flex; gap: 6px; align-items: center;">
-                        <span class="badge badge-active" style="font-size: 0.72rem; padding: 2px 7px;">${esc(task.type || 'Auraus')}</span>
+                <!-- Ylärivi: Statusikoni, osoite, tyyppi ja arvioitu aika -->
+                <div class="task-header" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                    <div style="display: flex; align-items: flex-start; gap: 8px; min-width: 0;">
+                        <span class="task-status-icon" style="font-size: 1.15rem; line-height: 1.2;">${statusIcon}</span>
+                        <div style="min-width: 0;">
+                            <span class="task-title yard-title" style="margin-bottom: 2px; font-weight: 600; font-size: 0.98rem; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${shown}. ${esc(task.name)}</span>
+                            <span class="task-address-line" style="font-size: 0.82rem; color: var(--fg-muted); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">📍 ${esc(task.address)}</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 4px; align-items: center; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end;">
+                        <span class="badge" style="font-size: 0.72rem; padding: 2px 6px; background: var(--canvas-subtle); border: 1px solid var(--border-default); color: var(--fg-muted);">${esc(task.type || 'Auraus')}</span>
+                        <span class="badge" style="font-size: 0.72rem; padding: 2px 6px; background: var(--canvas-subtle); border: 1px solid var(--border-default); color: var(--fg-muted);">⏱️ ${estTime}</span>
                         ${headerBadge}
                     </div>
                 </div>
 
-                <!-- Keskirivi: Osoite ja mahdolliset lisätiedot kuskille -->
-                <div class="task-address-row" style="display: flex; flex-direction: column; gap: 4px; margin-top: 4px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
-                        <a href="${mapsUrl}" target="_blank" rel="noopener" class="yard-address" style="color: var(--text-muted); font-size: 0.85rem; text-decoration: none; margin-bottom: 0;">📍 ${esc(task.address)}</a>
-                        <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
-                            ${locPill}
-                            ${gfPill}
-                            ${task.phone ? `<a href="tel:${esc(task.phone)}" class="contact-link" title="Soita asiakkaalle">📞 ${esc(task.phone)}</a>` : ''}
-                        </div>
-                    </div>
-                    ${task.notes ? `<div class="task-notes" style="font-size: 0.8rem; color: #cbd5e1; line-height: 1.35; padding: 6px 10px; background: rgba(15, 23, 42, 0.45); border-radius: 6px; border-left: 3px solid var(--accent-blue); margin-top: 2px;">ℹ️ <b>Kuskiohje:</b> ${esc(task.notes)}</div>` : ''}
-                </div>
+                <!-- Keskirivi: Lisätiedot kuskille -->
+                ${task.notes ? `<div class="task-notes" style="font-size: 0.8rem; color: var(--fg-default); line-height: 1.35; padding: 6px 10px; background: var(--canvas-subtle); border-radius: 6px; border-left: 3px solid var(--accent); margin-top: 6px;">ℹ️ <b>Huomio:</b> ${esc(task.notes)}</div>` : ''}
 
-                ${approxLocation(task) ? `<div class="task-warn" style="font-size: 0.75rem;">ℹ️ Sijainti kadun tarkkuudella (voit halutessasi tallentaa tarkan 📍 GPS-pisteen kohteessa).</div>` : ''}
+                ${approxLocation(task) ? `<div class="task-warn" style="font-size: 0.75rem; margin-top: 4px;">ℹ️ Sijainti kadun tarkkuudella (voit halutessasi tallentaa tarkan 📍 GPS-pisteen kohteessa).</div>` : ''}
                 ${verificationBannerHtml}
 
                 ${isMovingThisPin ? `
-                <div style="background: rgba(245, 158, 11, 0.16); border: 1px solid rgba(245, 158, 11, 0.5); border-radius: var(--radius-sm); padding: 8px 10px; font-size: 0.82rem; color: var(--accent-amber); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                <div style="background: rgba(245, 158, 11, 0.16); border: 1px solid rgba(245, 158, 11, 0.5); border-radius: 6px; padding: 8px 10px; font-size: 0.82rem; color: var(--accent-amber, #f59e0b); margin-top: 6px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
                     <span>📍 <b>Sijainti avattu siirrettäväksi:</b> Klikkaa kartalta uusi kohta tai raahaa merkkiä.</span>
-                    <button type="button" class="tiny-btn" style="background: var(--accent-amber); color: #000; font-weight: 700; white-space: nowrap; padding: 4px 10px; margin: 0;" onclick="toggleMoveCardPin(${task.id}, event)">Sijainti OK ✓</button>
+                    <button type="button" class="btn btn-outline tiny-btn" style="background: var(--accent-amber); color: #000; font-weight: 700; white-space: nowrap; padding: 4px 10px; margin: 0;" onclick="toggleMoveCardPin(${task.id}, event)">Sijainti OK ✓</button>
                 </div>
                 ` : ''}
 
                 <!-- Kuittaus ja este-painikkeet (vain kuskille, poistettu Adminilta) -->
                 ${currentAppMode === 'field' ? `
-                <div class="task-action-row driver-only" style="display: flex; gap: 8px; margin-top: 4px;">
-                    <button type="button" class="${completeBtnClass}" style="flex: 1;" onclick="handleCompleteTaskClick(${task.id}, this)" title="${task.done ? 'Klikkaa palauttaaksesi kohteen tekemättömäksi' : 'Tarkistaa GPS-sijainnin ja kuittaa pihan valmiiksi'}">
+                <div class="task-action-row driver-only" style="display: flex; gap: 8px; margin-top: 6px;">
+                    <button type="button" class="${completeBtnClass} btn btn-primary" style="flex: 1;" onclick="handleCompleteTaskClick(${task.id}, this)" title="${task.done ? 'Klikkaa palauttaaksesi kohteen tekemättömäksi' : 'Tarkistaa GPS-sijainnin ja kuittaa pihan valmiiksi'}">
                         ${isBlocked ? '✓ Kuittaa valmiiksi (este poistunut)' : completeBtnText}
                     </button>
                     ${!task.done ? `
-                    <button type="button" class="btn-obstacle-action ${isBlocked ? 'is-blocked' : ''}" onclick="openTaskObstacleModal(${task.id})" title="${isBlocked ? 'Muokkaa esteen syytä tai palauta normaaliksi' : 'Ilmoita este tai syy, miksi kohdetta ei päästä tekemään'}">
+                    <button type="button" class="btn-obstacle-action btn btn-outline ${isBlocked ? 'is-blocked' : ''}" onclick="openTaskObstacleModal(${task.id})" title="${isBlocked ? 'Muokkaa esteen syytä tai palauta normaaliksi' : 'Ilmoita este tai syy, miksi kohdetta ei päästä tekemään'}">
                         ${isBlocked ? '🚫 Estynyt ✎' : '🚫 Ei pääse'}
                     </button>
                     ` : ''}
                 </div>
                 ` : ''}
 
-                <!-- Toimintonapit kortin alaosaan: [📍 Kartalle] (keskittää kartan kohteeseen), [✏️ Muokkaa] (avaa kohteen muokkauksen) -->
-                <div class="task-tools-row" style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; border-top: 1px solid var(--border); padding-top: 8px; gap: 6px; flex-wrap: wrap;">
+                <!-- Toimintonapit kortin alaosaan: [ ↗ Navigoi ] ja [ 📍 Keskitä ] -->
+                <div class="task-tools-row" style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; border-top: 1px solid var(--border-default); padding-top: 6px; gap: 6px; flex-wrap: wrap;">
                     <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
-                        <button class="tiny-btn btn-primary" type="button" style="background: var(--accent-blue); color: #fff; font-weight: 600; padding: 6px 12px; font-size: 0.82rem;" onclick="selectActiveProperty(${task.id}, true)" title="Keskitä kartta kohteeseen">
-                            📍 Keskitä kohteeseen
-                        </button>
-                        <button class="tiny-btn" type="button" style="background: var(--bg-card); border: 1px solid var(--border); color: var(--fg); font-weight: 600; padding: 6px 12px; font-size: 0.82rem;" onclick="openPropertyEditForm(${task.id})" title="Avaa kohteen muokkaus">
-                            ✏️ Muokkaa
+                        <a href="${mapsUrl}" target="_blank" rel="noopener" class="btn btn-outline tiny-btn" style="padding: 4px 10px; font-size: 0.82rem; height: 30px; text-decoration: none;" title="Avaa ulkoinen Google Maps / Waze -opastus">
+                            ↗ Navigoi
+                        </a>
+                        <button class="btn btn-primary tiny-btn" type="button" style="padding: 4px 10px; font-size: 0.82rem; height: 30px;" onclick="selectActiveProperty(${task.id}, true)" title="Keskitä sisäinen kartta kohteeseen">
+                            📍 Keskitä
                         </button>
                     </div>
 
                     <div style="display: flex; gap: 4px; align-items: center; flex-wrap: wrap;">
-                        <button class="tiny-btn" type="button" onclick="openTaskOnYardMap(${task.id})" title="Avaa satelliittikartta ja piirrä kone-/käsityöalueet sekä geofence-ympyrä">🛰️ Pihakartta</button>
-                        <button class="tiny-btn admin-only ${isMovingThisPin ? 'active' : ''}" style="${isMovingThisPin ? 'background: var(--accent-amber); color: #000; font-weight: 700; border-color: var(--accent-amber);' : ''}" type="button" onclick="toggleMoveCardPin(${task.id}, event)" title="${isMovingThisPin ? 'Tallenna ja lukitse kohteen sijainti' : 'Siirrä tämän kohteen sijaintipistettä kartalla'}">${isMovingThisPin ? '✓ Sijainti OK' : '📍 Siirrä sijaintia'}</button>
-                        <button class="tiny-btn" type="button" onclick="openStreetViewForTask(${task.id})" title="Avaa kohde Google Street View -katunäkymässä">🛣️ Street View</button>
-                        <button class="tiny-btn" type="button" onclick="quickSnapPhoto(${task.id})" title="Ota valokuva kohteesta">📷 Kuva</button>
-                        <button class="photo-btn" type="button" onclick="openCustomerPhotos(${task.customerId ? task.customerId : `'${esc(task.name)}'`})" title="Näytä kohteen valokuvat">🖼️ <span data-photo-count-for="${task.customerId || esc(task.name)}">${photoCounts[String(task.customerId || task.name)] || 0}</span></button>
+                        <button class="btn btn-outline tiny-btn admin-only" type="button" style="padding: 3px 8px; font-size: 0.78rem; height: 28px;" onclick="openPropertyEditForm(${task.id})" title="Avaa kohteen muokkaus">✏️ Muokkaa</button>
+                        <button class="btn btn-outline tiny-btn" type="button" style="padding: 3px 8px; font-size: 0.78rem; height: 28px;" onclick="openTaskOnYardMap(${task.id})" title="Avaa satelliittikartta ja piirrä kone-/käsityöalueet sekä geofence-ympyrä">🛰️ Pihakartta</button>
+                        <button class="btn btn-outline tiny-btn admin-only ${isMovingThisPin ? 'active' : ''}" style="padding: 3px 8px; font-size: 0.78rem; height: 28px;" type="button" onclick="toggleMoveCardPin(${task.id}, event)" title="${isMovingThisPin ? 'Tallenna ja lukitse kohteen sijainti' : 'Siirrä tämän kohteen sijaintipistettä kartalla'}">${isMovingThisPin ? '✓ Sijainti OK' : '📍 Siirrä sijaintia'}</button>
+                        <button class="btn btn-outline tiny-btn" type="button" style="padding: 3px 8px; font-size: 0.78rem; height: 28px;" onclick="openStreetViewForTask(${task.id})" title="Avaa kohde Google Street View -katunäkymässä">🛣️ Street View</button>
+                        <button class="btn btn-outline tiny-btn" type="button" style="padding: 3px 8px; font-size: 0.78rem; height: 28px;" onclick="quickSnapPhoto(${task.id})" title="Ota valokuva kohteesta">📷 Kuva</button>
+                        <button class="btn btn-outline tiny-btn photo-btn" type="button" style="padding: 3px 8px; font-size: 0.78rem; height: 28px;" onclick="openCustomerPhotos(${task.customerId ? task.customerId : `'${esc(task.name)}'`})" title="Näytä kohteen valokuvat">🖼️ <span data-photo-count-for="${task.customerId || esc(task.name)}">${photoCounts[String(task.customerId || task.name)] || 0}</span></button>
                         <div class="task-tools-group admin-only" style="display: inline-flex; gap: 4px; align-items: center;">
                             <button class="order-btn" title="Siirrä ylöspäin" onclick="event.stopPropagation(); moveTask(${index}, -1)" ${index === 0 ? 'disabled' : ''}>▲</button>
                             <button class="order-btn" title="Siirrä alaspäin" onclick="event.stopPropagation(); moveTask(${index}, 1)" ${index === tasks.length - 1 ? 'disabled' : ''}>▼</button>

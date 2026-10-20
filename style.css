@@ -1,5 +1,160 @@
 /* ============================================================
-   YardFlow – Android-Widget GridStack Styles & Responsiveness (style.css)
+   YardFlow – GitHub Primer Styles & Theme (style.css)
+   ============================================================ */
+
+:root, [data-theme="dark"] {
+  --canvas-default: #0d1117;
+  --canvas-subtle: #010409;
+  --canvas-card: #161b22;
+  --canvas-inset: #0d1117;
+  --border-default: #30363d;
+  --border-muted: #21262d;
+  --fg-default: #e6edf3;
+  --fg-muted: #848d97;
+  
+  --btn-primary-bg: #238636;
+  --btn-primary-hover: #2ea043;
+  --btn-default-bg: #21262d;
+  --btn-default-hover: #30363d;
+  --btn-default-border: #30363d;
+  --btn-default-fg: #c9d1d9;
+
+  --accent: #1f6feb;
+  --danger: #f85149;
+
+  /* Legacy variable mappings to GitHub Primer */
+  --bg-main: var(--canvas-default);
+  --bg-card: var(--canvas-card);
+  --bg-card-hover: #1f242c;
+  --fg: var(--fg-default);
+  --text-main: var(--fg-default);
+  --text-muted: var(--fg-muted);
+  --border: var(--border-default);
+  --border-light: var(--border-muted);
+  --header-bg: var(--canvas-subtle);
+  --header-border: var(--border-default);
+  --input-bg: var(--canvas-inset);
+  --input-border: var(--border-default);
+  --header-height: 52px;
+}
+
+[data-theme="light"] {
+  --canvas-default: #ffffff;
+  --canvas-subtle: #f6f8fa;
+  --canvas-card: #ffffff;
+  --canvas-inset: #f6f8fa;
+  --border-default: #d0d7de;
+  --border-muted: #d8dee4;
+  --fg-default: #1f2328;
+  --fg-muted: #656d76;
+
+  --btn-primary-bg: #1f883d;
+  --btn-primary-hover: #1a7f37;
+  --btn-default-bg: #f6f8fa;
+  --btn-default-hover: #f3f4f6;
+  --btn-default-border: #d0d7de;
+  --btn-default-fg: #24292f;
+
+  --accent: #0969da;
+  --danger: #cf222e;
+
+  /* Legacy variable mappings to GitHub Primer */
+  --bg-main: var(--canvas-default);
+  --bg-card: var(--canvas-card);
+  --bg-card-hover: #f3f4f6;
+  --fg: var(--fg-default);
+  --text-main: var(--fg-default);
+  --text-muted: var(--fg-muted);
+  --border: var(--border-default);
+  --border-light: var(--border-muted);
+  --header-bg: var(--canvas-subtle);
+  --header-border: var(--border-default);
+  --input-bg: var(--canvas-inset);
+  --input-border: var(--border-default);
+  --header-height: 52px;
+}
+
+/* Rungon ja korttien selkeys */
+body {
+  background-color: var(--canvas-default);
+  color: var(--fg-default);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+.card, .widget, .Box {
+  background-color: var(--canvas-card);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  box-shadow: none; /* Ei raskaita varjoja */
+  margin-bottom: 12px;
+}
+
+.card-header, .Box-header {
+  background-color: var(--canvas-subtle);
+  border-bottom: 1px solid var(--border-default);
+  padding: 8px 14px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.btn {
+  border-radius: 6px;
+  border: 1px solid var(--btn-default-border);
+  background-color: var(--btn-default-bg);
+  color: var(--btn-default-fg);
+  font-weight: 500;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-decoration: none;
+  font-size: 0.88rem;
+  box-sizing: border-box;
+}
+
+.btn-primary {
+  background-color: var(--btn-primary-bg) !important;
+  color: #fff !important;
+  border: 1px solid rgba(240,246,252,0.1) !important;
+}
+
+.btn-primary:hover {
+  background-color: var(--btn-primary-hover) !important;
+}
+
+.btn-outline, .btn-secondary, .btn-default {
+  background-color: var(--btn-default-bg);
+  color: var(--btn-default-fg);
+  border: 1px solid var(--btn-default-border);
+}
+
+.btn-outline:hover, .btn-secondary:hover, .btn-default:hover {
+  background-color: var(--btn-default-hover);
+  border-color: var(--border-default);
+}
+
+.btn:hover {
+  opacity: 0.95;
+}
+
+/* Yläpalkki (Header) kiinteä 52px */
+.app-header, #top-bar, .navbar, .header {
+  height: 52px !important;
+  min-height: 52px !important;
+  max-height: 52px !important;
+  background-color: var(--canvas-subtle) !important;
+  border-bottom: 1px solid var(--border-default) !important;
+  box-sizing: border-box;
+  padding: 0 16px;
+}
+
+/* ============================================================
+   YardFlow – Android-Widget GridStack Styles & Responsiveness
    ============================================================ */
 
 /* Normal mode: clean, locked cards */
