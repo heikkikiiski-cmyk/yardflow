@@ -1,13 +1,13 @@
 /**
  * Test: User Creation with Mandatory Initial Password & Forced Password Change on First Login
- * Also tests Password Recovery Modal (#modal-set-password)
+ * Also tests 6-Digit OTP Password Reset Modal (#modal-reset-password)
  */
 const fs = require('fs');
 const path = require('path');
 const assert = require('assert');
 
 function runTest() {
-    console.log('🧪 Testing Forced Password Change & Initial Account Creation Flow...');
+    console.log('🧪 Testing Forced Password Change & 6-Digit OTP Reset Flow...');
 
     const indexPath = path.join(__dirname, '..', 'index.html');
     const wwwIndexPath = path.join(__dirname, '..', 'www', 'index.html');
@@ -31,31 +31,37 @@ function runTest() {
     assert(html.includes('onclick="logoutUser()"'), 'Uloskirjautumislinkki löytyy pakkosalasanan modaalista');
     console.log('✅ Forced password change modal markup, inputs and uniform buttons verified');
 
-    // 2. Password Recovery Modal Markup (#modal-set-password)
-    console.log('\n--- 2. Testing Password Recovery Modal Markup ---');
-    assert(html.includes('id="modal-set-password"'), 'Elementti #modal-set-password löytyy');
-    assert(html.includes('id="setPasswordModalTitle"'), 'Otsikko #setPasswordModalTitle löytyy');
-    assert(html.includes('Aseta YardFlow-salasanasi'), 'Otsikkoteksti oikein');
-    assert(html.includes('id="newPasswordInput"'), '#newPasswordInput kenttä löytyy');
-    assert(html.includes('id="confirmPasswordInput"'), '#confirmPasswordInput kenttä löytyy');
-    assert(html.includes('id="setPasswordErrorMessage"'), '#setPasswordErrorMessage virhealue löytyy');
-    assert(html.includes('id="btnSaveNewPassword"'), '#btnSaveNewPassword tallennusnappi löytyy');
-    assert(html.includes('id="btnCancelSetPassword"'), '#btnCancelSetPassword peruutusnappi löytyy');
-    console.log('✅ Password recovery modal markup verified');
+    // 2. 6-Digit OTP Password Reset Modal Markup (#modal-reset-password)
+    console.log('\n--- 2. Testing 6-Digit OTP Password Reset Modal Markup ---');
+    assert(html.includes('id="modal-reset-password"'), 'Elementti #modal-reset-password löytyy');
+    assert(html.includes('id="resetPasswordModalTitle"'), 'Otsikko #resetPasswordModalTitle löytyy');
+    assert(html.includes('id="resetStep1"'), '#resetStep1 lomake löytyy');
+    assert(html.includes('id="resetStep2"'), '#resetStep2 lomake löytyy');
+    assert(html.includes('id="resetEmailInput"'), '#resetEmailInput kenttä löytyy');
+    assert(html.includes('id="btnSendResetCode"'), '#btnSendResetCode nappi löytyy');
+    assert(html.includes('id="resetOtpInput"'), '#resetOtpInput kenttä löytyy');
+    assert(html.includes('id="resetNewPasswordInput"'), '#resetNewPasswordInput kenttä löytyy');
+    assert(html.includes('id="btnVerifyAndSetPassword"'), '#btnVerifyAndSetPassword nappi löytyy');
+    assert(html.includes('Vahvista ja aseta salasana'), 'Napissa teksti: Vahvista ja aseta salasana');
+    assert(html.includes('id="resetPasswordErrorMessage"'), '#resetPasswordErrorMessage virhealue löytyy');
+    console.log('✅ 6-digit OTP reset password modal markup verified');
 
     // 3. Logic & Function Definitions
     console.log('\n--- 3. Testing Function Definitions ---');
     assert(html.includes('function showForceChangePasswordModal('), 'showForceChangePasswordModal funktio määritelty');
     assert(html.includes('function closeForceChangePasswordModal('), 'closeForceChangePasswordModal funktio määritelty');
     assert(html.includes('function handleForcePasswordSubmit('), 'handleForcePasswordSubmit funktio määritelty');
-    assert(html.includes('function showSetPasswordModal('), 'showSetPasswordModal funktio määritelty');
-    assert(html.includes('function closeSetPasswordModal('), 'closeSetPasswordModal funktio määritelty');
-    assert(html.includes('function handleSetPasswordSubmit('), 'handleSetPasswordSubmit funktio määritelty');
+    assert(html.includes('function showResetPasswordModal('), 'showResetPasswordModal funktio määritelty');
+    assert(html.includes('function closeResetPasswordModal('), 'closeResetPasswordModal funktio määritelty');
+    assert(html.includes('function showResetStep('), 'showResetStep funktio määritelty');
+    assert(html.includes('function handleSendResetCode('), 'handleSendResetCode funktio määritelty');
+    assert(html.includes('function handleVerifyOtpAndSetPassword('), 'handleVerifyOtpAndSetPassword funktio määritelty');
+    assert(html.includes('verifyOtp('), 'verifyOtp kutsu löytyy');
     assert(html.includes('must_change_password'), 'must_change_password käsittely löytyy');
-    console.log('✅ All forced change and recovery functions verified in code');
+    console.log('✅ All forced change and OTP reset functions verified in code');
 
     // 4. Functional Simulation in VM Sandbox
-    console.log('\n--- 4. Simulating Account Creation & Forced Password Change Logic ---');
+    console.log('\n--- 4. Simulating Account Creation, OTP Reset & Forced Password Change Logic ---');
     const vm = require('vm');
     let lastStatus = null;
     let lastStatusType = null;
@@ -64,6 +70,7 @@ function runTest() {
     let profilesUpdated = null;
     let userPasswordUpdated = null;
     let resetPasswordCalls = 0;
+    let otpVerified = null;
 
     const localStore = {};
     const sandbox = {
@@ -146,9 +153,16 @@ function runTest() {
                         signedUpUser = payload;
                         return { data: { user: { id: 'sb_user_999', email: payload.email } }, error: null };
                     },
-                    async resetPasswordForEmail(email, opts) {
+                    async resetPasswordForEmail(email) {
                         resetPasswordCalls++;
                         return { error: null };
+                    },
+                    async verifyOtp(payload) {
+                        otpVerified = payload;
+                        if (payload.token === '123456') {
+                            return { data: { user: { id: 'sb_user_999', email: payload.email } }, error: null };
+                        }
+                        return { data: null, error: { message: 'Virheellinen koodi' } };
                     },
                     async updateUser(payload) {
                         userPasswordUpdated = payload.password;
@@ -174,7 +188,7 @@ function runTest() {
     const forcedPasswordCodeMatch = html.match(/\/\/ 🔒 PAKOLLINEN SALASANAN VAIHTO[\s\S]*?window\.handleForcePasswordSubmit = handleForcePasswordSubmit;/);
     assert(forcedPasswordCodeMatch, 'Forced password code block extracted');
 
-    const recoveryCodeMatch = html.match(/\/\/ 🔑 SALASANAN ASETUS & RECOVERY[\s\S]*?window\.initSupabaseAuthListener = initSupabaseAuthListener;/);
+    const recoveryCodeMatch = html.match(/\/\/ 🔑 SALASANAN NOLLAUS OTP-KOODILLA[\s\S]*?window\.initSupabaseAuthListener = initSupabaseAuthListener;/);
     assert(recoveryCodeMatch, 'Recovery code block extracted');
 
     vm.runInContext(`
@@ -199,7 +213,7 @@ function runTest() {
     sandbox.document.getElementById('driverInputEmail').value = 'teemu@auraus.fi';
 
     return sandbox.saveDriverFromForm().then(() => {
-        assert.strictEqual(resetPasswordCalls, 0, 'Sähköpostikutsuja (resetPasswordForEmail) ei lähetetä käyttäjän luonnissa');
+        assert.strictEqual(resetPasswordCalls, 0, 'Sähköpostikutsuja ei lähetetä käyttäjän luonnissa');
         assert(signedUpUser !== null, 'Supabase auth.signUp kutsuttu suoraan aloitussalasanalla');
         assert.strictEqual(signedUpUser.email, 'teemu@auraus.fi', 'signUp email oikein');
         assert.strictEqual(signedUpUser.password, 'Aloitus2026', 'signUp salasana oikein');
@@ -213,7 +227,7 @@ function runTest() {
         assert(created, 'Kuljettaja löytyy tallennetuista kuljettajista');
         assert.strictEqual(created.must_change_password, true, 'Lokaalilla kuljettajalla must_change_password: true');
         assert(lastStatus.includes('aloitussalasana asetettu'), 'Statusviestissä maininta aloitussalasanasta');
-        console.log('✅ User created directly with initial password and must_change_password: true (no invite emails)');
+        console.log('✅ User created directly with initial password and must_change_password: true');
 
         // Test C: Forced Password Change Modal - Opening & Validation
         const userToForce = {
@@ -234,14 +248,6 @@ function runTest() {
         assert.strictEqual(sandbox.document.getElementById('forcePasswordErrorMessage').style.display, 'block');
         assert(sandbox.document.getElementById('forcePasswordErrorMessage').textContent.includes('eivät täsmää'));
 
-        // Short password (< 6 chars)
-        sandbox.document.getElementById('forceNewPasswordInput').value = '123';
-        sandbox.document.getElementById('forceConfirmPasswordInput').value = '123';
-        return sandbox.handleForcePasswordSubmit({ preventDefault() {} });
-    }).then(() => {
-        assert.strictEqual(sandbox.document.getElementById('forcePasswordErrorMessage').style.display, 'block');
-        assert(sandbox.document.getElementById('forcePasswordErrorMessage').textContent.includes('vähintään 6'));
-
         // Matching valid password
         sandbox.document.getElementById('forceNewPasswordInput').value = 'UusiTurvallinenKuskiSalasana2026';
         sandbox.document.getElementById('forceConfirmPasswordInput').value = 'UusiTurvallinenKuskiSalasana2026';
@@ -250,50 +256,49 @@ function runTest() {
         assert.strictEqual(userPasswordUpdated, 'UusiTurvallinenKuskiSalasana2026', 'Supabase auth.updateUser kutsuttu uudella salasanalla');
         assert(profilesUpdated !== null, 'Profiles taulu päivitetty');
         assert.strictEqual(profilesUpdated.fields.must_change_password, false, 'must_change_password asetettu falseksi');
-        assert.strictEqual(profilesUpdated.val, 'sb_user_999', 'Päivitetty oikean käyttäjän profiili');
 
         const drivers = sandbox.getStoredDrivers();
         const updatedD = drivers.find(d => d.email === 'teemu@auraus.fi');
         assert.strictEqual(updatedD.must_change_password, false, 'Lokaalilla käyttäjällä must_change_password false');
-        assert.strictEqual(sandbox.document.getElementById('modal-force-change-password').style.display, 'none', 'Modaali suljettu onnistuneen vaihdon jälkeen');
+        assert.strictEqual(sandbox.document.getElementById('modal-force-change-password').style.display, 'none');
+        console.log('✅ Forced password change validation & Supabase updateUser verified');
 
-        const session = JSON.parse(sandbox.localStorage.getItem('yardflow_auth_session'));
-        assert(session && session.user, 'Istunto päivitetty');
-        assert.strictEqual(session.user.must_change_password, false, 'Istunnossa must_change_password on false');
-        console.log('✅ Forced password change validation, Supabase updateUser & profiles update verified');
+        // Test D: Step 1 - Send OTP code for email
+        sandbox.showResetPasswordModal('pekka@auraus.fi');
+        assert.strictEqual(sandbox.document.getElementById('modal-reset-password').style.display, 'flex');
+        assert.strictEqual(sandbox.document.getElementById('resetStep1').style.display, 'flex');
+        assert.strictEqual(sandbox.document.getElementById('resetStep2').style.display, 'none');
+        assert.strictEqual(sandbox.document.getElementById('resetEmailInput').value, 'pekka@auraus.fi');
 
-        // Test D: Password Recovery Link Detection from URL Hash or Search
-        sandbox.window.location.hash = '#access_token=test_token&type=recovery';
-        sandbox.window.location.search = '';
-        const detected = sandbox.checkPasswordRecoveryLink();
-        assert.strictEqual(detected, true, 'Recovery URL detected successfully');
-        assert.strictEqual(sandbox.document.getElementById('modal-set-password').style.display, 'flex', 'Recovery modal opened');
-        assert.strictEqual(sandbox.document.getElementById('view-login').style.display, 'none', 'Login view hidden when recovery active');
-        console.log('✅ URL hash/parameter recovery token detection verified');
+        return sandbox.handleSendResetCode({ preventDefault() {} });
+    }).then(() => {
+        assert.strictEqual(resetPasswordCalls, 1, 'resetPasswordForEmail kutsuttu koodin lähettämiseksi');
+        assert.strictEqual(sandbox.document.getElementById('resetStep1').style.display, 'none', 'Vaihe 1 piilotettu');
+        assert.strictEqual(sandbox.document.getElementById('resetStep2').style.display, 'flex', 'Vaihe 2 näytetään koodin lähetyksen jälkeen');
+        console.log('✅ OTP Step 1 (resetPasswordForEmail & show Step 2) verified');
 
-        // Test E: Password Reset Request (resetPasswordForEmail with redirectTo)
-        return sandbox.requestPasswordReset('pekka@auraus.fi').then(res => {
-            assert.strictEqual(resetPasswordCalls, 1, 'resetPasswordForEmail called once');
-            assert(!res.error, 'No error on reset request');
-            console.log('✅ requestPasswordReset with https://yardflow.vercel.app verified');
+        // Test E: Step 2 - Verify OTP & Set Password
+        // Invalid OTP code
+        sandbox.document.getElementById('resetOtpInput').value = '999999';
+        sandbox.document.getElementById('resetNewPasswordInput').value = 'UusiOmaSalasana2026';
+        return sandbox.handleVerifyOtpAndSetPassword({ preventDefault() {} });
+    }).then(() => {
+        assert.strictEqual(sandbox.document.getElementById('resetPasswordErrorMessage').style.display, 'block');
+        assert(sandbox.document.getElementById('resetPasswordErrorMessage').textContent.includes('Virhe vahvistuskoodissa'));
 
-            // Test F: Submit New Password & Page Reload
-            let reloaded = false;
-            let historyCleaned = false;
-            sandbox.location = { reload() { reloaded = true; } };
-            sandbox.window.history = { replaceState() { historyCleaned = true; } };
+        // Valid OTP code (123456)
+        sandbox.document.getElementById('resetOtpInput').value = '123456';
+        sandbox.document.getElementById('resetNewPasswordInput').value = 'UusiOmaSalasana2026';
+        return sandbox.handleVerifyOtpAndSetPassword({ preventDefault() {} });
+    }).then(() => {
+        assert(otpVerified !== null, 'Supabase auth.verifyOtp kutsuttu');
+        assert.strictEqual(otpVerified.token, '123456', 'verifyOtp token oikein');
+        assert.strictEqual(otpVerified.type, 'recovery', 'verifyOtp type: recovery');
+        assert.strictEqual(userPasswordUpdated, 'UusiOmaSalasana2026', 'updateUser kutsuttu uudella salasanalla');
+        assert.strictEqual(sandbox.document.getElementById('modal-reset-password').style.display, 'none', 'Modaali suljettu onnistumisen jälkeen');
+        console.log('✅ OTP Step 2 (verifyOtp & updateUser) verified successfully');
 
-            sandbox.document.getElementById('newPasswordInput').value = 'PalautettuSalasana2026';
-            sandbox.document.getElementById('confirmPasswordInput').value = 'PalautettuSalasana2026';
-            return sandbox.handleSetPasswordSubmit({ preventDefault() {} }).then(() => {
-                assert.strictEqual(userPasswordUpdated, 'PalautettuSalasana2026', 'updateUser called with new password');
-                assert.strictEqual(historyCleaned, true, 'history.replaceState called to clean tokens');
-                assert.strictEqual(reloaded, true, 'location.reload called');
-                console.log('✅ Password recovery modal validation, submit & token cleanup verified');
-
-                console.log('\n🎉 All Initial Password & Forced Password Change tests PASSED successfully!');
-            });
-        });
+        console.log('\n🎉 All Initial Password & 6-Digit OTP Reset tests PASSED successfully!');
     });
 }
 

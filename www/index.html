@@ -1100,35 +1100,49 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     </div>
 </div>
 
-<!-- SALASANAN ASETUSMODAALI (#modal-set-password / PASSWORD RECOVERY) -->
-<div id="modal-set-password" class="modal-backdrop-custom modal-set-password" style="display: none; position: fixed; inset: 0; z-index: 100000; background: rgba(15, 23, 42, 0.85); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 20px;">
+<!-- NOLLAUSIKKUNA (#modal-reset-password) -->
+<div id="modal-reset-password" class="modal-backdrop-custom modal-reset-password" style="display: none; position: fixed; inset: 0; z-index: 100000; background: rgba(15, 23, 42, 0.88); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 20px;">
     <div class="card" style="max-width: 440px; width: 100%; padding: 28px 24px; border-radius: 18px; background: var(--bg-card, #1e293b); border: 1px solid var(--border, rgba(255,255,255,0.12)); box-shadow: 0 16px 40px rgba(0,0,0,0.5);">
-        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
             <span style="font-size: 1.6rem;">🔑</span>
-            <h3 id="setPasswordModalTitle" style="margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--fg, #fff);">Aseta YardFlow-salasanasi</h3>
+            <h3 id="resetPasswordModalTitle" style="margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--fg, #fff);">Palauta salasana</h3>
         </div>
-        <p style="margin: 0 0 20px 0; font-size: 0.86rem; color: var(--muted, #94a3b8); line-height: 1.45;">
-            Tervetuloa! Määritä itsellesi salasana kirjautumista varten. Salasanan on oltava vähintään 6 merkkiä pitkä.
+        <p id="resetPasswordModalSubtitle" style="margin: 0 0 20px 0; font-size: 0.86rem; color: var(--muted, #94a3b8); line-height: 1.45;">
+            Syötä sähköpostiosoitteesi saadaksesi 6-numeroisen vahvistuskoodin.
         </p>
 
-        <form id="setPasswordForm" onsubmit="handleSetPasswordSubmit(event)" style="display: flex; flex-direction: column; gap: 14px;">
+        <!-- VAIHE 1: Sähköpostin syöttö ja koodin lähetys -->
+        <form id="resetStep1" onsubmit="handleSendResetCode(event)" style="display: flex; flex-direction: column; gap: 14px;">
             <div>
-                <label for="newPasswordInput" style="font-size: 0.82rem; font-weight: 700; color: var(--fg, #f8fafc); margin-bottom: 6px; display: block;">Uusi salasana * (vähintään 6 merkkiä):</label>
-                <input type="password" id="newPasswordInput" placeholder="Vähintään 6 merkkiä" required minlength="6" autocomplete="new-password" style="width: 100%; min-height: 44px; padding: 10px 14px; font-size: 0.95rem; border-radius: var(--radius-md, 8px); background: var(--input-bg, #0b1120); border: 1px solid var(--input-border, rgba(255,255,255,0.14)); color: var(--fg, #fff); box-sizing: border-box;">
+                <label for="resetEmailInput" style="font-size: 0.82rem; font-weight: 700; color: var(--fg, #f8fafc); margin-bottom: 6px; display: block;">Sähköpostiosoite *:</label>
+                <input type="email" id="resetEmailInput" placeholder="esim. pekka@auraus.fi" required autocomplete="email" style="width: 100%; min-height: 44px; padding: 10px 14px; font-size: 0.95rem; border-radius: var(--radius-md, 8px); background: var(--input-bg, #0b1120); border: 1px solid var(--input-border, rgba(255,255,255,0.14)); color: var(--fg, #fff); box-sizing: border-box;">
             </div>
 
-            <div>
-                <label for="confirmPasswordInput" style="font-size: 0.82rem; font-weight: 700; color: var(--fg, #f8fafc); margin-bottom: 6px; display: block;">Vahvista uusi salasana *:</label>
-                <input type="password" id="confirmPasswordInput" placeholder="Kirjoita salasana uudelleen" required minlength="6" autocomplete="new-password" style="width: 100%; min-height: 44px; padding: 10px 14px; font-size: 0.95rem; border-radius: var(--radius-md, 8px); background: var(--input-bg, #0b1120); border: 1px solid var(--input-border, rgba(255,255,255,0.14)); color: var(--fg, #fff); box-sizing: border-box;">
-            </div>
-
-            <div id="setPasswordErrorMessage" style="display: none; padding: 10px 12px; border-radius: 8px; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4); color: #f87171; font-size: 0.84rem; font-weight: 600;"></div>
-
-            <div class="dialog-actions modal-action-buttons" style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
-                <button type="button" id="btnCancelSetPassword" class="btn-outline btn-form-cancel" style="min-width: 100px;" onclick="closeSetPasswordModal()">✕ Peruuta</button>
-                <button type="submit" id="btnSaveNewPassword" class="btn-primary btn-form-save" style="min-width: 180px; font-weight: 700; padding: 10px 18px;">💾 Tallenna uusi salasana</button>
+            <div class="dialog-actions modal-action-buttons" style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 6px;">
+                <button type="button" id="btnCancelResetStep1" class="btn-outline btn-form-cancel" style="min-width: 100px;" onclick="closeResetPasswordModal()">✕ Peruuta</button>
+                <button type="submit" id="btnSendResetCode" class="btn-primary btn-form-save" style="min-width: 160px; font-weight: 700; padding: 10px 18px;">✉️ Lähetä koodi</button>
             </div>
         </form>
+
+        <!-- VAIHE 2: Koodin ja uuden salasanan syöttö -->
+        <form id="resetStep2" onsubmit="handleVerifyOtpAndSetPassword(event)" style="display: none; flex-direction: column; gap: 14px;">
+            <div>
+                <label for="resetOtpInput" style="font-size: 0.82rem; font-weight: 700; color: var(--fg, #f8fafc); margin-bottom: 6px; display: block;">6-numeroinen vahvistuskoodi *:</label>
+                <input type="text" id="resetOtpInput" placeholder="Esim. 123456" required maxlength="10" inputmode="numeric" autocomplete="one-time-code" style="width: 100%; min-height: 44px; padding: 10px 14px; font-size: 1.1rem; letter-spacing: 0.15em; font-weight: 700; text-align: center; border-radius: var(--radius-md, 8px); background: var(--input-bg, #0b1120); border: 1px solid var(--input-border, rgba(255,255,255,0.14)); color: var(--accent, #38bdf8); box-sizing: border-box;">
+            </div>
+
+            <div>
+                <label for="resetNewPasswordInput" style="font-size: 0.82rem; font-weight: 700; color: var(--fg, #f8fafc); margin-bottom: 6px; display: block;">Uusi salasana * (väh. 6 merkkiä):</label>
+                <input type="password" id="resetNewPasswordInput" placeholder="Vähintään 6 merkkiä" required minlength="6" autocomplete="new-password" style="width: 100%; min-height: 44px; padding: 10px 14px; font-size: 0.95rem; border-radius: var(--radius-md, 8px); background: var(--input-bg, #0b1120); border: 1px solid var(--input-border, rgba(255,255,255,0.14)); color: var(--fg, #fff); box-sizing: border-box;">
+            </div>
+
+            <div class="dialog-actions modal-action-buttons" style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 6px;">
+                <button type="button" id="btnBackResetStep" class="btn-outline btn-form-cancel" style="min-width: 100px;" onclick="showResetStep(1)">← Takaisin</button>
+                <button type="submit" id="btnVerifyAndSetPassword" class="btn-primary btn-form-save" style="min-width: 220px; font-weight: 700; padding: 10px 18px;">💾 Vahvista ja aseta salasana</button>
+            </div>
+        </form>
+
+        <div id="resetPasswordErrorMessage" style="display: none; margin-top: 12px; padding: 10px 12px; border-radius: 8px; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4); color: #f87171; font-size: 0.84rem; font-weight: 600;"></div>
     </div>
 </div>
 
@@ -10637,44 +10651,15 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         if (!email) return { error: { message: 'Sähköpostiosoite puuttuu' } };
         const client = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : null) || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
         if (!client || !client.auth) return { error: { message: 'Supabase-yhteys ei ole käytettävissä' } };
-        return await client.auth.resetPasswordForEmail(email, {
-            redirectTo: 'https://yardflow.vercel.app'
-        });
+        return await client.auth.resetPasswordForEmail(email);
     }
     window.requestPasswordReset = requestPasswordReset;
 
-    async function handleForgotPasswordClick() {
+    function handleForgotPasswordClick() {
         const usernameInput = document.getElementById('loginUsername');
-        let email = usernameInput ? usernameInput.value.trim() : '';
-        if (!email || !email.includes('@')) {
-            email = prompt('Anna sähköpostiosoitteesi salasanan palautuslinkin vastaanottamiseksi:', email || '');
-            if (!email || !email.trim()) return;
-            email = email.trim();
-        }
-
-        const client = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : null) || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
-        if (!client || !client.auth) {
-            alert('Supabase-yhteys ei ole käytettävissä.');
-            return;
-        }
-
-        try {
-            const { data, error } = await client.auth.resetPasswordForEmail(email.trim(), {
-                redirectTo: 'https://yardflow.vercel.app'
-            });
-            if (error) {
-                alert(`Salasanan nollauspyyntö epäonnistui: ${error.message}`);
-                const errBox = document.getElementById('loginErrorMessage');
-                if (errBox) {
-                    errBox.textContent = `Salasanan nollauspyyntö epäonnistui: ${error.message}`;
-                    errBox.style.display = 'block';
-                }
-            } else {
-                alert(`Salasanan palautuslinkki on lähetetty osoitteeseen ${email}. Tarkista sähköpostisi!`);
-            }
-        } catch (e) {
-            alert(`Virhe salasanan palautuksessa: ${e.message}`);
-        }
+        const val = usernameInput ? usernameInput.value.trim() : '';
+        const email = (val && val.includes('@')) ? val : '';
+        showResetPasswordModal(email);
     }
     window.handleForgotPasswordClick = handleForgotPasswordClick;
 
@@ -10804,124 +10789,270 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     window.handleForcePasswordSubmit = handleForcePasswordSubmit;
 
     // ============================================================
-    // 🔑 SALASANAN ASETUS & RECOVERY (#modal-set-password)
+    // 🔑 SALASANAN NOLLAUS OTP-KOODILLA (#modal-reset-password)
     // ============================================================
-    function showSetPasswordModal() {
-        const modal = document.getElementById('modal-set-password') || document.getElementById('modal-reset-password');
+    let currentResetEmail = '';
+
+    function showResetPasswordModal(prefillEmail = '') {
+        const modal = document.getElementById('modal-reset-password');
         if (modal) modal.style.display = 'flex';
         const loginView = document.getElementById('view-login');
         if (loginView) loginView.style.display = 'none';
 
-        const errBox = document.getElementById('setPasswordErrorMessage');
+        const errBox = document.getElementById('resetPasswordErrorMessage');
         if (errBox) {
             errBox.style.display = 'none';
             errBox.textContent = '';
         }
-        const input1 = document.getElementById('newPasswordInput');
-        const input2 = document.getElementById('confirmPasswordInput');
-        if (input1) input1.value = '';
-        if (input2) input2.value = '';
-        if (input1) input1.focus();
-    }
-    window.showSetPasswordModal = showSetPasswordModal;
 
-    function closeSetPasswordModal() {
-        const modal = document.getElementById('modal-set-password') || document.getElementById('modal-reset-password');
+        currentResetEmail = prefillEmail || '';
+        showResetStep(1);
+
+        const emailInput = document.getElementById('resetEmailInput');
+        if (emailInput) {
+            emailInput.value = prefillEmail || '';
+            emailInput.focus();
+        }
+    }
+    window.showResetPasswordModal = showResetPasswordModal;
+    window.showSetPasswordModal = showResetPasswordModal;
+
+    function closeResetPasswordModal() {
+        const modal = document.getElementById('modal-reset-password');
         if (modal) modal.style.display = 'none';
         const raw = localStorage.getItem('yardflow_auth_session');
         if (!raw) {
             showLoginView();
         }
     }
-    window.closeSetPasswordModal = closeSetPasswordModal;
+    window.closeResetPasswordModal = closeResetPasswordModal;
+    window.closeSetPasswordModal = closeResetPasswordModal;
 
-    async function handleSetPasswordSubmit(event) {
-        if (event && event.preventDefault) event.preventDefault();
-        const p1 = document.getElementById('newPasswordInput')?.value?.trim();
-        const p2 = document.getElementById('confirmPasswordInput')?.value?.trim();
-        const errBox = document.getElementById('setPasswordErrorMessage');
-        const btn = document.getElementById('btnSaveNewPassword');
+    function showResetStep(step) {
+        const step1 = document.getElementById('resetStep1');
+        const step2 = document.getElementById('resetStep2');
+        const title = document.getElementById('resetPasswordModalTitle');
+        const subtitle = document.getElementById('resetPasswordModalSubtitle');
+        const errBox = document.getElementById('resetPasswordErrorMessage');
 
         if (errBox) {
             errBox.style.display = 'none';
             errBox.textContent = '';
         }
 
-        if (!p1 || p1.length < 6) {
-            const msg = 'Salasanan on oltava vähintään 6 merkkiä pitkä.';
+        if (step === 1) {
+            if (step1) step1.style.display = 'flex';
+            if (step2) step2.style.display = 'none';
+            if (title) title.textContent = 'Palauta salasana';
+            if (subtitle) subtitle.textContent = 'Syötä sähköpostiosoitteesi saadaksesi 6-numeroisen vahvistuskoodin.';
+            const emailInput = document.getElementById('resetEmailInput');
+            if (emailInput) emailInput.focus();
+        } else {
+            if (step1) step1.style.display = 'none';
+            if (step2) step2.style.display = 'flex';
+            if (title) title.textContent = 'Vahvista koodi ja aseta salasana';
+            if (subtitle) subtitle.textContent = `Koodi on lähetetty osoitteeseen ${currentResetEmail || 'sähköpostiisi'}. Syötä 6-numeroinen koodi ja uusi salasana.`;
+            const otpInput = document.getElementById('resetOtpInput');
+            if (otpInput) {
+                otpInput.value = '';
+                otpInput.focus();
+            }
+            const passInput = document.getElementById('resetNewPasswordInput');
+            if (passInput) passInput.value = '';
+        }
+    }
+    window.showResetStep = showResetStep;
+
+    async function handleSendResetCode(event) {
+        if (event && event.preventDefault) event.preventDefault();
+        const emailInput = document.getElementById('resetEmailInput');
+        const email = emailInput ? emailInput.value.trim() : '';
+        const errBox = document.getElementById('resetPasswordErrorMessage');
+        const btn = document.getElementById('btnSendResetCode');
+
+        if (errBox) {
+            errBox.style.display = 'none';
+            errBox.textContent = '';
+        }
+
+        if (!email || !email.includes('@')) {
             if (errBox) {
-                errBox.textContent = msg;
+                errBox.textContent = 'Syötä kelvollinen sähköpostiosoite.';
                 errBox.style.display = 'block';
             }
-            alert(msg);
             return;
         }
 
-        if (p1 !== p2) {
-            const msg = 'Salasanat eivät täsmää. Tarkista kirjoitusasu.';
+        currentResetEmail = email;
+
+        const client = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : null) || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+        if (!client || !client.auth) {
             if (errBox) {
-                errBox.textContent = msg;
+                errBox.textContent = 'Supabase-yhteys ei ole käytettävissä.';
                 errBox.style.display = 'block';
             }
-            alert(msg);
             return;
         }
 
         if (btn) {
             btn.disabled = true;
-            btn.textContent = '⏳ Tallennetaan...';
+            btn.innerHTML = '<span>⏳</span> <span>Lähetetään...</span>';
         }
 
         try {
-            const client = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : null) || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
-            if (!client || !client.auth) {
-                alert('Supabase-yhteys ei ole käytettävissä.');
+            const { error } = await client.auth.resetPasswordForEmail(email.trim());
+            if (error) {
+                if (errBox) {
+                    errBox.textContent = 'Virhe koodin lähetyksessä: ' + error.message;
+                    errBox.style.display = 'block';
+                }
                 return;
             }
 
-            const { data, error } = await client.auth.updateUser({
-                password: p1
+            showResetStep(2);
+        } catch (e) {
+            console.warn('handleSendResetCode error:', e);
+            if (errBox) {
+                errBox.textContent = 'Virhe koodin lähetyksessä: ' + (e.message || e);
+                errBox.style.display = 'block';
+            }
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<span>✉️</span> <span>Lähetä koodi</span>';
+            }
+        }
+    }
+    window.handleSendResetCode = handleSendResetCode;
+
+    async function handleVerifyOtpAndSetPassword(event) {
+        if (event && event.preventDefault) event.preventDefault();
+        const otpInput = document.getElementById('resetOtpInput');
+        const passInput = document.getElementById('resetNewPasswordInput');
+        const errBox = document.getElementById('resetPasswordErrorMessage');
+        const btn = document.getElementById('btnVerifyAndSetPassword');
+
+        const otpCode = otpInput ? otpInput.value.trim() : '';
+        const newPassword = passInput ? passInput.value.trim() : '';
+        const email = currentResetEmail || (document.getElementById('resetEmailInput')?.value?.trim() || '');
+
+        if (errBox) {
+            errBox.style.display = 'none';
+            errBox.textContent = '';
+        }
+
+        if (!otpCode) {
+            if (errBox) {
+                errBox.textContent = 'Syötä 6-numeroinen vahvistuskoodi.';
+                errBox.style.display = 'block';
+            }
+            return;
+        }
+
+        if (!newPassword || newPassword.length < 6) {
+            if (errBox) {
+                errBox.textContent = 'Uuden salasanan on oltava vähintään 6 merkkiä pitkä.';
+                errBox.style.display = 'block';
+            }
+            return;
+        }
+
+        const client = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : null) || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+        if (!client || !client.auth) {
+            if (errBox) {
+                errBox.textContent = 'Supabase-yhteys ei ole käytettävissä.';
+                errBox.style.display = 'block';
+            }
+            return;
+        }
+
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span>⏳</span> <span>Vahvistetaan...</span>';
+        }
+
+        try {
+            // 1. Kutsutaan Supabasen OTP-varmennusta:
+            const { data, error } = await client.auth.verifyOtp({
+                email: email.trim(),
+                token: otpCode.trim(),
+                type: 'recovery'
             });
 
             if (error) {
                 if (errBox) {
-                    errBox.textContent = error.message || 'Virhe salasanan päivityksessä.';
+                    errBox.textContent = 'Virhe vahvistuskoodissa: ' + error.message;
                     errBox.style.display = 'block';
                 }
-                alert('Virhe salasanan päivityksessä: ' + error.message);
                 return;
             }
 
-            alert('Salasana vaihdettu onnistuneesti! Voit nyt kirjautua uudella salasanallasi.');
+            // 2. Jos koodi täsmää, istunto avautuu heti, jolloin kutsutaan heti perään:
+            const { data: updateData, error: updateError } = await client.auth.updateUser({
+                password: newPassword
+            });
 
-            // Siivotaan URL:n tokenit pois sotkemasta
-            try {
-                if (typeof window !== 'undefined' && window.history && window.location) {
-                    window.history.replaceState({}, document.title, window.location.pathname);
+            if (updateError) {
+                if (errBox) {
+                    errBox.textContent = 'Virhe salasanan päivityksessä: ' + updateError.message;
+                    errBox.style.display = 'block';
                 }
-            } catch (e) {}
+                return;
+            }
 
-            closeSetPasswordModal();
+            // 3. Päivitetään paikallinen käyttäjä jos löytyy
+            const drivers = getStoredDrivers();
+            const dIdx = drivers.findIndex(x => x.email && x.email.toLowerCase() === email.toLowerCase());
+            if (dIdx >= 0) {
+                drivers[dIdx].password = newPassword;
+                drivers[dIdx].must_change_password = false;
+                persistDrivers(drivers);
+            }
 
-            // Ohjataan kirjautumisruutuun tai suoraan sisään
-            if (typeof location !== 'undefined' && typeof location.reload === 'function') {
+            alert('Salasana vaihdettu onnistuneesti!');
+
+            // 4. Istunnon tallennus ja kirjautuminen
+            const sbUser = updateData?.user || data?.user;
+            if (sbUser) {
+                const sessionUser = {
+                    id: sbUser.id,
+                    name: sbUser.user_metadata?.name || email,
+                    email: sbUser.email || email,
+                    role: sbUser.user_metadata?.role || (dIdx >= 0 ? drivers[dIdx].role : 'driver')
+                };
+                localStorage.setItem('yardflow_auth_session', JSON.stringify({
+                    user: sessionUser,
+                    logged_in_at: new Date().toISOString()
+                }));
+                closeResetPasswordModal();
+                hideLoginView();
+                restoreUserSession(sessionUser);
+            } else {
+                closeResetPasswordModal();
+                try {
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                } catch (e) {}
                 location.reload();
             }
+
+            if (typeof showStatus === 'function') {
+                showStatus('Salasana vaihdettu onnistuneesti! Tervetuloa.', 'success');
+            }
         } catch (e) {
-            console.warn('handleSetPasswordSubmit error:', e);
+            console.warn('handleVerifyOtpAndSetPassword error:', e);
             if (errBox) {
-                errBox.textContent = e.message || 'Odottamaton virhe salasanan tallennuksessa.';
+                errBox.textContent = 'Virhe salasanan päivityksessä: ' + (e.message || e);
                 errBox.style.display = 'block';
             }
-            alert('Virhe salasanan päivityksessä: ' + (e.message || e));
         } finally {
             if (btn) {
                 btn.disabled = false;
-                btn.textContent = '💾 Tallenna uusi salasana';
+                btn.innerHTML = '<span>💾</span> <span>Vahvista ja aseta salasana</span>';
             }
         }
     }
-    window.handleSetPasswordSubmit = handleSetPasswordSubmit;
+    window.handleVerifyOtpAndSetPassword = handleVerifyOtpAndSetPassword;
+    window.handleSetPasswordSubmit = handleVerifyOtpAndSetPassword;
 
     function checkPasswordRecoveryLink() {
         try {
@@ -10931,24 +11062,9 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             const urlParams = (typeof URLSearchParams !== 'undefined') ? new URLSearchParams(search || window.location.search) : { get: () => null };
 
             if (hash.includes('type=recovery') || (urlParams.get && urlParams.get('type') === 'recovery') || hash.includes('access_token')) {
-                // Käyttäjä saapui salasanannollauslinkistä!
                 console.log('Tunnistettu salasanan nollauslinkki');
-
-                // Avataan suoraan uuden salasanan asetusikkuna
-                const modal = document.getElementById('modal-set-password') || document.getElementById('modal-reset-password');
-                if (modal) {
-                    modal.style.display = 'flex';
-                    // Piilotetaan tavallinen kirjautumisruutu taustalta
-                    const loginView = document.getElementById('view-login');
-                    if (loginView) loginView.style.display = 'none';
-                }
-                const errBox = document.getElementById('setPasswordErrorMessage');
-                if (errBox) {
-                    errBox.style.display = 'none';
-                    errBox.textContent = '';
-                }
-                const input1 = document.getElementById('newPasswordInput');
-                if (input1) input1.focus();
+                showResetPasswordModal();
+                showResetStep(2);
                 return true;
             }
         } catch (e) {
@@ -10965,8 +11081,9 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         if (client && client.auth && typeof client.auth.onAuthStateChange === 'function') {
             client.auth.onAuthStateChange(async (event, session) => {
                 if (event === 'PASSWORD_RECOVERY') {
-                    console.log('Tunnistettu salasanan nollauslinkki (PASSWORD_RECOVERY)');
-                    showSetPasswordModal();
+                    console.log('Tunnistettu PASSWORD_RECOVERY tapahtuma');
+                    showResetPasswordModal();
+                    showResetStep(2);
                 }
             });
         }
