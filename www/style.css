@@ -153,7 +153,26 @@ body.dashboard-editing .grid-stack-item > .ui-resizable-se::after {
     border-radius: 2px;
 }
 
-/* Responsiveness: Puhelin pystyasennossa (portrait) */
+/* Responsiveness: Mobiililaitteet (< 768px) normaali pystyselaus ja 1-sarakkeen kortit */
+@media (max-width: 768px) {
+    body:not(.dashboard-editing) {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch;
+    }
+    body:not(.dashboard-editing) .grid-stack {
+        touch-action: pan-y !important;
+        overflow: visible !important;
+        height: auto !important;
+    }
+    body:not(.dashboard-editing) .grid-stack-item {
+        touch-action: pan-y !important;
+    }
+    body:not(.dashboard-editing) .grid-stack-item-content {
+        touch-action: pan-y !important;
+    }
+}
+
 @media (max-width: 768px) and (orientation: portrait) {
     .grid-stack:not(.dashboard-editing) > .grid-stack-item {
         position: relative !important;

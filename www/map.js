@@ -3,40 +3,55 @@
  */
 
 (function(global) {
+    function safeInvalidateMap(m) {
+        if (!m) return;
+        try {
+            if (typeof m.invalidateSize === 'function') {
+                m.invalidateSize();
+            }
+        } catch (e) {
+            // Silently ignore if map container is not yet rendered or has 0 dimensions
+        }
+    }
+
     function initMapResizeListeners(grid) {
         if (grid && typeof grid.on === 'function') {
             grid.on('resizestop', function(event, el) {
                 if (el && (el.querySelector('#map') || el.querySelector('#admin-map') || el.querySelector('#yardSatelliteMap') || el.querySelector('#customerGeofenceMap'))) {
-                    if (global.map && typeof global.map.invalidateSize === 'function') global.map.invalidateSize();
-                    if (global.adminMap && typeof global.adminMap.invalidateSize === 'function') global.adminMap.invalidateSize();
-                    if (global.yardMap && typeof global.yardMap.invalidateSize === 'function') global.yardMap.invalidateSize();
+                    safeInvalidateMap(global.map || (typeof window !== 'undefined' ? window.map : null));
+                    safeInvalidateMap(global.adminMap || (typeof window !== 'undefined' ? window.adminMap : null));
+                    safeInvalidateMap(global.yardMap || (typeof window !== 'undefined' ? window.yardMap : null));
+                    safeInvalidateMap(global.customerGeofenceMap || (typeof window !== 'undefined' ? window.customerGeofenceMap : null));
                 }
             });
         }
 
-        global.addEventListener('resize', () => {
-            if (global.map && typeof global.map.invalidateSize === 'function') global.map.invalidateSize();
-            if (global.adminMap && typeof global.adminMap.invalidateSize === 'function') global.adminMap.invalidateSize();
-            if (global.yardMap && typeof global.yardMap.invalidateSize === 'function') global.yardMap.invalidateSize();
-        });
+        const resizeHandler = () => {
+            safeInvalidateMap(global.map || (typeof window !== 'undefined' ? window.map : null));
+            safeInvalidateMap(global.adminMap || (typeof window !== 'undefined' ? window.adminMap : null));
+            safeInvalidateMap(global.yardMap || (typeof window !== 'undefined' ? window.yardMap : null));
+            safeInvalidateMap(global.customerGeofenceMap || (typeof window !== 'undefined' ? window.customerGeofenceMap : null));
+        };
 
-        global.addEventListener('orientationchange', () => {
-            if (typeof setTimeout === 'function') {
-                setTimeout(() => {
-                    if (global.map && typeof global.map.invalidateSize === 'function') global.map.invalidateSize();
-                    if (global.adminMap && typeof global.adminMap.invalidateSize === 'function') global.adminMap.invalidateSize();
-                    if (global.yardMap && typeof global.yardMap.invalidateSize === 'function') global.yardMap.invalidateSize();
-                }, 300);
-            }
-        });
+        if (typeof global.addEventListener === 'function') {
+            global.addEventListener('resize', resizeHandler);
+            global.addEventListener('orientationchange', () => {
+                if (typeof setTimeout === 'function') {
+                    setTimeout(resizeHandler, 300);
+                }
+            });
+        }
     }
 
     const target = (typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : global));
+    target.safeInvalidateMap = safeInvalidateMap;
     target.initMapResizeListeners = initMapResizeListeners;
     if (typeof globalThis !== 'undefined' && globalThis !== target) {
+        globalThis.safeInvalidateMap = safeInvalidateMap;
         globalThis.initMapResizeListeners = initMapResizeListeners;
     }
     if (typeof global !== 'undefined' && global !== target && global !== globalThis) {
+        global.safeInvalidateMap = safeInvalidateMap;
         global.initMapResizeListeners = initMapResizeListeners;
     }
 
