@@ -697,7 +697,11 @@
                     if (window.map && typeof window.map.invalidateSize === 'function') window.map.invalidateSize();
                     if (window.adminMap && typeof window.adminMap.invalidateSize === 'function') window.adminMap.invalidateSize();
                     if (window.yardMap && typeof window.yardMap.invalidateSize === 'function') window.yardMap.invalidateSize();
+                    if (window.dashboardCityMap && typeof window.dashboardCityMap.invalidateSize === 'function') window.dashboardCityMap.invalidateSize();
                     if (window.mapInstance && typeof window.mapInstance.invalidateSize === 'function') window.mapInstance.invalidateSize();
+                    if ((targetId === 'dashboard-view' || viewId === 'dashboard') && typeof window.initDashboardCityMap === 'function') {
+                        window.initDashboardCityMap();
+                    }
                 }
             }, 150);
         }

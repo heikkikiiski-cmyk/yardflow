@@ -22,9 +22,10 @@
         try {
             if (!win.mapInstance && !mapEl._leaflet_id) {
                 win.mapInstance = L.map(mapEl.id).setView([61.4981, 23.7610], 13);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
                     maxZoom: 19,
-                    attribution: '© OpenStreetMap'
+                    subdomains: 'abcd',
+                    attribution: '© OpenStreetMap contributors © CARTO'
                 }).addTo(win.mapInstance);
             }
             if (win.mapInstance && typeof win.mapInstance.invalidateSize === 'function') {
@@ -36,6 +37,26 @@
         } catch (err) {
             console.error('Kartan alustusvirhe:', err);
         }
+    }
+
+    function toggleMapFullscreen(mapElementId, btnEl) {
+        if (typeof document === 'undefined') return;
+        const el = typeof mapElementId === 'string' ? document.getElementById(mapElementId) : mapElementId;
+        if (!el) return;
+        const parent = el.closest('.map-fullscreen-wrapper') || el.parentElement;
+        const targetEl = parent || el;
+        const isFull = targetEl.classList.toggle('map-fullscreen-active');
+        if (btnEl) {
+            btnEl.innerHTML = isFull ? '🗗 Pienennä' : '⛶ Koko näyttö';
+        }
+        setTimeout(() => {
+            const win = typeof window !== 'undefined' ? window : global;
+            if (win.yardMap && typeof win.yardMap.invalidateSize === 'function') win.yardMap.invalidateSize();
+            if (win.mapInstance && typeof win.mapInstance.invalidateSize === 'function') win.mapInstance.invalidateSize();
+            if (win.dashboardCityMap && typeof win.dashboardCityMap.invalidateSize === 'function') win.dashboardCityMap.invalidateSize();
+            if (win.map && typeof win.map.invalidateSize === 'function') win.map.invalidateSize();
+            if (win.adminMap && typeof win.adminMap.invalidateSize === 'function') win.adminMap.invalidateSize();
+        }, 150);
     }
 
     function initMapResizeListeners(grid) {
@@ -73,18 +94,39 @@
     target.safeInvalidateMap = safeInvalidateMap;
     target.initMaps = initMaps;
     target.initMapResizeListeners = initMapResizeListeners;
+    target.toggleMapFullscreen = toggleMapFullscreen;
     if (typeof globalThis !== 'undefined' && globalThis !== target) {
         globalThis.safeInvalidateMap = safeInvalidateMap;
         globalThis.initMaps = initMaps;
         globalThis.initMapResizeListeners = initMapResizeListeners;
+        globalThis.toggleMapFullscreen = toggleMapFullscreen;
     }
     if (typeof global !== 'undefined' && global !== target && global !== globalThis) {
         global.safeInvalidateMap = safeInvalidateMap;
         global.initMaps = initMaps;
         global.initMapResizeListeners = initMapResizeListeners;
+        global.toggleMapFullscreen = toggleMapFullscreen;
     }
 
     if (typeof document !== 'undefined' && typeof setTimeout === 'function') {
+        if (typeof document.addEventListener === 'function') {
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    const activeFullscreen = document.querySelectorAll('.map-fullscreen-active');
+                    activeFullscreen.forEach(el => {
+                        el.classList.remove('map-fullscreen-active');
+                    });
+                    const btns = document.querySelectorAll('.map-btn-fullscreen');
+                    btns.forEach(b => { b.innerHTML = '⛶ Koko näyttö'; });
+                    const win = typeof window !== 'undefined' ? window : global;
+                    setTimeout(() => {
+                        if (win.yardMap && typeof win.yardMap.invalidateSize === 'function') win.yardMap.invalidateSize();
+                        if (win.mapInstance && typeof win.mapInstance.invalidateSize === 'function') win.mapInstance.invalidateSize();
+                        if (win.dashboardCityMap && typeof win.dashboardCityMap.invalidateSize === 'function') win.dashboardCityMap.invalidateSize();
+                    }, 150);
+                }
+            });
+        }
         if (document.readyState === 'loading' && typeof document.addEventListener === 'function') {
             document.addEventListener('DOMContentLoaded', () => {
                 initMaps();

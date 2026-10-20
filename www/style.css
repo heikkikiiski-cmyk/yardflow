@@ -357,3 +357,113 @@ body.dashboard-editing .grid-stack-item > .ui-resizable-se::after {
     border-color: #059669 !important;
     color: #ffffff !important;
 }
+
+/* ============================================================
+   Kartan kokoruutupainike & Fullscreen-tila
+   ============================================================ */
+.map-btn-fullscreen {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+    background: rgba(15, 23, 42, 0.88);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    transition: all 0.2s ease;
+}
+.map-btn-fullscreen:hover {
+    background: #1f6feb;
+    border-color: #388bfd;
+    color: #ffffff;
+    transform: translateY(-1px);
+}
+.map-fullscreen-active {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 99999 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    background: #0b1120 !important;
+}
+.map-fullscreen-active #yardSatelliteMap,
+.map-fullscreen-active #dashboardCityMap,
+.map-fullscreen-active .leaflet-container {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 100% !important;
+    border-radius: 0 !important;
+}
+
+/* ============================================================
+   Dashboard Tilannekeskus: Accordion & Sääwidget
+   ============================================================ */
+.driver-accordion-item {
+    border: 1px solid var(--border-default, #30363d);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    background: var(--canvas-card, #161b22);
+    overflow: hidden;
+    transition: border-color 0.15s ease;
+}
+.driver-accordion-item:hover {
+    border-color: var(--accent, #1f6feb);
+}
+.driver-accordion-header {
+    padding: 10px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    font-weight: 600;
+    background: var(--canvas-subtle, #0d1117);
+    transition: background 0.15s ease;
+}
+.driver-accordion-header:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+.driver-accordion-content {
+    padding: 4px 10px 8px 10px;
+    border-top: 1px solid var(--border-muted, #21262d);
+}
+.btn-filter-pill {
+    padding: 4px 12px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    border-radius: 16px;
+    border: 1px solid var(--border-default, #30363d);
+    background: var(--canvas-subtle, #0d1117);
+    color: var(--fg-muted, #848d97);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.btn-filter-pill:hover, .btn-filter-pill.active {
+    background: var(--accent, #1f6feb);
+    border-color: var(--accent, #1f6feb);
+    color: #ffffff;
+}
+.weather-metric-box {
+    background: var(--canvas-subtle, #0d1117);
+    border: 1px solid var(--border-default, #30363d);
+    border-radius: 8px;
+    padding: 10px 8px;
+    text-align: center;
+}
+

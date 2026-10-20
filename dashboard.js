@@ -18,6 +18,9 @@
     const VIEW_WIDGETS = {
         dashboard: [
             { id: 'dash-widget-progress', title: 'Päivän tilanne', icon: '📊', desc: 'Edistymispalkki, kuitatut ja jäljellä olevat kohteet', defaultW: 6, defaultH: 4 },
+            { id: 'dash-widget-weather', title: 'Säätiedot & Lumiennuste', icon: '❄️', desc: 'Reaaliaikainen sää ja lumisade-ennuste', defaultW: 6, defaultH: 4 },
+            { id: 'dash-widget-map', title: 'Kaupungin tilannekartta', icon: '🗺️', desc: 'Koko kaupungin asiakaskohteet ja kuittaustilat', defaultW: 12, defaultH: 6 },
+            { id: 'dash-widget-drivers-accordion', title: 'Kuljettajatilanne', icon: '🚜', desc: 'Kuskikohtainen edistyminen ja pihat', defaultW: 12, defaultH: 6 },
             { id: 'dash-widget-next-stop', title: 'Seuraava ajokohde', icon: '📍', desc: 'Ajo-ohjeet, osoite ja pikakuittaus seuraavaan kohteeseen', defaultW: 6, defaultH: 4 },
             { id: 'dash-widget-route-stats', title: 'Siirtymämatkat', icon: '⚡', desc: 'Siirtymäkilometrit, ajoaika ja reitin pikaoptimointi', defaultW: 6, defaultH: 4 },
             { id: 'dash-widget-tickets', title: 'Päivän esteet', icon: '⚠️', desc: 'Kuljettajien raportoimat esteet, lumitilanne ja huomiot', defaultW: 6, defaultH: 4 },

@@ -33,6 +33,7 @@
     <script src="app.js"></script>
     <script src="dashboard.js"></script>
     <script src="map.js"></script>
+    <script src="users.js"></script>
     <script>
         (function() {
             try {
@@ -1363,6 +1364,9 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
                         </div>
                     </div>
                     <div class="card-collapsible-body">
+                        <div style="font-size: 1.15rem; font-weight: 800; color: var(--fg); margin-bottom: 8px;" id="dashProgressSummaryText">
+                            Tehty 0 / 0 pihaa (0 %)
+                        </div>
                         <div class="progress-bar-track" style="height: 12px; border-radius: 6px; background: var(--bg-secondary); overflow: hidden; margin-bottom: 12px;">
                             <div id="dashProgressBarFill" class="progress-bar-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #10b981, #059669); transition: width 0.4s ease;"></div>
                         </div>
@@ -1379,6 +1383,89 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
                                 <div style="font-size: 0.74rem; color: var(--muted); text-transform: uppercase;">Yhteensä</div>
                                 <div id="dashTotalCount" style="font-size: 1.25rem; font-weight: 800; color: var(--fg); margin-top: 2px;">0</div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WIDGET A: SÄÄTIEDOT & ENNUSTE (#dash-widget-weather) -->
+            <div class="grid-stack-item" gs-id="dash-widget-weather" gs-x="6" gs-y="0" gs-w="6" gs-h="4" gs-min-w="3" gs-min-h="2">
+                <div class="grid-stack-item-content card dash-widget-card collapsible-card" id="dash-widget-weather">
+                    <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('dash-widget-weather')" title="Piilota kortti" style="display: none;">✕</button>
+                    <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
+                        <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+                            <span>❄️</span> <span>Säätiedot &amp; Lumiennuste</span>
+                        </h3>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="badge" id="dashWeatherLocationBadge" style="font-size: 0.74rem;">Tampere</span>
+                            <span class="collapse-chevron">▾</span>
+                        </div>
+                    </div>
+                    <div class="card-collapsible-body" id="dashWeatherBody">
+                        <div id="dashWeatherContent">
+                            <div style="padding: 12px; text-align: center; color: var(--muted); font-size: 0.85rem;">
+                                Haetaan reaaliaikaista säätietoa...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WIDGET B: KOKO KAUPUNGIN TILANNEKARTTA (#dash-widget-map) -->
+            <div class="grid-stack-item" gs-id="dash-widget-map" gs-x="0" gs-y="4" gs-w="12" gs-h="6" gs-min-w="6" gs-min-h="4">
+                <div class="grid-stack-item-content card dash-widget-card collapsible-card" id="dash-widget-map">
+                    <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('dash-widget-map')" title="Piilota kortti" style="display: none;">✕</button>
+                    <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
+                        <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+                            <span>🗺️</span> <span>Koko kaupungin tilannekartta</span>
+                        </h3>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="status-pill status-ready" id="dashCityMapCountBadge" style="font-size: 0.74rem;">0 kohdetta</span>
+                            <span class="collapse-chevron">▾</span>
+                        </div>
+                    </div>
+                    <div class="card-collapsible-body" style="padding: 0; position: relative;">
+                        <div style="position: relative; width: 100%; height: 350px;" class="map-fullscreen-wrapper">
+                            <div id="dashboardCityMap" style="width: 100%; height: 100%; min-height: 350px; background: #0b1120;"></div>
+                            <button type="button" class="map-btn-fullscreen" onclick="toggleMapFullscreen('dashboardCityMap', this)" title="Koko näyttö" aria-label="Koko näyttö">
+                                ⛶ Koko näyttö
+                            </button>
+                        </div>
+                        <div style="padding: 8px 14px; display: flex; gap: 16px; align-items: center; font-size: 0.78rem; border-top: 1px solid var(--border-default, #30363d); background: var(--canvas-subtle, #0d1117); flex-wrap: wrap;">
+                            <span style="display: inline-flex; align-items: center; gap: 6px;">
+                                <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #10b981;"></span> Vihreä = Kuitattu tänään
+                            </span>
+                            <span style="display: inline-flex; align-items: center; gap: 6px;">
+                                <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #f59e0b;"></span> Oranssi = Tekemättä
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WIDGET D: KULJETTAJATILANNE (#dash-widget-drivers-accordion) -->
+            <div class="grid-stack-item" gs-id="dash-widget-drivers-accordion" gs-x="0" gs-y="10" gs-w="12" gs-h="6" gs-min-w="6" gs-min-h="4">
+                <div class="grid-stack-item-content card dash-widget-card collapsible-card" id="dash-widget-drivers-accordion">
+                    <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('dash-widget-drivers-accordion')" title="Piilota kortti" style="display: none;">✕</button>
+                    <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
+                        <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+                            <span>🚜</span> <span>Kuljettajatilanne</span>
+                        </h3>
+                        <span class="collapse-chevron">▾</span>
+                    </div>
+                    <div class="card-collapsible-body">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+                            <div style="display: flex; gap: 6px;">
+                                <button type="button" class="btn-filter-pill active" id="btnFilterDriversAll" onclick="setDriverOverviewFilter('all', this)">Kaikki</button>
+                                <button type="button" class="btn-filter-pill" id="btnFilterDriversPending" onclick="setDriverOverviewFilter('pending', this)">Tekemättä</button>
+                                <button type="button" class="btn-filter-pill" id="btnFilterDriversDone" onclick="setDriverOverviewFilter('done', this)">Valmiit</button>
+                            </div>
+                            <div id="driverOverviewSummary" style="font-size: 0.8rem; color: var(--fg-muted, #848d97);">
+                                0 kuljettajaa
+                            </div>
+                        </div>
+                        <div id="driverAccordionContainer">
+                            <!-- Populated dynamically -->
                         </div>
                     </div>
                 </div>
@@ -1969,8 +2056,12 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
                 </div>
             </div>
 
-            <div style="position: relative; width: 100%;">
+            <div style="position: relative; width: 100%;" class="map-fullscreen-wrapper">
                 <div id="yardSatelliteMap"></div>
+                <!-- KARTAN KOKORUUTUPAINIKE -->
+                <button type="button" id="btn-map-fullscreen" class="map-btn-fullscreen" onclick="toggleMapFullscreen('yardSatelliteMap', this)" title="Koko näyttö" aria-label="Koko näyttö">
+                    ⛶ Koko näyttö
+                </button>
                 <!-- KESKITÄ OMAAN SIJAINTIIN (GPS-PAINIKE FAB) -->
                 <button type="button" id="btn-gps-center" class="map-fab-gps" onclick="centerMapOnUserLocation()" title="Keskitä omaan sijaintiin (GPS)" aria-label="Keskitä omaan sijaintiin">
                     <span class="gps-icon">🎯</span>
@@ -5572,6 +5663,383 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
     }
     window.applyDashboardPrefs = applyDashboardPrefs;
 
+    function getWeatherDescription(code) {
+        switch (code) {
+            case 0: return { desc: 'Selkeää', icon: '☀️' };
+            case 1: return { desc: 'Pääosin selkeää', icon: '🌤️' };
+            case 2: return { desc: 'Puolipilvistä', icon: '⛅' };
+            case 3: return { desc: 'Pilvistä', icon: '☁️' };
+            case 45: case 48: return { desc: 'Sumua', icon: '🌫️' };
+            case 51: case 53: case 55: return { desc: 'Tihkusadetta', icon: '🌦️' };
+            case 61: case 63: case 65: return { desc: 'Vesisadetta', icon: '🌧️' };
+            case 71: return { desc: 'Kevyttä lumisadetta', icon: '🌨️' };
+            case 73: return { desc: 'Lumisadetta', icon: '❄️' };
+            case 75: return { desc: 'Voimakasta lumisadetta', icon: '❄️❄️' };
+            case 77: return { desc: 'Lumijyväsiä', icon: '🌨️' };
+            case 80: case 81: case 82: return { desc: 'Sadekuuroja', icon: '🌦️' };
+            case 85: case 86: return { desc: 'Lumikuuroja', icon: '🌨️' };
+            case 95: case 96: case 99: return { desc: 'Ukkosta', icon: '⚡' };
+            default: return { desc: 'Vaihtelevaa', icon: '🌡️' };
+        }
+    }
+
+    let lastWeatherFetchTime = 0;
+    let cachedWeatherData = null;
+
+    async function fetchWeatherForecast(force = false) {
+        const el = document.getElementById('dashWeatherContent');
+        if (!el) return;
+
+        const now = Date.now();
+        if (!force && cachedWeatherData && (now - lastWeatherFetchTime < 10 * 60 * 1000)) {
+            renderWeatherWidget(cachedWeatherData);
+            return;
+        }
+
+        let lat = 61.4981;
+        let lon = 23.7610;
+        let locName = 'Tampere';
+
+        if (typeof depot !== 'undefined' && depot && depot.lat && depot.lon) {
+            lat = depot.lat;
+            lon = depot.lon;
+            locName = depot.name || 'Varikko';
+        }
+
+        const badge = document.getElementById('dashWeatherLocationBadge');
+        if (badge) badge.textContent = locName;
+
+        try {
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m&hourly=temperature_2m,snowfall,precipitation_probability&wind_speed_unit=ms&forecast_days=1`;
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            cachedWeatherData = data;
+            lastWeatherFetchTime = now;
+            renderWeatherWidget(data);
+        } catch (err) {
+            console.warn('Säätietojen haku epäonnistui:', err);
+            if (!cachedWeatherData && el) {
+                el.innerHTML = `
+                    <div style="padding: 10px; background: rgba(255,255,255,0.02); border-radius: 8px; color: var(--fg-muted, #848d97); font-size: 0.82rem; text-align: center;">
+                        <div>Säätietoja ei saatu ladattua offline-tilassa.</div>
+                        <button type="button" class="tiny-btn" style="margin-top: 6px;" onclick="fetchWeatherForecast(true)">🔄 Yritä uudelleen</button>
+                    </div>
+                `;
+            }
+        }
+    }
+    window.fetchWeatherForecast = fetchWeatherForecast;
+
+    function renderWeatherWidget(data) {
+        const el = document.getElementById('dashWeatherContent');
+        if (!el || !data || !data.current) return;
+
+        const cur = data.current;
+        const temp = typeof cur.temperature_2m === 'number' ? cur.temperature_2m.toFixed(1) : '--';
+        const wind = typeof cur.wind_speed_10m === 'number' ? cur.wind_speed_10m.toFixed(1) : '--';
+        const wInfo = getWeatherDescription(cur.weather_code);
+
+        let nextHoursHtml = '';
+        if (data.hourly && Array.isArray(data.hourly.time)) {
+            const currentHourIso = new Date().toISOString().substring(0, 13);
+            let startIdx = data.hourly.time.findIndex(t => t.startsWith(currentHourIso));
+            if (startIdx < 0) startIdx = 0;
+            const next4 = data.hourly.time.slice(startIdx, startIdx + 4);
+
+            const hoursCards = next4.map((timeStr, i) => {
+                const idx = startIdx + i;
+                const timeLabel = timeStr.substring(11, 16);
+                const snow = data.hourly.snowfall ? (data.hourly.snowfall[idx] || 0) : 0;
+                const pop = data.hourly.precipitation_probability ? (data.hourly.precipitation_probability[idx] || 0) : 0;
+                const t = data.hourly.temperature_2m ? data.hourly.temperature_2m[idx] : null;
+
+                return `
+                    <div style="flex: 1; min-width: 65px; background: var(--bg-card-secondary, rgba(255,255,255,0.03)); border: 1px solid var(--border-default, #30363d); border-radius: 6px; padding: 6px 4px; text-align: center;">
+                        <div style="font-size: 0.72rem; color: var(--fg-muted, #848d97); font-weight: 600;">klo ${esc(timeLabel)}</div>
+                        <div style="font-size: 0.85rem; font-weight: 700; color: ${snow > 0 ? '#38bdf8' : 'var(--fg, #e6edf3)'}; margin: 2px 0;">
+                            ${snow > 0 ? `❄️ ${snow.toFixed(1)} cm` : (t !== null ? `${t.toFixed(0)}°` : '-')}
+                        </div>
+                        <div style="font-size: 0.7rem; color: ${pop > 50 ? '#38bdf8' : 'var(--fg-muted, #848d97)'};">
+                            ☔ ${pop} %
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            nextHoursHtml = `
+                <div style="margin-top: 10px;">
+                    <div style="font-size: 0.74rem; color: var(--fg-muted, #848d97); text-transform: uppercase; margin-bottom: 6px; font-weight: 600;">
+                        Tulevien tuntien lumiennuste
+                    </div>
+                    <div style="display: flex; gap: 6px; overflow-x: auto;">
+                        ${hoursCards}
+                    </div>
+                </div>
+            `;
+        }
+
+        el.innerHTML = `
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center;">
+                <div class="weather-metric-box">
+                    <div style="font-size: 0.74rem; color: var(--fg-muted, #848d97); text-transform: uppercase;">Lämpötila</div>
+                    <div style="font-size: 1.35rem; font-weight: 800; color: ${Number(temp) <= 0 ? '#38bdf8' : '#f59e0b'}; margin-top: 2px;">
+                        ${Number(temp) > 0 ? '+' : ''}${temp} °C
+                    </div>
+                </div>
+                <div class="weather-metric-box">
+                    <div style="font-size: 0.74rem; color: var(--fg-muted, #848d97); text-transform: uppercase;">Säätila</div>
+                    <div style="font-size: 0.95rem; font-weight: 700; color: var(--fg, #e6edf3); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${esc(wInfo.desc)}">
+                        ${wInfo.icon} ${esc(wInfo.desc)}
+                    </div>
+                </div>
+                <div class="weather-metric-box">
+                    <div style="font-size: 0.74rem; color: var(--fg-muted, #848d97); text-transform: uppercase;">Tuuli</div>
+                    <div style="font-size: 1.15rem; font-weight: 800; color: var(--fg, #e6edf3); margin-top: 2px;">
+                        ${wind} m/s
+                    </div>
+                </div>
+            </div>
+            ${nextHoursHtml}
+        `;
+    }
+    window.renderWeatherWidget = renderWeatherWidget;
+
+    let dashboardCityMap = null;
+    let cityMarkersGroup = null;
+
+    function initDashboardCityMap() {
+        const el = document.getElementById('dashboardCityMap');
+        if (!el || typeof L === 'undefined') return;
+
+        if (dashboardCityMap || el._leaflet_id) {
+            if (dashboardCityMap && typeof dashboardCityMap.invalidateSize === 'function') {
+                dashboardCityMap.invalidateSize();
+            }
+            renderDashboardCityMapMarkers();
+            return;
+        }
+
+        try {
+            dashboardCityMap = L.map('dashboardCityMap', {
+                center: [61.4981, 23.7610],
+                zoom: 12,
+                attributionControl: true
+            });
+            window.dashboardCityMap = dashboardCityMap;
+
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                maxZoom: 19,
+                subdomains: 'abcd',
+                attribution: '© OpenStreetMap contributors © CARTO'
+            }).addTo(dashboardCityMap);
+
+            renderDashboardCityMapMarkers();
+        } catch (err) {
+            console.error('Dashboard tilannekartan virhe:', err);
+        }
+    }
+    window.initDashboardCityMap = initDashboardCityMap;
+
+    function renderDashboardCityMapMarkers() {
+        if (!dashboardCityMap || typeof L === 'undefined') return;
+
+        if (cityMarkersGroup) {
+            dashboardCityMap.removeLayer(cityMarkersGroup);
+        }
+        cityMarkersGroup = L.featureGroup().addTo(dashboardCityMap);
+
+        const taskList = (typeof window !== 'undefined' && Array.isArray(window.tasks)) ? window.tasks : ((typeof tasks !== 'undefined' && Array.isArray(tasks)) ? tasks : []);
+        const badge = document.getElementById('dashCityMapCountBadge');
+        if (badge) badge.textContent = `${taskList.length} kohdetta`;
+
+        let validCount = 0;
+        taskList.forEach(t => {
+            if (!t.lat || !t.lon) return;
+            validCount++;
+            const isDone = !!t.done;
+            const color = isDone ? '#10b981' : '#f59e0b';
+            const driverName = t.driver || 'Ei määritelty';
+            const statusText = isDone ? '✓ Kuitattu valmiiksi' : '⏱ Tekemättä';
+
+            const marker = L.circleMarker([t.lat, t.lon], {
+                radius: 8,
+                fillColor: color,
+                color: '#ffffff',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.92
+            });
+
+            const popupContent = `
+                <div style="font-family: inherit; font-size: 0.85rem; min-width: 175px;">
+                    <div style="font-weight: 800; font-size: 0.95rem; color: #0f172a; margin-bottom: 2px;">${esc(t.name)}</div>
+                    <div style="color: #64748b; font-size: 0.78rem; margin-bottom: 6px;">📍 ${esc(t.address || 'Ei osoitetta')}</div>
+                    <div style="font-size: 0.82rem; margin-bottom: 3px;">🚜 <strong>Kuljettaja:</strong> ${esc(driverName)}</div>
+                    <div style="font-size: 0.82rem;"><strong>Tila:</strong> <span style="color: ${color}; font-weight: 700;">${statusText}</span></div>
+                    ${t.completed_at ? `<div style="font-size: 0.74rem; color: #64748b; margin-top: 3px;">Kuitattu: ${esc(t.completed_at)}</div>` : ''}
+                    <div style="margin-top: 8px;">
+                        <button type="button" class="tiny-btn" style="width: 100%; text-align: center;" onclick="openYardOnMapFromDashboard(${t.id})">🗺️ Avaa reittikartalla</button>
+                    </div>
+                </div>
+            `;
+            marker.bindPopup(popupContent);
+            cityMarkersGroup.addLayer(marker);
+        });
+
+        if (validCount > 0) {
+            try {
+                dashboardCityMap.fitBounds(cityMarkersGroup.getBounds().pad(0.12));
+            } catch (e) {}
+        }
+    }
+    window.renderDashboardCityMapMarkers = renderDashboardCityMapMarkers;
+
+    let currentDriverOverviewFilter = 'all';
+
+    function setDriverOverviewFilter(filter, btn) {
+        currentDriverOverviewFilter = filter;
+        document.querySelectorAll('.btn-filter-pill').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+        renderDriverOverviewAccordion();
+    }
+    window.setDriverOverviewFilter = setDriverOverviewFilter;
+
+    function renderDriverOverviewAccordion() {
+        const container = document.getElementById('driverAccordionContainer');
+        if (!container) return;
+
+        const taskList = (typeof window !== 'undefined' && Array.isArray(window.tasks)) ? window.tasks : ((typeof tasks !== 'undefined' && Array.isArray(tasks)) ? tasks : []);
+        const drivers = (typeof getStoredDrivers === 'function') ? getStoredDrivers() : [];
+
+        const driverMap = {};
+        drivers.forEach(d => {
+            driverMap[d.name] = {
+                name: d.name,
+                role: d.role || 'driver',
+                tasks: []
+            };
+        });
+
+        taskList.forEach(t => {
+            const dName = t.driver || 'Määrittelemätön kuljettaja';
+            if (!driverMap[dName]) {
+                driverMap[dName] = {
+                    name: dName,
+                    role: 'driver',
+                    tasks: []
+                };
+            }
+            driverMap[dName].tasks.push(t);
+        });
+
+        const driverNames = Object.keys(driverMap);
+        const summaryEl = document.getElementById('driverOverviewSummary');
+        if (summaryEl) {
+            summaryEl.textContent = `${driverNames.length} kuljettajaa / ryhmää`;
+        }
+
+        if (driverNames.length === 0) {
+            container.innerHTML = '<div style="color: var(--fg-muted, #848d97); font-size: 0.85rem; padding: 10px 0;">Ei aktiivisia kuljettajia tai kohteita.</div>';
+            return;
+        }
+
+        container.innerHTML = driverNames.map((dName, idx) => {
+            const dObj = driverMap[dName];
+            const allTasks = dObj.tasks;
+            const total = allTasks.length;
+            const done = allTasks.filter(t => t.done).length;
+            const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+            let filteredTasks = allTasks;
+            if (currentDriverOverviewFilter === 'pending') {
+                filteredTasks = allTasks.filter(t => !t.done);
+            } else if (currentDriverOverviewFilter === 'done') {
+                filteredTasks = allTasks.filter(t => t.done);
+            }
+
+            const tasksHtml = filteredTasks.length === 0 ? `
+                <div style="font-size: 0.82rem; color: var(--fg-muted, #848d97); padding: 8px 4px;">
+                    ${total === 0 ? 'Ei kohteita osoitettuna' : 'Ei kohteita valitulla suodattimella.'}
+                </div>
+            ` : filteredTasks.map(t => {
+                const isDone = !!t.done;
+                const icon = isDone ? '✓' : '⏱';
+                const iconColor = isDone ? '#10b981' : '#f59e0b';
+                const timeStr = t.completed_at ? `(kuitattu ${esc(t.completed_at)})` : (t.done_time ? `(kuitattu ${esc(t.done_time)})` : '');
+                const statusText = isDone ? `Valmis ${timeStr}` : 'Tekemättä';
+
+                return `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-bottom: 1px solid var(--border-muted, #21262d); font-size: 0.84rem;">
+                        <div style="display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1;">
+                            <span style="font-weight: 800; color: ${iconColor}; flex-shrink: 0;">[ ${icon} ]</span>
+                            <div style="min-width: 0; flex: 1;">
+                                <span style="font-weight: 600; color: ${isDone ? 'var(--fg-muted, #848d97)' : 'var(--fg, #e6edf3)'}; text-decoration: ${isDone ? 'line-through' : 'none'}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;">${esc(t.name)}</span>
+                                <span style="font-size: 0.74rem; color: var(--fg-muted, #848d97); display: block;">${esc(t.address || '')}</span>
+                            </div>
+                        </div>
+                        <span class="status-pill ${isDone ? 'status-ready' : 'status-pending'}" style="font-size: 0.74rem; padding: 3px 8px; flex-shrink: 0; margin-left: 8px;">
+                            ${statusText}
+                        </span>
+                    </div>
+                `;
+            }).join('');
+
+            const isDefaultOpen = idx === 0 || total > 0;
+            return `
+                <div class="driver-accordion-item" id="accordion-driver-${idx}">
+                    <div class="driver-accordion-header" onclick="toggleDriverAccordion('accordion-driver-${idx}')">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="accordion-chevron" style="transition: transform 0.2s;">${isDefaultOpen ? '▼' : '▶'}</span>
+                            <span style="font-weight: 700; color: var(--fg, #e6edf3);">${esc(dName)}</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 0.82rem; font-weight: 700; color: ${pct === 100 && total > 0 ? '#10b981' : 'var(--fg-muted, #848d97)'};">
+                                ${done}/${total} tehty (${pct} %)
+                            </span>
+                        </div>
+                    </div>
+                    <div class="driver-accordion-content" style="display: ${isDefaultOpen ? 'block' : 'none'};">
+                        ${tasksHtml}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+    window.renderDriverOverviewAccordion = renderDriverOverviewAccordion;
+
+    function toggleDriverAccordion(elementId) {
+        const item = document.getElementById(elementId);
+        if (!item) return;
+        const content = item.querySelector('.driver-accordion-content');
+        const chevron = item.querySelector('.accordion-chevron');
+        if (!content) return;
+        const isOpen = content.style.display !== 'none';
+        content.style.display = isOpen ? 'none' : 'block';
+        if (chevron) chevron.textContent = isOpen ? '▶' : '▼';
+    }
+    window.toggleDriverAccordion = toggleDriverAccordion;
+
+    function toggleMapFullscreen(mapElementId, btnEl) {
+        if (typeof document === 'undefined') return;
+        const el = typeof mapElementId === 'string' ? document.getElementById(mapElementId) : mapElementId;
+        if (!el) return;
+        const parent = el.closest('.map-fullscreen-wrapper') || el.parentElement;
+        const targetEl = parent || el;
+        const isFull = targetEl.classList.toggle('map-fullscreen-active');
+        if (btnEl) {
+            btnEl.innerHTML = isFull ? '🗗 Pienennä' : '⛶ Koko näyttö';
+        }
+        setTimeout(() => {
+            if (window.yardMap && typeof window.yardMap.invalidateSize === 'function') window.yardMap.invalidateSize();
+            if (window.mapInstance && typeof window.mapInstance.invalidateSize === 'function') window.mapInstance.invalidateSize();
+            if (window.dashboardCityMap && typeof window.dashboardCityMap.invalidateSize === 'function') window.dashboardCityMap.invalidateSize();
+            if (window.map && typeof window.map.invalidateSize === 'function') window.map.invalidateSize();
+            if (window.adminMap && typeof window.adminMap.invalidateSize === 'function') window.adminMap.invalidateSize();
+        }, 150);
+    }
+    window.toggleMapFullscreen = toggleMapFullscreen;
+
     // Render Dashboard View
     function renderDashboardView() {
         applyDashboardPrefs();
@@ -5601,6 +6069,8 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
         if (elDone) elDone.textContent = `${doneCount}`;
         if (elRemaining) elRemaining.textContent = `${remainingCount}`;
         if (elTotal) elTotal.textContent = `${total}`;
+        const elSummary = document.getElementById('dashProgressSummaryText');
+        if (elSummary) elSummary.textContent = `Tehty ${doneCount} / ${total} pihaa (${pct} %)`;
 
         // Widget 2: Seuraava kohde
         const nextStopContent = document.getElementById('dashNextStopContent');
@@ -5765,6 +6235,17 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
                     `;
                 }).join('');
             }
+        }
+
+        // Tilannekeskuksen osiot A, B ja D
+        if (typeof fetchWeatherForecast === 'function') {
+            fetchWeatherForecast();
+        }
+        if (typeof initDashboardCityMap === 'function') {
+            initDashboardCityMap();
+        }
+        if (typeof renderDriverOverviewAccordion === 'function') {
+            renderDriverOverviewAccordion();
         }
 
         // Alustetaan GridStack jos saatavilla
@@ -11018,10 +11499,11 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
 
         const currentRole = (typeof getUserRole === 'function') ? getUserRole() : 'admin';
         if (currentRole === 'supervisor' && role === 'admin') {
+            const msg = 'Työnjohtaja ei voi luoda tai asettaa pääkäyttäjäoikeuksia (Admin).';
             if (typeof showStatus === 'function') {
-                showStatus('Työnjohtaja ei voi luoda tai asettaa pääkäyttäjäoikeuksia (Admin).', 'error');
+                showStatus(msg, 'error');
             } else {
-                alert('Työnjohtaja ei voi luoda tai asettaa pääkäyttäjäoikeuksia (Admin).');
+                alert(msg);
             }
             return;
         }
@@ -11032,19 +11514,22 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
         }
 
         if (!editId && (!password || password.length < 6)) {
+            const msg = 'Uudelle käyttäjälle on annettava aloitussalasana (vähintään 6 merkkiä)!';
             if (typeof showStatus === 'function') {
-                showStatus('Uudelle käyttäjälle on annettava aloitussalasana (vähintään 6 merkkiä)!', 'error');
+                showStatus(msg, 'error');
             } else {
-                alert('Uudelle käyttäjälle on annettava aloitussalasana (vähintään 6 merkkiä)!');
+                alert(msg);
             }
             return;
         }
 
         const permissions = {};
-        PERMISSION_KEYS.forEach(k => {
-            const cb = document.getElementById('perm_' + k);
-            permissions[k] = cb ? cb.checked : false;
-        });
+        if (typeof PERMISSION_KEYS !== 'undefined' && Array.isArray(PERMISSION_KEYS)) {
+            PERMISSION_KEYS.forEach(k => {
+                const cb = document.getElementById('perm_' + k);
+                permissions[k] = cb ? cb.checked : false;
+            });
+        }
 
         const drivers = getStoredDrivers();
         let targetDriverId = editId;
@@ -11055,6 +11540,7 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
                 drivers[idx] = {
                     ...drivers[idx],
                     name,
+                    full_name: name,
                     phone,
                     email,
                     password: password || drivers[idx].password || null,
@@ -11070,6 +11556,7 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
             drivers.push({
                 id: targetDriverId,
                 name,
+                full_name: name,
                 phone,
                 email,
                 password: password || null,
@@ -11084,11 +11571,15 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
 
         persistDrivers(drivers);
         closeAddDriverDrawer();
-        applyPermissionsToUi();
-        renderDriversView();
+        if (typeof applyPermissionsToUi === 'function') applyPermissionsToUi();
+        if (typeof renderDriversView === 'function') renderDriversView();
+        if (typeof renderDriverOverviewAccordion === 'function') renderDriverOverviewAccordion();
 
         // Supabase: profiili ja suora auth-tunnus
         const client = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : null) || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+
+        let emailConfirmNotice = false;
+        let operationError = null;
 
         if (client) {
             let authUserId = null;
@@ -11097,12 +11588,19 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
             if (client.auth && password && !editId) {
                 const authEmail = email || `${name.toLowerCase().replace(/[^a-z0-9]/g, '') || 'kayttaja'}@yardflow.fi`;
                 try {
+                    let adminSession = null;
+                    if (typeof client.auth.getSession === 'function') {
+                        const sessRes = await client.auth.getSession();
+                        adminSession = sessRes?.data?.session;
+                    }
+
                     const { data: signUpData, error: signUpErr } = await client.auth.signUp({
                         email: authEmail,
                         password: password,
                         options: {
                             data: {
                                 name: name,
+                                full_name: name,
                                 phone: phone,
                                 vehicle: vehicle,
                                 role: role,
@@ -11111,13 +11609,26 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
                             }
                         }
                     });
+
+                    if (adminSession && client.auth.setSession) {
+                        await client.auth.setSession({
+                            access_token: adminSession.access_token,
+                            refresh_token: adminSession.refresh_token
+                        });
+                    }
+
                     if (signUpErr) {
                         console.warn('Supabase signUp warning:', signUpErr);
+                        operationError = signUpErr.message || String(signUpErr);
                     } else if (signUpData && signUpData.user && signUpData.user.id) {
                         authUserId = signUpData.user.id;
+                        if (!signUpData.session) {
+                            emailConfirmNotice = true;
+                        }
                     }
                 } catch (err) {
                     console.warn('Supabase signUp error:', err);
+                    operationError = err.message || String(err);
                 }
             }
 
@@ -11132,33 +11643,62 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
                 }
             }
 
-            // 2. Tallennetaan 'profiles'-tauluun uusi sarake: must_change_password: true
+            // 2. Tallennetaan 'profiles'-tauluun
             if (client.from) {
                 try {
                     const isNew = !editId;
                     const existingMustChange = editId ? (drivers.find(x => String(x.id) === String(editId))?.must_change_password || false) : true;
-                    await client.from('profiles').upsert({
+                    const profilePayload = {
                         id: targetDriverId,
                         email: email || null,
                         name: name,
+                        full_name: name,
                         phone: phone,
                         vehicle: vehicle,
                         role: role,
                         permissions: permissions,
                         expires_at: expiresAt,
                         must_change_password: isNew ? true : existingMustChange,
+                        created_at: new Date().toISOString(),
                         updated_at: new Date().toISOString()
-                    });
+                    };
+
+                    const upsertPromise = client.from('profiles').upsert(profilePayload);
+                    const { data: profRes, error: profErr } = (upsertPromise && typeof upsertPromise.select === 'function')
+                        ? await upsertPromise.select()
+                        : await upsertPromise;
+                    if (profErr) {
+                        console.warn('Supabase profiles upsert error:', profErr);
+                    }
                 } catch (e) {
                     console.warn('Supabase profiles upsert error:', e);
                 }
             }
         }
 
-        // Ilmoitus käyttäjälle
+        // Päivitetään käyttäjälista DOM:issa heti ilman koko sivun uudelleenlatausta
+        if (typeof renderDriversView === 'function') {
+            renderDriversView();
+        }
+
+        // Ilmoitus käyttäjälle (Toast / Alert)
+        if (operationError) {
+            const errText = `Virhe käyttäjän luonnissa: ${operationError}`;
+            if (typeof showStatus === 'function') {
+                showStatus(errText, 'error');
+            } else {
+                alert(errText);
+            }
+            return;
+        }
+
         if (typeof showStatus === 'function') {
             if (!editId) {
-                showStatus(`Käyttäjä "${esc(name)}" luotu ja aloitussalasana asetettu!`, 'success');
+                let successMsg = `Kuljettaja "${esc(name)}" lisätty onnistuneesti ja aloitussalasana asetettu!`;
+                if (emailConfirmNotice) {
+                    successMsg += ' Kutsu/vahvistusviesti lähetetty sähköpostiin.';
+                }
+                showStatus(successMsg, 'success');
             } else {
                 showStatus(`Käyttäjän "${esc(name)}" tiedot tallennettu!`, 'success');
             }
@@ -14659,9 +15199,10 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
 
     function createCustomerGfTileLayer(baseType) {
         if (baseType === 'street') {
-            return L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 20,
-                attribution: '&copy; OpenStreetMap'
+            return L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                maxZoom: 19,
+                subdomains: 'abcd',
+                attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
             });
         }
         return L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
@@ -15836,9 +16377,10 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
                     maxZoom: 21,
                     attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics'
                 }),
-                street: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 20,
-                    attribution: '&copy; OpenStreetMap'
+                street: L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                    maxZoom: 19,
+                    subdomains: 'abcd',
+                    attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
                 })
             };
         }
@@ -15981,9 +16523,10 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
         try {
             if (!window.mapInstance && !mapEl._leaflet_id) {
                 window.mapInstance = L.map(mapEl.id).setView([61.4981, 23.7610], 13);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
                     maxZoom: 19,
-                    attribution: '© OpenStreetMap'
+                    subdomains: 'abcd',
+                    attribution: '© OpenStreetMap contributors © CARTO'
                 }).addTo(window.mapInstance);
             }
             if (window.mapInstance && typeof window.mapInstance.invalidateSize === 'function') {
