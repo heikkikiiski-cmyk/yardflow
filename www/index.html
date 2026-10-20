@@ -34,6 +34,13 @@
     <script>
         (function() {
             try {
+                localStorage.removeItem('yf_dashboard_layout');
+                localStorage.removeItem('gridstack_layout');
+                Object.keys(localStorage).forEach(function(k) {
+                    if (k.indexOf('yf_grid_layout_') === 0 || k.indexOf('gridstack_') === 0) {
+                        localStorage.removeItem(k);
+                    }
+                });
                 const saved = localStorage.getItem('yardflow_theme');
                 const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
                 const theme = saved || (prefersDark ? 'dark' : 'light');
@@ -1280,8 +1287,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             <span class="menu-text">Valikko</span>
         </button>
         <div class="logo" onclick="switchTab('dashboard')" style="cursor: pointer; display: flex; align-items: center; gap: 8px; text-decoration: none;" title="YardFlow Dashboard">
-            <img src="assets/logo.png" alt="YardFlow Logo" class="menu-logo" style="width: 28px; height: 28px; object-fit: contain; border-radius: 6px; flex-shrink: 0;">
-            <div class="logo-title">Yard<span>Flow</span></div>
+            <img src="assets/logo.png" alt="YardFlow Logo" class="menu-logo" style="width: 32px; height: 32px; object-fit: contain; border-radius: 6px; flex-shrink: 0;">
         </div>
         <!-- Aktiivisen reitin / käyttäjän lyhyt nimi vasemmalla (oletuksena piilotettu tuplanimen poistamiseksi) -->
         <div id="topbarActiveBadge" class="header-active-info" style="display: none;" title="Aktiivinen reitti ja käyttäjä">
@@ -1624,31 +1630,6 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                 </div>
             </div>
 
-            <!-- Widget 3: Seuraava ajokohde (piilotettu reittisuunnittelusta) -->
-            <div id="widget-next-yard" class="dashboard-widget widget-next-yard-card" style="display: none !important; margin-bottom: 12px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                    <span style="font-weight: 700; font-size: 0.78rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.04em;">📍 Seuraava ajokohde</span>
-                    <span class="status-pill status-ready" style="font-size: 0.72rem; padding: 2px 8px;">Reitin seuraava</span>
-                </div>
-                <div id="widgetNextYardContent">
-                    <div id="widgetNextYardEmpty" style="font-size: 0.84rem; color: var(--muted); display: none;">Kaikki päivän kohteet kuitattu! 🎉</div>
-                    <div id="widgetNextYardDetails">
-                        <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main); margin-bottom: 2px;" id="widgetNextYardName">-</div>
-                        <div style="font-size: 0.8rem; color: var(--muted); margin-bottom: 8px;" id="widgetNextYardAddress">-</div>
-                        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                            <button type="button" class="btn btn-outline" style="flex: 1; min-height: 38px; font-size: 0.85rem; padding: 6px 10px;" onclick="navigateToNextYard()" title="Avaa ulkoinen Google Maps / Waze -opastus">
-                                ↗ Navigoi
-                            </button>
-                            <button type="button" class="btn btn-outline" style="flex: 1; min-height: 38px; font-size: 0.85rem; padding: 6px 10px;" onclick="centerMapOnCurrentTarget()" title="Keskitä sisäinen kartta kohteeseen">
-                                📍 Keskitä
-                            </button>
-                            <button type="button" class="btn btn-primary driver-only" style="flex: 1; min-height: 38px; font-size: 0.85rem; padding: 6px 10px;" onclick="completeNextYard()">
-                                ✓ Kuittaa
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             <!-- Widget 4: Päivän työkeikat / huoltotilaukset / esteet -->
             <div id="widget-tickets" class="dashboard-widget widget-tickets-card" style="margin-bottom: 12px;">
@@ -1898,35 +1879,11 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                     </button>
                 </div>
 
-                <!-- Työkalurivi: Automaattinen optimointi ja työjonon avaus -->
+                <!-- Työkalurivi: Automaattinen optimointi -->
                 <div class="driver-hud-tools-row">
                     <button type="button" id="btn-optimize-route" class="btn-driver-tool" onclick="optimizeDriverRoute()" title="Järjestä käymättömät kohteet lyhimmän siirtymämatkan mukaan">
                         ⚡ Optimoi reitti automaattisesti
                     </button>
-                    <button type="button" id="btn-toggle-driver-queue" class="btn-driver-tool-outline" onclick="toggleDriverQueue()" title="Näytä tai piilota päivän ajojärjestys">
-                        📋 Työjono (<span id="driverQueueCountBadge">0</span>)
-                    </button>
-                    <button type="button" class="btn-driver-tool-outline" onclick="toggleMapBaseQuick()" title="Vaihda karttapohjaa (Satelliitti / Selkeä peruskartta)">
-                        🗺️ Karttataso
-                    </button>
-                    <button type="button" class="btn-driver-tool-outline" onclick="toggleBoundariesQuick()" title="Kytke tontin- ja kiinteistörajat">
-                        📐 Rajat
-                    </button>
-                    <button type="button" id="btn-toggle-geofence-layer" class="btn-driver-tool-outline" onclick="toggleDriverGeofenceLayer()" title="Piilota tai näytä geofencing-alueet kartalla">
-                        🚫 Piilota geofencing
-                    </button>
-                    <button type="button" id="btn-toggle-plow-areas" class="btn-driver-tool-outline" onclick="toggleDriverPlowAreasLayer()" title="Piilota tai näytä aurausalueet kartalla">
-                        🚜 Piilota aurausalueet
-                    </button>
-                </div>
-
-                <!-- Kuljettajan avattava/pelkistetty päivän työjono (#driver-queue-container) -->
-                <div id="driver-queue-container" class="driver-queue-container" style="display: none;">
-                    <div class="driver-queue-header">
-                        <span>📋 Päivän työjono ja ajojärjestys</span>
-                        <span id="driverQueueStats" style="font-size: 0.76rem; color: var(--muted);"></span>
-                    </div>
-                    <div id="driverQueueList" class="driver-queue-list"></div>
                 </div>
             </div>
 
@@ -1937,6 +1894,8 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                     <button type="button" id="adminMapBaseStreetBtn" onclick="setMapBaseLayer('street')"></button>
                     <button type="button" id="quickMapBoundariesBtn" onclick="toggleBoundariesQuick()"></button>
                     <button type="button" id="quickMapBaseToggleBtn" onclick="toggleMapBaseQuick()"></button>
+                    <button type="button" id="btn-toggle-geofence-layer" onclick="toggleDriverGeofenceLayer()"></button>
+                    <button type="button" id="btn-toggle-plow-areas" onclick="toggleDriverPlowAreasLayer()"></button>
                     <button type="button" id="btn-toggle-geofence-quick" onclick="toggleDriverGeofenceLayer()"></button>
                     <button type="button" id="btn-toggle-plow-areas-quick" onclick="toggleDriverPlowAreasLayer()"></button>
                 </div>
