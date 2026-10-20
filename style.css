@@ -526,4 +526,16 @@ body.dashboard-editing .grid-stack-item > .ui-resizable-se::after {
     min-height: 450px;
 }
 
+.app-dialog[open],
+dialog#modal-create-route[open] {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 999999 !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+    margin: 0 !important;
+}
+
 

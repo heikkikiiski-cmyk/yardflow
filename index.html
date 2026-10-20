@@ -397,6 +397,17 @@
 
         /* Apple Modals */
         .app-dialog { border: 1px solid var(--card-border); border-radius: var(--radius-xl); background: var(--modal-bg); color: var(--fg); padding: 24px; max-width: 480px; width: 90%; box-shadow: 0 24px 60px rgba(0,0,0,0.5); margin: auto; backdrop-filter: blur(20px); }
+        .app-dialog[open],
+        dialog#modal-create-route[open] {
+            position: fixed !important;
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            z-index: 999999 !important;
+            max-height: 90vh !important;
+            overflow-y: auto !important;
+            margin: 0 !important;
+        }
         .app-dialog::backdrop { background: var(--modal-backdrop); backdrop-filter: blur(8px); }
         .dialog-content h3 { margin-top: 0; margin-bottom: 14px; font-family: var(--font-display); font-size: 1.15rem; font-weight: 700; letter-spacing: -0.02em; color: var(--fg); }
         .dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
@@ -3676,6 +3687,17 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
                d.toLocaleTimeString('fi-FI', { hour: '2-digit', minute: '2-digit' });
     }
 
+    function fmtDate(iso) {
+        if (!iso) return '';
+        try {
+            const d = new Date(iso);
+            return isNaN(d.getTime()) ? '' : d.toLocaleDateString('fi-FI', { day: 'numeric', month: 'numeric', year: 'numeric' });
+        } catch (e) {
+            return '';
+        }
+    }
+    window.fmtDate = fmtDate;
+
     function disableLayerTransformsAndEdit(layer) {
         if (!layer) return;
         if (layer.transform && layer.transform._enabled) {
@@ -5583,6 +5605,10 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
                         const parentGridItem = itemEl.classList.contains('grid-stack-item') ? itemEl : itemEl.closest('.grid-stack-item');
                         if (!parentGridItem) return;
 
+                        if (currentView === 'dashboard' && coreDashboardWidgetIds.includes(item.id)) {
+                            item.hidden = false;
+                        }
+
                         if (item.hidden) {
                             parentGridItem.style.display = 'none';
                             if (typeof grid.removeWidget === 'function') {
@@ -6167,6 +6193,17 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
     // Render Dashboard View
     function renderDashboardView() {
         applyDashboardPrefs();
+
+        // Pakotetaan Dashboardin 4 pääosiota aina näkyviksi
+        const coreWidgetIds = ['dash-widget-progress', 'dash-widget-weather', 'dash-widget-map', 'dash-widget-drivers-accordion'];
+        coreWidgetIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.style.display = '';
+                const p = el.closest('.grid-stack-item');
+                if (p) p.style.display = '';
+            }
+        });
 
         const dateBadge = document.getElementById('dashTodayDateBadge');
         if (dateBadge) {
@@ -9779,12 +9816,18 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
     let statusTimer = null;
     function showStatus(msg, type = 'info') {
         const box = document.getElementById('optimizerStatus');
-        box.style.display = 'block';
-        box.className = `status-box status-${type}`;
-        box.innerHTML = msg;
-        clearTimeout(statusTimer);
-        if (type !== 'loading') {
-            statusTimer = setTimeout(() => { box.style.display = 'none'; }, 7000);
+        if (box) {
+            box.style.display = 'block';
+            box.className = `status-box status-${type}`;
+            box.innerHTML = msg;
+            clearTimeout(statusTimer);
+            if (type !== 'loading') {
+                statusTimer = setTimeout(() => { box.style.display = 'none'; }, 7000);
+            }
+        }
+        if (typeof showToast === 'function') {
+            const clean = String(msg || '').replace(/<[^>]*>/g, '');
+            showToast(clean);
         }
     }
 
@@ -10830,7 +10873,7 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
     }
 
     const getCurrentRoute = () => routes.find(r => String(r.id) === String(currentRouteId));
-    const fmtDate = iso => new Date(iso).toLocaleDateString('fi-FI', { day: 'numeric', month: 'numeric', year: 'numeric' });
+    // fmtDate is declared globally
     const taskSig = list => list.map(t => [t.name, t.address, t.type, t.notes].join('|')).join('~');
 
     // Kysyy nimen <dialog>-ikkunalla (varalla prompt vanhoille selaimille)
@@ -11601,6 +11644,9 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
         }
 
         drawer.style.display = 'block';
+        if (typeof drawer.scrollIntoView === 'function') {
+            drawer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
         if (nameInput) nameInput.focus();
     }
     window.openAddDriverDrawer = openAddDriverDrawer;
@@ -11826,6 +11872,10 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
             } else {
                 showStatus(`Käyttäjän "${esc(name)}" tiedot tallennettu!`, 'success');
             }
+        }
+        alert(editId ? `Käyttäjän "${name}" tiedot tallennettu!` : `Kuljettaja "${name}" lisätty onnistuneesti ja aloitussalasana asetettu! ✓`);
+        if (typeof showToast === 'function') {
+            showToast(editId ? `Käyttäjän "${name}" tiedot tallennettu!` : `Kuljettaja "${name}" lisätty! ✓`);
         }
     }
     window.saveDriverFromForm = saveDriverFromForm;
@@ -13030,9 +13080,15 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
 
         // Päivitetään kuskit select-valikkoon tallennetuista kuljettajista
         if (driverSel) {
-            const drivers = getStoredDrivers();
-            driverSel.innerHTML = drivers.map(d => `<option value="${esc(d.name)}">${esc(d.name)} (${esc(d.vehicle || 'Kalusto')})</option>`).join('') +
-                '<option value="__custom__">+ Kirjoita muu kuljettaja...</option>';
+            const drivers = (typeof getStoredDrivers === 'function') ? getStoredDrivers() : [];
+            let optionsHtml = '';
+            if (drivers.length > 0) {
+                optionsHtml = drivers.map(d => `<option value="${esc(d.name)}">${esc(d.name)} (${esc(d.vehicle || 'Kalusto')})</option>`).join('');
+            } else {
+                optionsHtml = '<option value="Hessu">Hessu (Pääkäyttäjä)</option><option value="Kuljettaja 1">Kuljettaja 1</option>';
+            }
+            optionsHtml += '<option value="__custom__">+ Kirjoita muu kuljettaja...</option>';
+            driverSel.innerHTML = optionsHtml;
         }
 
         if (editRouteId) {
@@ -13066,22 +13122,27 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
             populateCreateRoutePropertiesList(null);
         }
 
-        if (typeof dlg.showModal === 'function') {
-            dlg.showModal();
-        } else {
-            dlg.style.display = 'block';
+        try {
+            if (typeof dlg.showModal === 'function') {
+                if (dlg.open) dlg.close();
+                dlg.showModal();
+            }
+        } catch (e) {
+            console.warn('showModal fallback:', e);
         }
+        dlg.setAttribute('open', '');
+        dlg.style.display = 'block';
     }
     window.openCreateRouteModal = openCreateRouteModal;
 
     function closeCreateRouteModal() {
         const dlg = document.getElementById('modal-create-route');
         if (!dlg) return;
-        if (typeof dlg.close === 'function') {
-            dlg.close();
-        } else {
-            dlg.style.display = 'none';
-        }
+        try {
+            if (typeof dlg.close === 'function') dlg.close();
+        } catch (e) {}
+        dlg.removeAttribute('open');
+        dlg.style.display = 'none';
     }
     window.closeCreateRouteModal = closeCreateRouteModal;
 
@@ -13238,8 +13299,9 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
             driverName = (customInput ? customInput.value.trim() : '') || 'Kuljettaja';
         }
 
+        const allBoxes = Array.from(document.querySelectorAll('.route-prop-checkbox'));
         const checkedBoxes = Array.from(document.querySelectorAll('.route-prop-checkbox:checked'));
-        if (checkedBoxes.length === 0) {
+        if (checkedBoxes.length === 0 && allBoxes.length > 0) {
             alert('Valitse vähintään yksi kohde uudelle reitille!');
             return;
         }
@@ -13353,6 +13415,10 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
         renderRoutesManagementView();
 
         closeCreateRouteModal();
+        alert(`Reitti "${routeName}" tallennettu onnistuneesti! ✓`);
+        if (typeof showToast === 'function') {
+            showToast(`Reitti "${routeName}" tallennettu! ✓`);
+        }
         showStatus(`Reitti "${esc(routeName)}" tallennettu ja osoitettu kuskille "${esc(driverName)}" (${selectedProps.length} kohdetta)!`, 'success');
     }
     window.saveNewCreatedRoute = saveNewCreatedRoute;
@@ -16854,6 +16920,7 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
     updateCustomerBadges();
     updatePhotoCounts();
     initYardSatelliteMap();
+    if (typeof renderDashboardView === 'function') renderDashboardView();
 
     // Osoite-ehdotukset: lisäyslomake, muokkausdialogi, asiakaslomakkeet, työloki ja varikko
     attachAutocomplete(document.getElementById('address'));
@@ -16907,6 +16974,7 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
         if (navigator.onLine) syncPendingLogs();
         restorePanelCollapseStates();
         if (typeof updateMapSettingsUi === 'function') updateMapSettingsUi();
+        if (typeof renderDashboardView === 'function') renderDashboardView();
         if (typeof checkPasswordRecoveryLink === 'function') checkPasswordRecoveryLink();
         if (typeof checkAuthSession === 'function') checkAuthSession();
         if (typeof initSupabaseAuthListener === 'function') initSupabaseAuthListener();

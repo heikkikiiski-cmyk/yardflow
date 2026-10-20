@@ -486,6 +486,10 @@
                         const parentGridItem = itemEl.classList.contains('grid-stack-item') ? itemEl : itemEl.closest('.grid-stack-item');
                         if (!parentGridItem) return;
 
+                        if (currentView === 'dashboard' && coreDashboardWidgetIds.includes(item.id)) {
+                            item.hidden = false;
+                        }
+
                         if (item.hidden) {
                             parentGridItem.style.display = 'none';
                             if (typeof grid.removeWidget === 'function') {

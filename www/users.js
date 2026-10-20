@@ -16,13 +16,18 @@
     }
 
     function openAddDriverDrawer(driverId = null) {
-        if (typeof global.openAddDriverDrawer === 'function') {
+        if (typeof global.openAddDriverDrawer === 'function' && global.openAddDriverDrawer !== openAddDriverDrawer) {
             return global.openAddDriverDrawer(driverId);
         }
         const drawer = document.getElementById('addDriverDrawer');
         if (drawer) {
             drawer.style.display = 'block';
+            if (typeof drawer.scrollIntoView === 'function') {
+                drawer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
         }
+        const nameInput = document.getElementById('driverInputName');
+        if (nameInput) nameInput.focus();
     }
 
     function closeAddDriverDrawer() {
@@ -148,14 +153,10 @@
                                 await global.saveDriverFromForm();
                             } catch (err) {
                                 console.error('Virhe kuljettajan tallennuksessa:', err);
-                                if (typeof global.showStatus === 'function') {
-                                    global.showStatus(err.message || 'Virhe tallennuksessa', 'error');
-                                } else {
-                                    alert(err.message || 'Virhe tallennuksessa');
-                                }
+                                alert(err.message || 'Virhe tallennuksessa');
                             }
                         }
-                    } else {
+                    } else if (!isDrawerOpen) {
                         // Avaa lomakelaatikko
                         if (typeof global.openAddDriverDrawer === 'function') {
                             global.openAddDriverDrawer();
@@ -176,11 +177,7 @@
                             await global.saveDriverFromForm();
                         } catch (err) {
                             console.error('Virhe kuljettajan tallennuksessa:', err);
-                            if (typeof global.showStatus === 'function') {
-                                global.showStatus(err.message || 'Virhe tallennuksessa', 'error');
-                            } else {
-                                alert(err.message || 'Virhe tallennuksessa');
-                            }
+                            alert(err.message || 'Virhe tallennuksessa');
                         }
                     }
                 });

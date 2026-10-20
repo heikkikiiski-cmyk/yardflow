@@ -24,6 +24,9 @@
     const VIEW_WIDGETS = {
         dashboard: [
             { id: 'dash-widget-progress', title: 'Päivän tilanne', icon: '📊', desc: 'Edistymispalkki, kuitatut ja jäljellä olevat kohteet', defaultW: 6, defaultH: 4 },
+            { id: 'dash-widget-weather', title: 'Säätiedot & Lumiennuste', icon: '❄️', desc: 'Reaaliaikainen sää ja lumisade-ennuste', defaultW: 6, defaultH: 4 },
+            { id: 'dash-widget-map', title: 'Kaupungin tilannekartta', icon: '🗺️', desc: 'Koko kaupungin asiakaskohteet ja kuittaustilat', defaultW: 12, defaultH: 6 },
+            { id: 'dash-widget-drivers-accordion', title: 'Kuljettajatilanne', icon: '🚜', desc: 'Kuskikohtainen edistyminen ja pihat', defaultW: 12, defaultH: 6 },
             { id: 'dash-widget-next-stop', title: 'Seuraava ajokohde', icon: '📍', desc: 'Ajo-ohjeet, osoite ja pikakuittaus seuraavaan kohteeseen', defaultW: 6, defaultH: 4 },
             { id: 'dash-widget-route-stats', title: 'Siirtymämatkat', icon: '⚡', desc: 'Siirtymäkilometrit, ajoaika ja reitin pikaoptimointi', defaultW: 6, defaultH: 4 },
             { id: 'dash-widget-tickets', title: 'Päivän esteet', icon: '⚠️', desc: 'Kuljettajien raportoimat esteet, lumitilanne ja huomiot', defaultW: 6, defaultH: 4 },
@@ -469,6 +472,26 @@
                 }));
             }
 
+            const coreDashboardWidgetIds = ['dash-widget-progress', 'dash-widget-weather', 'dash-widget-map', 'dash-widget-drivers-accordion'];
+            if (currentView === 'dashboard' && Array.isArray(savedLayout)) {
+                coreDashboardWidgetIds.forEach((cId, cIdx) => {
+                    let entry = savedLayout.find(i => i.id === cId);
+                    if (!entry) {
+                        entry = {
+                            id: cId,
+                            x: cols === 1 ? 0 : (cIdx % 2 === 0 ? 0 : 6),
+                            y: cols === 1 ? cIdx * 4 : Math.floor(cIdx / 2) * 5,
+                            w: (cId === 'dash-widget-map' || cId === 'dash-widget-drivers-accordion') ? 12 : 6,
+                            h: (cId === 'dash-widget-map' || cId === 'dash-widget-drivers-accordion') ? 6 : 4,
+                            hidden: false
+                        };
+                        savedLayout.push(entry);
+                    } else {
+                        entry.hidden = false;
+                    }
+                });
+            }
+
             if (grid && Array.isArray(savedLayout)) {
                 const visibleItems = savedLayout.filter(i => !i.hidden);
                 const allZeroCoords = visibleItems.length > 1 && visibleItems.every(i => (i.x || 0) === 0 && (i.y || 0) === 0);
@@ -479,6 +502,10 @@
                         if (!itemEl) return;
                         const parentGridItem = itemEl.classList.contains('grid-stack-item') ? itemEl : itemEl.closest('.grid-stack-item');
                         if (!parentGridItem) return;
+
+                        if (currentView === 'dashboard' && coreDashboardWidgetIds.includes(item.id)) {
+                            item.hidden = false;
+                        }
 
                         if (item.hidden) {
                             parentGridItem.style.display = 'none';
