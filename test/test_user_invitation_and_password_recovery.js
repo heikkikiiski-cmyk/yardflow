@@ -35,14 +35,16 @@ function runTest() {
     console.log('\n--- 2. Testing 6-Digit OTP Password Reset Modal Markup ---');
     assert(html.includes('id="modal-reset-password"'), 'Elementti #modal-reset-password löytyy');
     assert(html.includes('id="resetPasswordModalTitle"'), 'Otsikko #resetPasswordModalTitle löytyy');
-    assert(html.includes('id="resetStep1"'), '#resetStep1 lomake löytyy');
-    assert(html.includes('id="resetStep2"'), '#resetStep2 lomake löytyy');
+    assert(html.includes('id="resetStep1"') && html.includes('step-code'), '#resetStep1 step-code lomake löytyy');
+    assert(html.includes('id="resetStep2"') && html.includes('step-new-password'), '#resetStep2 step-new-password lomake löytyy');
     assert(html.includes('id="resetEmailInput"'), '#resetEmailInput kenttä löytyy');
     assert(html.includes('id="btnSendResetCode"'), '#btnSendResetCode nappi löytyy');
     assert(html.includes('id="resetOtpInput"'), '#resetOtpInput kenttä löytyy');
+    assert(html.includes('id="btnVerifyResetCode"'), '#btnVerifyResetCode nappi löytyy');
     assert(html.includes('id="resetNewPasswordInput"'), '#resetNewPasswordInput kenttä löytyy');
-    assert(html.includes('id="btnVerifyAndSetPassword"'), '#btnVerifyAndSetPassword nappi löytyy');
-    assert(html.includes('Vahvista ja aseta salasana'), 'Napissa teksti: Vahvista ja aseta salasana');
+    assert(html.includes('id="resetConfirmPasswordInput"'), '#resetConfirmPasswordInput kenttä löytyy');
+    assert(html.includes('id="btnSaveNewPassword"'), '#btnSaveNewPassword nappi löytyy');
+    assert(html.includes('Tallenna uusi salasana'), 'Napissa teksti: Tallenna uusi salasana');
     assert(html.includes('id="resetPasswordErrorMessage"'), '#resetPasswordErrorMessage virhealue löytyy');
     console.log('✅ 6-digit OTP reset password modal markup verified');
 
@@ -55,6 +57,8 @@ function runTest() {
     assert(html.includes('function closeResetPasswordModal('), 'closeResetPasswordModal funktio määritelty');
     assert(html.includes('function showResetStep('), 'showResetStep funktio määritelty');
     assert(html.includes('function handleSendResetCode('), 'handleSendResetCode funktio määritelty');
+    assert(html.includes('function handleVerifyOtpCode('), 'handleVerifyOtpCode funktio määritelty');
+    assert(html.includes('function handleSetNewPassword('), 'handleSetNewPassword funktio määritelty');
     assert(html.includes('function handleVerifyOtpAndSetPassword('), 'handleVerifyOtpAndSetPassword funktio määritelty');
     assert(html.includes('verifyOtp('), 'verifyOtp kutsu löytyy');
     assert(html.includes('must_change_password'), 'must_change_password käsittely löytyy');
@@ -276,30 +280,56 @@ function runTest() {
     }).then(() => {
         assert.strictEqual(resetPasswordCalls, 1, 'resetPasswordForEmail kutsuttu koodin lähettämiseksi');
         assert(resetPasswordOptions && resetPasswordOptions.redirectTo === 'https://yardflow.vercel.app', 'redirectTo on suora puhdas URL merkkijono');
-        assert.strictEqual(sandbox.document.getElementById('resetStep1').style.display, 'none', 'Vaihe 1 piilotettu');
-        assert.strictEqual(sandbox.document.getElementById('resetStep2').style.display, 'flex', 'Vaihe 2 näytetään koodin lähetyksen jälkeen');
-        console.log('✅ OTP Step 1 (resetPasswordForEmail & show Step 2) verified');
+        assert.strictEqual(sandbox.document.getElementById('resetStep1').style.display, 'flex', 'Vaihe 1 pysyy auki koodin syöttöä varten');
+        assert.strictEqual(sandbox.document.getElementById('resetStep2').style.display, 'none', 'Vaihe 2 pysyy piilossa kunnes koodi on vahvistettu');
+        console.log('✅ OTP Step 1 code send verified');
 
-        // Test E: Step 2 - Verify OTP & Set Password
+        // Test E: Step 1 - Verify OTP Code
         // Invalid OTP code
         sandbox.document.getElementById('resetOtpInput').value = '999999';
-        sandbox.document.getElementById('resetNewPasswordInput').value = 'UusiOmaSalasana2026';
-        return sandbox.handleVerifyOtpAndSetPassword({ preventDefault() {} });
+        return sandbox.handleVerifyOtpCode({ preventDefault() {} });
     }).then(() => {
         assert.strictEqual(sandbox.document.getElementById('resetPasswordErrorMessage').style.display, 'block');
         assert(sandbox.document.getElementById('resetPasswordErrorMessage').textContent.includes('Virhe vahvistuskoodissa'));
+        assert.strictEqual(sandbox.document.getElementById('resetStep1').style.display, 'flex', 'Virheellisellä koodilla pysytään vaiheessa 1');
+        assert.strictEqual(sandbox.document.getElementById('resetStep2').style.display, 'none', 'Vaihetta 2 ei avata virheellisellä koodilla');
 
         // Valid OTP code (123456)
         sandbox.document.getElementById('resetOtpInput').value = '123456';
-        sandbox.document.getElementById('resetNewPasswordInput').value = 'UusiOmaSalasana2026';
-        return sandbox.handleVerifyOtpAndSetPassword({ preventDefault() {} });
+        return sandbox.handleVerifyOtpCode({ preventDefault() {} });
     }).then(() => {
         assert(otpVerified !== null, 'Supabase auth.verifyOtp kutsuttu');
         assert.strictEqual(otpVerified.token, '123456', 'verifyOtp token oikein');
         assert.strictEqual(otpVerified.type, 'recovery', 'verifyOtp type: recovery');
+        assert.strictEqual(sandbox.document.getElementById('resetStep1').style.display, 'none', 'Vaihe 1 piilotettu oikean koodin jälkeen');
+        assert.strictEqual(sandbox.document.getElementById('resetStep2').style.display, 'flex', 'Vaihe 2 avattu oikean koodin jälkeen');
+        console.log('✅ OTP Step 1 (verifyOtp & transition to Step 2) verified');
+
+        // Test F: Step 2 - Set New Password
+        // Mismatching passwords
+        sandbox.document.getElementById('resetNewPasswordInput').value = 'UusiOmaSalasana2026';
+        sandbox.document.getElementById('resetConfirmPasswordInput').value = 'EriSalasana123';
+        return sandbox.handleSetNewPassword({ preventDefault() {} });
+    }).then(() => {
+        assert.strictEqual(sandbox.document.getElementById('resetPasswordErrorMessage').style.display, 'block');
+        assert(sandbox.document.getElementById('resetPasswordErrorMessage').textContent.includes('eivät täsmää'));
+
+        // Short password (<6 chars)
+        sandbox.document.getElementById('resetNewPasswordInput').value = '123';
+        sandbox.document.getElementById('resetConfirmPasswordInput').value = '123';
+        return sandbox.handleSetNewPassword({ preventDefault() {} });
+    }).then(() => {
+        assert.strictEqual(sandbox.document.getElementById('resetPasswordErrorMessage').style.display, 'block');
+        assert(sandbox.document.getElementById('resetPasswordErrorMessage').textContent.includes('vähintään 6 merkkiä'));
+
+        // Valid matching passwords
+        sandbox.document.getElementById('resetNewPasswordInput').value = 'UusiOmaSalasana2026';
+        sandbox.document.getElementById('resetConfirmPasswordInput').value = 'UusiOmaSalasana2026';
+        return sandbox.handleSetNewPassword({ preventDefault() {} });
+    }).then(() => {
         assert.strictEqual(userPasswordUpdated, 'UusiOmaSalasana2026', 'updateUser kutsuttu uudella salasanalla');
         assert.strictEqual(sandbox.document.getElementById('modal-reset-password').style.display, 'none', 'Modaali suljettu onnistumisen jälkeen');
-        console.log('✅ OTP Step 2 (verifyOtp & updateUser) verified successfully');
+        console.log('✅ OTP Step 2 (updateUser & matching passwords) verified successfully');
 
         console.log('\n🎉 All Initial Password & 6-Digit OTP Reset tests PASSED successfully!');
     });

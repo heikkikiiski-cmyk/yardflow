@@ -1107,28 +1107,37 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             <span style="font-size: 1.6rem;">🔑</span>
             <h3 id="resetPasswordModalTitle" style="margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--fg, #fff);">Palauta salasana</h3>
         </div>
-        <p id="resetPasswordModalSubtitle" style="margin: 0 0 20px 0; font-size: 0.86rem; color: var(--muted, #94a3b8); line-height: 1.45;">
-            Syötä sähköpostiosoitteesi saadaksesi 6-numeroisen vahvistuskoodin.
+        <p id="resetPasswordModalSubtitle" style="margin: 0 0 18px 0; font-size: 0.86rem; color: var(--muted, #94a3b8); line-height: 1.45;">
+            Syötä sähköpostiosoitteesi, tilaa koodi ja vahvista se siirtyäksesi asettamaan uuden salasanan.
         </p>
 
-        <!-- VAIHE 1: Sähköpostin syöttö ja koodin lähetys -->
-        <form id="resetStep1" onsubmit="handleSendResetCode(event)" style="display: flex; flex-direction: column; gap: 14px;">
+        <!-- VAIHE 1: KOODIN SYÖTTÖ (step-code / #resetStep1) -->
+        <form id="resetStep1" class="step-code" onsubmit="handleVerifyOtpCode(event)" style="display: flex; flex-direction: column; gap: 14px;">
             <div>
                 <label for="resetEmailInput" style="font-size: 0.82rem; font-weight: 700; color: var(--fg, #f8fafc); margin-bottom: 6px; display: block;">Sähköpostiosoite *:</label>
-                <input type="email" id="resetEmailInput" placeholder="esim. pekka@auraus.fi" required autocomplete="email" style="width: 100%; min-height: 44px; padding: 10px 14px; font-size: 0.95rem; border-radius: var(--radius-md, 8px); background: var(--input-bg, #0b1120); border: 1px solid var(--input-border, rgba(255,255,255,0.14)); color: var(--fg, #fff); box-sizing: border-box;">
+                <div style="display: flex; gap: 8px;">
+                    <input type="email" id="resetEmailInput" placeholder="esim. pekka@auraus.fi" required autocomplete="email" style="flex: 1; min-height: 44px; padding: 10px 14px; font-size: 0.95rem; border-radius: var(--radius-md, 8px); background: var(--input-bg, #0b1120); border: 1px solid var(--input-border, rgba(255,255,255,0.14)); color: var(--fg, #fff); box-sizing: border-box;">
+                    <button type="button" id="btnSendResetCode" class="btn-secondary" onclick="handleSendResetCode(event)" style="white-space: nowrap; font-weight: 700; padding: 10px 14px; border-radius: var(--radius-md, 8px); font-size: 0.86rem;">✉️ Lähetä koodi</button>
+                </div>
+                <div id="resetCodeSentNotice" style="display: none; font-size: 0.8rem; color: #38bdf8; margin-top: 5px; font-weight: 600;">✓ Koodi lähetetty sähköpostiin!</div>
+            </div>
+
+            <div>
+                <label for="resetOtpInput" style="font-size: 0.82rem; font-weight: 700; color: var(--fg, #f8fafc); margin-bottom: 6px; display: block;">6-numeroinen vahvistuskoodi (OTP) *:</label>
+                <input type="text" id="resetOtpInput" placeholder="Esim. 123456" required maxlength="10" inputmode="numeric" autocomplete="one-time-code" style="width: 100%; min-height: 44px; padding: 10px 14px; font-size: 1.15rem; letter-spacing: 0.15em; font-weight: 700; text-align: center; border-radius: var(--radius-md, 8px); background: var(--input-bg, #0b1120); border: 1px solid var(--input-border, rgba(255,255,255,0.14)); color: var(--accent, #38bdf8); box-sizing: border-box;">
             </div>
 
             <div class="dialog-actions modal-action-buttons" style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 6px;">
                 <button type="button" id="btnCancelResetStep1" class="btn-outline btn-form-cancel" style="min-width: 100px;" onclick="closeResetPasswordModal()">✕ Peruuta</button>
-                <button type="submit" id="btnSendResetCode" class="btn-primary btn-form-save" style="min-width: 160px; font-weight: 700; padding: 10px 18px;">✉️ Lähetä koodi</button>
+                <button type="submit" id="btnVerifyResetCode" class="btn-primary btn-form-save" style="min-width: 160px; font-weight: 700; padding: 10px 18px;">✓ Vahvista koodi</button>
             </div>
         </form>
 
-        <!-- VAIHE 2: Koodin ja uuden salasanan syöttö -->
-        <form id="resetStep2" onsubmit="handleVerifyOtpAndSetPassword(event)" style="display: none; flex-direction: column; gap: 14px;">
-            <div>
-                <label for="resetOtpInput" style="font-size: 0.82rem; font-weight: 700; color: var(--fg, #f8fafc); margin-bottom: 6px; display: block;">6-numeroinen vahvistuskoodi *:</label>
-                <input type="text" id="resetOtpInput" placeholder="Esim. 123456" required maxlength="10" inputmode="numeric" autocomplete="one-time-code" style="width: 100%; min-height: 44px; padding: 10px 14px; font-size: 1.1rem; letter-spacing: 0.15em; font-weight: 700; text-align: center; border-radius: var(--radius-md, 8px); background: var(--input-bg, #0b1120); border: 1px solid var(--input-border, rgba(255,255,255,0.14)); color: var(--accent, #38bdf8); box-sizing: border-box;">
+        <!-- VAIHE 2: UUDEN SALASANAN ASETUS (step-new-password / #resetStep2) -->
+        <form id="resetStep2" class="step-new-password" onsubmit="handleSetNewPassword(event)" style="display: none; flex-direction: column; gap: 14px;">
+            <div style="border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px; margin-bottom: 2px;">
+                <h4 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--fg, #fff);">Aseta uusi salasana</h4>
+                <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: var(--muted, #94a3b8);">Vahvistuskoodi hyväksytty. Aseta nyt itsellesi uusi salasana.</p>
             </div>
 
             <div>
@@ -1136,9 +1145,14 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                 <input type="password" id="resetNewPasswordInput" placeholder="Vähintään 6 merkkiä" required minlength="6" autocomplete="new-password" style="width: 100%; min-height: 44px; padding: 10px 14px; font-size: 0.95rem; border-radius: var(--radius-md, 8px); background: var(--input-bg, #0b1120); border: 1px solid var(--input-border, rgba(255,255,255,0.14)); color: var(--fg, #fff); box-sizing: border-box;">
             </div>
 
+            <div>
+                <label for="resetConfirmPasswordInput" style="font-size: 0.82rem; font-weight: 700; color: var(--fg, #f8fafc); margin-bottom: 6px; display: block;">Toista uusi salasana *:</label>
+                <input type="password" id="resetConfirmPasswordInput" placeholder="Toista uusi salasana" required minlength="6" autocomplete="new-password" style="width: 100%; min-height: 44px; padding: 10px 14px; font-size: 0.95rem; border-radius: var(--radius-md, 8px); background: var(--input-bg, #0b1120); border: 1px solid var(--input-border, rgba(255,255,255,0.14)); color: var(--fg, #fff); box-sizing: border-box;">
+            </div>
+
             <div class="dialog-actions modal-action-buttons" style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 6px;">
                 <button type="button" id="btnBackResetStep" class="btn-outline btn-form-cancel" style="min-width: 100px;" onclick="showResetStep(1)">← Takaisin</button>
-                <button type="submit" id="btnVerifyAndSetPassword" class="btn-primary btn-form-save" style="min-width: 220px; font-weight: 700; padding: 10px 18px;">💾 Vahvista ja aseta salasana</button>
+                <button type="submit" id="btnSaveNewPassword" class="btn-primary btn-form-save" style="min-width: 210px; font-weight: 700; padding: 10px 18px;">💾 Tallenna uusi salasana</button>
             </div>
         </form>
 
@@ -10846,21 +10860,26 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             if (step1) step1.style.display = 'flex';
             if (step2) step2.style.display = 'none';
             if (title) title.textContent = 'Palauta salasana';
-            if (subtitle) subtitle.textContent = 'Syötä sähköpostiosoitteesi saadaksesi 6-numeroisen vahvistuskoodin.';
+            if (subtitle) subtitle.textContent = 'Syötä sähköpostiosoitteesi, tilaa koodi ja vahvista se siirtyäksesi asettamaan uuden salasanan.';
             const emailInput = document.getElementById('resetEmailInput');
-            if (emailInput) emailInput.focus();
+            const otpInput = document.getElementById('resetOtpInput');
+            if (emailInput && !emailInput.value) {
+                emailInput.focus();
+            } else if (otpInput) {
+                otpInput.focus();
+            }
         } else {
             if (step1) step1.style.display = 'none';
             if (step2) step2.style.display = 'flex';
-            if (title) title.textContent = 'Vahvista koodi ja aseta salasana';
-            if (subtitle) subtitle.textContent = `Koodi on lähetetty osoitteeseen ${currentResetEmail || 'sähköpostiisi'}. Syötä 6-numeroinen koodi ja uusi salasana.`;
-            const otpInput = document.getElementById('resetOtpInput');
-            if (otpInput) {
-                otpInput.value = '';
-                otpInput.focus();
-            }
+            if (title) title.textContent = 'Aseta uusi salasana';
+            if (subtitle) subtitle.textContent = 'Vahvistuskoodi hyväksytty! Aseta nyt itsellesi uusi salasana.';
             const passInput = document.getElementById('resetNewPasswordInput');
-            if (passInput) passInput.value = '';
+            const confirmPassInput = document.getElementById('resetConfirmPasswordInput');
+            if (passInput) {
+                passInput.value = '';
+                passInput.focus();
+            }
+            if (confirmPassInput) confirmPassInput.value = '';
         }
     }
     window.showResetStep = showResetStep;
@@ -10871,6 +10890,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         const email = emailInput ? emailInput.value.trim() : '';
         const errBox = document.getElementById('resetPasswordErrorMessage');
         const btn = document.getElementById('btnSendResetCode');
+        const sentNotice = document.getElementById('resetCodeSentNotice');
 
         if (errBox) {
             errBox.style.display = 'none';
@@ -10913,7 +10933,14 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                 return;
             }
 
-            showResetStep(2);
+            if (sentNotice) {
+                sentNotice.textContent = '✓ 6-numeroinen vahvistuskoodi lähetetty osoitteeseen ' + email + '!';
+                sentNotice.style.display = 'block';
+            }
+            const otpInput = document.getElementById('resetOtpInput');
+            if (otpInput) {
+                otpInput.focus();
+            }
         } catch (e) {
             console.warn('handleSendResetCode error:', e);
             if (errBox) {
@@ -10929,20 +10956,27 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     }
     window.handleSendResetCode = handleSendResetCode;
 
-    async function handleVerifyOtpAndSetPassword(event) {
+    async function handleVerifyOtpCode(event) {
         if (event && event.preventDefault) event.preventDefault();
         const otpInput = document.getElementById('resetOtpInput');
-        const passInput = document.getElementById('resetNewPasswordInput');
+        const emailInput = document.getElementById('resetEmailInput');
         const errBox = document.getElementById('resetPasswordErrorMessage');
-        const btn = document.getElementById('btnVerifyAndSetPassword');
+        const btn = document.getElementById('btnVerifyResetCode') || document.getElementById('btnVerifyOtp');
 
         const otpCode = otpInput ? otpInput.value.trim() : '';
-        const newPassword = passInput ? passInput.value.trim() : '';
-        const email = currentResetEmail || (document.getElementById('resetEmailInput')?.value?.trim() || '');
+        const email = (emailInput ? emailInput.value.trim() : '') || currentResetEmail || '';
 
         if (errBox) {
             errBox.style.display = 'none';
             errBox.textContent = '';
+        }
+
+        if (!email || !email.includes('@')) {
+            if (errBox) {
+                errBox.textContent = 'Syötä kelvollinen sähköpostiosoite.';
+                errBox.style.display = 'block';
+            }
+            return { success: false };
         }
 
         if (!otpCode) {
@@ -10950,16 +10984,10 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                 errBox.textContent = 'Syötä 6-numeroinen vahvistuskoodi.';
                 errBox.style.display = 'block';
             }
-            return;
+            return { success: false };
         }
 
-        if (!newPassword || newPassword.length < 6) {
-            if (errBox) {
-                errBox.textContent = 'Uuden salasanan on oltava vähintään 6 merkkiä pitkä.';
-                errBox.style.display = 'block';
-            }
-            return;
-        }
+        currentResetEmail = email;
 
         const client = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : null) || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
         if (!client || !client.auth) {
@@ -10967,7 +10995,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                 errBox.textContent = 'Supabase-yhteys ei ole käytettävissä.';
                 errBox.style.display = 'block';
             }
-            return;
+            return { success: false };
         }
 
         if (btn) {
@@ -10976,7 +11004,6 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         }
 
         try {
-            // 1. Kutsutaan Supabasen OTP-varmennusta:
             const { data, error } = await client.auth.verifyOtp({
                 email: email.trim(),
                 token: otpCode.trim(),
@@ -10988,35 +11015,100 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                     errBox.textContent = 'Virhe vahvistuskoodissa: ' + error.message;
                     errBox.style.display = 'block';
                 }
-                return;
+                return { success: false, error };
             }
 
-            // 2. Jos koodi täsmää, istunto avautuu heti, jolloin kutsutaan heti perään:
-            const { data: updateData, error: updateError } = await client.auth.updateUser({
-                password: newPassword
+            // Koodi oikein: Supabase luo aktiivisen istunnon. Piilotetaan vaihe 1 (step-code) ja näytetään vaihe 2 (step-new-password).
+            showResetStep(2);
+            return { success: true, data };
+        } catch (e) {
+            console.warn('handleVerifyOtpCode error:', e);
+            if (errBox) {
+                errBox.textContent = 'Virhe vahvistuskoodissa: ' + (e.message || e);
+                errBox.style.display = 'block';
+            }
+            return { success: false, error: e };
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<span>✓</span> <span>Vahvista koodi</span>';
+            }
+        }
+    }
+    window.handleVerifyOtpCode = handleVerifyOtpCode;
+
+    async function handleSetNewPassword(event) {
+        if (event && event.preventDefault) event.preventDefault();
+        const passInput = document.getElementById('resetNewPasswordInput');
+        const confirmPassInput = document.getElementById('resetConfirmPasswordInput');
+        const errBox = document.getElementById('resetPasswordErrorMessage');
+        const btn = document.getElementById('btnSaveNewPassword') || document.getElementById('btnVerifyAndSetPassword');
+
+        const pass1 = passInput ? passInput.value : '';
+        const pass2 = confirmPassInput ? confirmPassInput.value : '';
+        const email = currentResetEmail || (document.getElementById('resetEmailInput')?.value?.trim() || '');
+
+        if (errBox) {
+            errBox.style.display = 'none';
+            errBox.textContent = '';
+        }
+
+        // Tarkistetaan, että salasanat täsmäävät: if (pass1 !== pass2) -> herjaa: "Salasanat eivät täsmää!".
+        if (pass1 !== pass2) {
+            if (errBox) {
+                errBox.textContent = 'Salasanat eivät täsmää!';
+                errBox.style.display = 'block';
+            }
+            return { success: false, error: 'Salasanat eivät täsmää!' };
+        }
+
+        // Tarkistetaan pituus: if (pass1.length < 6) -> herjaa: "Salasanan on oltava vähintään 6 merkkiä pitkä!".
+        if (pass1.length < 6) {
+            if (errBox) {
+                errBox.textContent = 'Salasanan on oltava vähintään 6 merkkiä pitkä!';
+                errBox.style.display = 'block';
+            }
+            return { success: false, error: 'Salasanan on oltava vähintään 6 merkkiä pitkä!' };
+        }
+
+        const client = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : null) || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+        if (!client || !client.auth) {
+            if (errBox) {
+                errBox.textContent = 'Supabase-yhteys ei ole käytettävissä.';
+                errBox.style.display = 'block';
+            }
+            return { success: false };
+        }
+
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span>⏳</span> <span>Tallennetaan...</span>';
+        }
+
+        try {
+            const { data, error } = await client.auth.updateUser({
+                password: pass1
             });
 
-            if (updateError) {
+            if (error) {
                 if (errBox) {
-                    errBox.textContent = 'Virhe salasanan päivityksessä: ' + updateError.message;
+                    errBox.textContent = 'Virhe salasanan päivityksessä: ' + error.message;
                     errBox.style.display = 'block';
                 }
-                return;
+                return { success: false, error };
             }
 
-            // 3. Päivitetään paikallinen käyttäjä jos löytyy
             const drivers = getStoredDrivers();
             const dIdx = drivers.findIndex(x => x.email && x.email.toLowerCase() === email.toLowerCase());
             if (dIdx >= 0) {
-                drivers[dIdx].password = newPassword;
+                drivers[dIdx].password = pass1;
                 drivers[dIdx].must_change_password = false;
                 persistDrivers(drivers);
             }
 
             alert('Salasana vaihdettu onnistuneesti!');
 
-            // 4. Istunnon tallennus ja kirjautuminen
-            const sbUser = updateData?.user || data?.user;
+            const sbUser = data?.user;
             if (sbUser) {
                 const sessionUser = {
                     id: sbUser.id,
@@ -11042,18 +11134,38 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             if (typeof showStatus === 'function') {
                 showStatus('Salasana vaihdettu onnistuneesti! Tervetuloa.', 'success');
             }
+            return { success: true, data };
         } catch (e) {
-            console.warn('handleVerifyOtpAndSetPassword error:', e);
+            console.warn('handleSetNewPassword error:', e);
             if (errBox) {
                 errBox.textContent = 'Virhe salasanan päivityksessä: ' + (e.message || e);
                 errBox.style.display = 'block';
             }
+            return { success: false, error: e };
         } finally {
             if (btn) {
                 btn.disabled = false;
-                btn.innerHTML = '<span>💾</span> <span>Vahvista ja aseta salasana</span>';
+                btn.innerHTML = '<span>💾</span> <span>Tallenna uusi salasana</span>';
             }
         }
+    }
+    window.handleSetNewPassword = handleSetNewPassword;
+
+    async function handleVerifyOtpAndSetPassword(event) {
+        if (event && event.preventDefault) event.preventDefault();
+        const step2 = document.getElementById('resetStep2');
+        if (step2 && step2.style.display !== 'none') {
+            return await handleSetNewPassword(event);
+        }
+        const verifyRes = await handleVerifyOtpCode(event);
+        if (verifyRes && verifyRes.success) {
+            const pass1 = document.getElementById('resetNewPasswordInput')?.value;
+            const pass2 = document.getElementById('resetConfirmPasswordInput')?.value;
+            if (pass1 && pass2) {
+                return await handleSetNewPassword(event);
+            }
+        }
+        return verifyRes;
     }
     window.handleVerifyOtpAndSetPassword = handleVerifyOtpAndSetPassword;
     window.handleSetPasswordSubmit = handleVerifyOtpAndSetPassword;
