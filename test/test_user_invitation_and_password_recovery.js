@@ -70,6 +70,7 @@ function runTest() {
     let profilesUpdated = null;
     let userPasswordUpdated = null;
     let resetPasswordCalls = 0;
+    let resetPasswordOptions = null;
     let otpVerified = null;
 
     const localStore = {};
@@ -153,9 +154,10 @@ function runTest() {
                         signedUpUser = payload;
                         return { data: { user: { id: 'sb_user_999', email: payload.email } }, error: null };
                     },
-                    async resetPasswordForEmail(email) {
+                    async resetPasswordForEmail(email, options) {
                         resetPasswordCalls++;
-                        return { error: null };
+                        resetPasswordOptions = options;
+                        return { data: {}, error: null };
                     },
                     async verifyOtp(payload) {
                         otpVerified = payload;
@@ -273,6 +275,7 @@ function runTest() {
         return sandbox.handleSendResetCode({ preventDefault() {} });
     }).then(() => {
         assert.strictEqual(resetPasswordCalls, 1, 'resetPasswordForEmail kutsuttu koodin lähettämiseksi');
+        assert(resetPasswordOptions && resetPasswordOptions.redirectTo === 'https://yardflow.vercel.app', 'redirectTo on suora puhdas URL merkkijono');
         assert.strictEqual(sandbox.document.getElementById('resetStep1').style.display, 'none', 'Vaihe 1 piilotettu');
         assert.strictEqual(sandbox.document.getElementById('resetStep2').style.display, 'flex', 'Vaihe 2 näytetään koodin lähetyksen jälkeen');
         console.log('✅ OTP Step 1 (resetPasswordForEmail & show Step 2) verified');

@@ -10651,7 +10651,9 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         if (!email) return { error: { message: 'Sähköpostiosoite puuttuu' } };
         const client = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : null) || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
         if (!client || !client.auth) return { error: { message: 'Supabase-yhteys ei ole käytettävissä' } };
-        return await client.auth.resetPasswordForEmail(email);
+        return await client.auth.resetPasswordForEmail(email, {
+            redirectTo: 'https://yardflow.vercel.app'
+        });
     }
     window.requestPasswordReset = requestPasswordReset;
 
@@ -10900,7 +10902,9 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         }
 
         try {
-            const { error } = await client.auth.resetPasswordForEmail(email.trim());
+            const { data, error } = await client.auth.resetPasswordForEmail(email.trim(), {
+                redirectTo: 'https://yardflow.vercel.app'
+            });
             if (error) {
                 if (errBox) {
                     errBox.textContent = 'Virhe koodin lähetyksessä: ' + error.message;
