@@ -2144,7 +2144,8 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                     </div>
                 </div>
 
-                <div class="dialog-actions modal-action-buttons" style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 14px;">
+                <div class="dialog-actions modal-action-buttons" style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 14px; flex-wrap: wrap;">
+                    <button type="button" class="btn-outline" id="btn-test-driver-insert" onclick="window.testDriverInsert()" style="font-size: 0.82rem;" title="Diagnostiikka: Testaa suoraa Supabase-lisäystä">🧪 Testaa Supabase-lisäys</button>
                     <button type="button" class="btn-outline btn-form-cancel" style="min-width: 110px;" onclick="closeAddDriverDrawer()">✕ Peruuta</button>
                     <button type="button" class="btn-primary btn-form-save" id="btn-add-driver" onclick="saveDriverFromForm()" style="min-width: 160px; padding: 10px 20px; font-weight: 700;">💾 Tallenna käyttäjä</button>
                 </div>
@@ -16308,6 +16309,43 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         driverPhoneIn.addEventListener('input', () => { driverPhoneHidden.value = driverPhoneIn.value; });
         driverPhoneHidden.addEventListener('input', () => { driverPhoneIn.value = driverPhoneHidden.value; });
     }
+
+    // 🧪 Diagnostiikkatyökalu: testaa suoraa kuljettajan lisäystä Supabaseen
+    window.testDriverInsert = async function() {
+        console.log('🧪 Diagnostiikka: Suoritetaan window.testDriverInsert()...');
+        const client = (typeof window !== 'undefined' && window.supabaseClient) || (typeof getSupabaseClient === 'function' ? getSupabaseClient() : null);
+        if (!client) {
+            const msg = 'Supabase-asiakas (supabaseClient) ei ole alustettu!';
+            console.error(msg);
+            alert(msg);
+            return { error: { message: msg } };
+        }
+
+        try {
+            const { data, error } = await client
+                .from('profiles')
+                .insert([{ full_name: "Testi Kuljettaja", role: "driver" }]);
+
+            if (error) {
+                console.error('❌ Supabase testDriverInsert virhe:', {
+                    code: error.code,
+                    message: error.message,
+                    details: error.details,
+                    hint: error.hint
+                });
+                alert(`⚠️ Supabase-virhe (testDriverInsert):\nKoodi: ${error.code || 'N/A'}\nViesti: ${error.message || 'N/A'}\nDetails: ${error.details || 'N/A'}\nHint: ${error.hint || 'N/A'}`);
+                return { data, error };
+            } else {
+                console.log('✅ Supabase testDriverInsert onnistui:', data);
+                alert('✅ Testikuljettaja lisätty onnistuneesti Supabaseen!');
+                return { data, error: null };
+            }
+        } catch (err) {
+            console.error('❌ Poikkeus testDriverInsert -kutsussa:', err);
+            alert('❌ Poikkeus: ' + err.message);
+            return { error: err };
+        }
+    };
 
     // Osoite-ehdotukset: lisäyslomake, muokkausdialogi, asiakaslomakkeet, työloki ja varikko
     attachAutocomplete(document.getElementById('address'));
