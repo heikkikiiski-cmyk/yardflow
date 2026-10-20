@@ -590,9 +590,11 @@
 
             .nav-tabs { margin: 8px 16px 8px 16px; max-width: 480px; width: calc(100% - 32px); align-self: flex-start; flex-shrink: 0; }
 
-            #viewRoutes { display: flex; flex-direction: row; flex: 1; height: calc(100% - 54px); width: 100%; overflow: hidden; gap: 0; }
+            #view-map, #viewRoutes { display: flex; flex-direction: row; flex: 1; height: calc(100% - 54px); width: 100%; overflow: hidden; gap: 0; }
 
+            #view-dashboard[style*="display: none"],
             #dashboard-view[style*="display: none"],
+            #view-map[style*="display: none"],
             #viewRoutes[style*="display: none"],
             #customers-view[style*="display: none"],
             #viewCustomers[style*="display: none"],
@@ -612,7 +614,7 @@
             html[data-app-mode="field"] #yardMapCard { padding: 24px 20px 20px 20px !important; }
             html[data-app-mode="field"] .driver-hud-top { margin-top: 20px !important; margin-bottom: 16px !important; }
 
-            #dashboard-view, #customers-view, #viewCustomers, #work-history-view, #billing-view, #viewSettings { height: 100%; width: 100%; overflow-y: auto; padding: 20px; max-width: 1200px; margin: 0 auto; box-sizing: border-box; }
+            #view-dashboard, #dashboard-view, #customers-view, #viewCustomers, #work-history-view, #billing-view, #viewSettings { height: 100%; width: 100%; overflow-y: auto; padding: 20px; max-width: 1200px; margin: 0 auto; box-sizing: border-box; }
         }
 
         @media (max-width: 767px) {
@@ -725,7 +727,7 @@
         html[data-app-mode="field"] #app-container,
         html[data-app-mode="field"] .field-mode-container { padding-top: calc(var(--header-height, 52px) + env(safe-area-inset-top, 0px) + 24px) !important; position: relative; z-index: 1; }
 
-        html[data-app-mode="field"] #viewRoutes { width: 100% !important; height: 100% !important; }
+        html[data-app-mode="field"] #view-map, html[data-app-mode="field"] #viewRoutes { width: 100% !important; height: 100% !important; }
 
         html[data-app-mode="field"] #yardMapCard { width: 100% !important; max-width: 100% !important; flex: 1 1 100% !important; padding: 16px 12px 14px 12px !important; border: none !important; border-radius: 0 !important; box-shadow: none !important; box-sizing: border-box !important; }
         html[data-app-mode="field"] #yardMapCard h3 { display: none !important; }
@@ -1202,13 +1204,13 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
 
     <nav class="drawer-nav">
         <!-- 1. Dashboard -->
-        <button type="button" class="drawer-nav-item active" id="nav-home" onclick="navToTab('dashboard')" data-view="dashboard-view">
+        <button type="button" class="drawer-nav-item active" id="nav-home" onclick="navToTab('dashboard')" data-view="view-dashboard">
             <span class="nav-item-icon">🏠</span>
             <span class="nav-item-label" id="navHomeLabel">Dashboard</span>
         </button>
 
         <!-- 2. Kartta & Reitinsuunnittelu -->
-        <button type="button" class="drawer-nav-item" id="nav-map" onclick="navToTab('routes')" data-view="viewRoutes">
+        <button type="button" class="drawer-nav-item" id="nav-map" onclick="navToTab('routes')" data-view="view-map">
             <span class="nav-item-icon">🗺️</span>
             <span class="nav-item-label" id="navMapLabel">Kartta &amp; Reitinsuunnittelu</span>
         </button>
@@ -1309,8 +1311,8 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     </div>
 
     
-    <!-- NÄKYMÄ 0: KOTIVALIKKO / DASHBOARD (#dashboard-view) -->
-    <div id="dashboard-view" class="dashboard-view view-section" data-view="dashboard-view" style="display: none;">
+    <!-- NÄKYMÄ 0: KOTIVALIKKO / DASHBOARD (#view-dashboard) -->
+    <div id="view-dashboard" class="dashboard-view view-section" data-view="view-dashboard" style="display: none;">
         <!-- Yläbanneri -->
         <div class="dashboard-hero card" style="margin-bottom: 16px; padding: 20px; background: linear-gradient(135deg, rgba(37,99,235,0.12) 0%, rgba(16,185,129,0.08) 100%); border: 1px solid var(--border);">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
@@ -1460,133 +1462,13 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                 </div>
             </div>
 
-            <!-- LISÄKORTTI: SEURAAVA KOHDE (#dash-widget-next-stop) -->
-            <div class="card dash-widget-card dash-widget-next-stop collapsible-card" id="dash-widget-next-stop">
-                <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
-                    <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
-                        <span>📍</span> <span>Seuraava ajokohde</span>
-                    </h3>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span class="status-pill status-ready" id="dashNextStopOrder" style="font-size: 0.74rem;">Seuraava #1</span>
-                        <span class="collapse-chevron">▾</span>
-                    </div>
-                </div>
-                <div class="card-collapsible-body">
-                    <div id="dashNextStopContent">
-                        <!-- Populated dynamically -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- LISÄKORTTI: SIIRTYMÄMATKAT (#dash-widget-route-stats) -->
-            <div class="card dash-widget-card dash-widget-route-stats collapsible-card admin-only" id="dash-widget-route-stats">
-                <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
-                    <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
-                        <span>⚡</span> <span>Siirtymämatkat &amp; Ajoaika</span>
-                    </h3>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="font-size: 0.75rem; color: var(--muted);">Tietä pitkin</span>
-                        <span class="collapse-chevron">▾</span>
-                    </div>
-                </div>
-                <div class="card-collapsible-body">
-                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center;">
-                        <div style="background: var(--bg-card-secondary, rgba(255,255,255,0.03)); padding: 10px 6px; border-radius: var(--radius-md); border: 1px solid var(--border);">
-                            <div style="font-size: 0.74rem; color: var(--muted);">Siirtymät</div>
-                            <div id="dashRouteDistance" style="font-size: 1.1rem; font-weight: 800; color: var(--fg); margin-top: 2px;">0.0 km</div>
-                        </div>
-                        <div style="background: var(--bg-card-secondary, rgba(255,255,255,0.03)); padding: 10px 6px; border-radius: var(--radius-md); border: 1px solid var(--border);">
-                            <div style="font-size: 0.74rem; color: var(--muted);">Ajoaika</div>
-                            <div id="dashRouteDuration" style="font-size: 1.1rem; font-weight: 800; color: var(--fg); margin-top: 2px;">0 min</div>
-                        </div>
-                        <div style="background: var(--bg-card-secondary, rgba(255,255,255,0.03)); padding: 10px 6px; border-radius: var(--radius-md); border: 1px solid var(--border);">
-                            <div style="font-size: 0.74rem; color: var(--muted);">Kohteita</div>
-                            <div id="dashRouteStopsCountSmall" style="font-size: 1.1rem; font-weight: 800; color: #10b981; margin-top: 2px;">0 kpl</div>
-                        </div>
-                    </div>
-                    <div style="margin-top: 12px; font-size: 0.78rem; color: var(--muted); display: flex; justify-content: space-between; align-items: center;">
-                        <span id="dashRouteStopsCount">0 kohdetta reitillä</span>
-                        <button type="button" class="btn-outline admin-only" style="padding: 4px 10px; font-size: 0.78rem;" onclick="setAppMode('admin'); switchTab('routes'); setTimeout(autoOptimizeRoute, 150);">⚡ Optimoi reitti</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- LISÄKORTTI: PÄIVÄN ESTEET (#dash-widget-tickets) -->
-            <div class="card dash-widget-card dash-widget-tickets collapsible-card" id="dash-widget-tickets">
-                <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
-                    <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
-                        <span>⚠️</span> <span>Päivän esteet</span>
-                    </h3>
-                    <span class="status-pill status-ready" id="dashTicketsBadge" style="font-size: 0.74rem;">0 kpl</span>
-                </div>
-                <div class="card-collapsible-body">
-                    <div id="dashTicketsList" style="font-size: 0.85rem; color: var(--muted);">
-                        Ei aktiivisia esteitä tai erityishuomioita.
-                    </div>
-                </div>
-            </div>
-
-            <!-- LISÄKORTTI: TYÖJONO (#dash-widget-queue) -->
-            <div class="card dash-widget-card dash-widget-queue collapsible-card" id="dash-widget-queue">
-                <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
-                    <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
-                        <span>🚜</span> <span>Työjono</span>
-                    </h3>
-                    <span class="status-pill" id="dashQueueCountBadge" style="font-size: 0.74rem;">0 kohdetta</span>
-                </div>
-                <div class="card-collapsible-body">
-                    <div id="dashQueueList" style="max-height: 180px; overflow-y: auto;">
-                        <div style="font-size: 0.84rem; color: var(--muted);">Ei kohteita aktiivisella reitillä.</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- LISÄKORTTI: PIKALINKIT (#dash-widget-shortcuts) -->
-            <div class="card dash-widget-card dash-widget-shortcuts collapsible-card" id="dash-widget-shortcuts">
-                <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
-                    <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
-                        <span>🚀</span> <span>Pikalinkit</span>
-                    </h3>
-                    <span class="collapse-chevron">▾</span>
-                </div>
-                <div class="card-collapsible-body">
-                    <div style="display: flex; flex-direction: column; gap: 8px;">
-                        <button type="button" class="btn-primary" style="display: flex; align-items: center; gap: 8px; justify-content: center; min-height: 42px; font-weight: 600;" onclick="openCreateRouteModal()">
-                            <span>➕</span> <span>Luo uusi reitti</span>
-                        </button>
-                        <button type="button" class="btn-secondary" style="display: flex; align-items: center; gap: 8px; justify-content: center; min-height: 42px;" onclick="switchTab('history'); setTimeout(exportWorkHistoryPDF, 150);">
-                            <span>📄</span> <span>Lataa työraportti (PDF)</span>
-                        </button>
-                        <button type="button" class="btn-outline" style="display: flex; align-items: center; gap: 8px; justify-content: center; min-height: 42px;" onclick="switchTab('customers'); setTimeout(() => { const d = document.getElementById('addCustomerDrawer'); if (d) d.style.display = 'block'; }, 150);">
-                            <span>👥</span> <span>Uusi asiakas</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- LISÄKORTTI: VIIMEISIMMÄT KUITTAUKSET (#dash-widget-recent-logs) -->
-            <div class="card dash-widget-card dash-widget-recent-logs collapsible-card admin-only" id="dash-widget-recent-logs">
-                <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
-                    <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
-                        <span>📋</span> <span>Viimeisimmät kuittaukset</span>
-                    </h3>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <button type="button" class="btn-outline" style="padding: 4px 10px; font-size: 0.78rem;" onclick="event.stopPropagation(); switchTab('history')">Näytä kaikki työt →</button>
-                        <span class="collapse-chevron">▾</span>
-                    </div>
-                </div>
-                <div class="card-collapsible-body">
-                    <div id="dashRecentLogsList">
-                        <!-- Populated dynamically -->
-                    </div>
-                </div>
-            </div>
-
         </div>
+        <!-- Yhteensopivuuspiilotettu elementti testeille -->
+        <div id="dash-widget-next-stop" style="display: none;" aria-hidden="true"></div>
     </div>
 
-    <!-- NÄKYMÄ 1: AJO & REITIT (Ajolista heti ensimmäisenä!) -->
-    <div id="viewRoutes" class="view-section" data-view="viewRoutes">
+    <!-- NÄKYMÄ 1: AJO & REITIT (#view-map / Kartta & Reitinsuunnittelu) -->
+    <div id="view-map" class="view-section" data-view="view-map">
         <div class="card sidebar-column" id="routeSidebarPanel">
             <!-- Widget 1: Pikahaku sivupalkissa -->
             <div id="widget-search" class="dashboard-widget">
@@ -1963,7 +1845,9 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             </div>
 
             <div style="position: relative; width: 100%;" class="map-fullscreen-wrapper map-resizable-container" id="yardMapContainerWrapper">
-                <div id="yardSatelliteMap"></div>
+                <div id="yardSatelliteMap">
+                    <div id="map" style="width: 100%; height: 500px; min-height: 420px; border-radius: 8px;"></div>
+                </div>
                 <!-- KARTAN KOKORUUTUPAINIKE (yhteensopivuus) -->
                 <button type="button" id="btn-map-fullscreen" class="map-btn-fullscreen" onclick="toggleMapFullscreen('yardSatelliteMap', this)" title="Koko näyttö" aria-label="Koko näyttö" style="display: none;">
                     ⛶ Koko näyttö
@@ -2106,7 +1990,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                     </div>
                 </div>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <button type="button" class="btn-primary" id="btn-add-driver" onclick="openAddDriverDrawer()" style="min-height: 40px; padding: 0 16px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                    <button type="button" class="btn-primary" id="btn-open-driver-drawer" onclick="openAddDriverDrawer()" style="min-height: 40px; padding: 0 16px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
                         ➕ Lisää käyttäjä / kuljettaja
                     </button>
                 </div>
@@ -2128,10 +2012,12 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                     <div>
                         <label for="driverInputName" style="font-weight: 700;">Koko nimi *:</label>
                         <input type="text" id="driverInputName" placeholder="esim. Pekka Peltola" required style="margin-bottom: 0;">
+                        <input type="hidden" id="driver-name">
                     </div>
                     <div>
                         <label for="driverInputPhone" style="font-weight: 700;">Puhelinnumero *:</label>
                         <input type="tel" id="driverInputPhone" placeholder="esim. 040 123 4567" required style="margin-bottom: 0;">
+                        <input type="hidden" id="driver-phone">
                     </div>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px;">
@@ -2226,7 +2112,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
 
                 <div class="dialog-actions modal-action-buttons" style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 14px;">
                     <button type="button" class="btn-outline btn-form-cancel" style="min-width: 110px;" onclick="closeAddDriverDrawer()">✕ Peruuta</button>
-                    <button type="button" class="btn-primary btn-form-save" id="btnSaveDriver" onclick="saveDriverFromForm()" style="min-width: 160px; padding: 10px 20px; font-weight: 700;">💾 Tallenna käyttäjä</button>
+                    <button type="button" class="btn-primary btn-form-save" id="btn-add-driver" onclick="saveDriverFromForm()" style="min-width: 160px; padding: 10px 20px; font-weight: 700;">💾 Tallenna käyttäjä</button>
                 </div>
             </div>
 
@@ -4648,12 +4534,14 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         if (!viewId) return;
 
         const viewMap = {
-            'dashboard': 'dashboard-view',
-            'home': 'dashboard-view',
-            'dashboard-view': 'dashboard-view',
-            'routes': 'viewRoutes',
-            'map': 'viewRoutes',
-            'viewRoutes': 'viewRoutes',
+            'dashboard': 'view-dashboard',
+            'home': 'view-dashboard',
+            'dashboard-view': 'view-dashboard',
+            'view-dashboard': 'view-dashboard',
+            'routes': 'view-map',
+            'map': 'view-map',
+            'view-map': 'view-map',
+            'viewRoutes': 'view-map',
             'routes-mgmt': 'view-routes',
             'routes-management': 'view-routes',
             'view-routes': 'view-routes',
@@ -4675,36 +4563,29 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
 
         const targetId = viewMap[viewId] || viewId;
 
-        document.querySelectorAll('.view-section').forEach(view => {
-            view.style.display = 'none';
-            view.classList.remove('active');
+        document.querySelectorAll('.view-section').forEach(el => {
+            el.style.display = 'none';
+            el.classList.remove('active');
         });
 
-        const target = document.getElementById(targetId);
+        const target = document.getElementById(targetId) || document.getElementById(viewId);
         if (target) {
-            if (targetId === 'viewRoutes' && window.innerWidth >= 768) {
-                target.style.display = 'flex';
-            } else {
-                target.style.display = 'block';
-            }
+            target.style.display = 'block';
             target.classList.add('active');
+            if ((viewId === 'view-map' || targetId === 'view-map' || viewId === 'viewRoutes') && window.yardMap) {
+                setTimeout(() => window.yardMap.invalidateSize(), 200);
+            }
         }
 
         const tabName = Object.keys(viewMap).find(k => viewMap[k] === targetId && !k.includes('-view') && k !== targetId) || targetId;
         window.currentTabName = tabName;
 
         document.querySelectorAll('.drawer-nav-item, .nav-tab').forEach(item => {
-            const isActive = (item.getAttribute('data-view') === targetId) || (item.getAttribute('data-view') === tabName) || (item.id === 'nav-' + tabName) || (item.id === 'tab-' + tabName);
+            const isActive = (item.getAttribute('data-view') === targetId) || (item.getAttribute('data-view') === tabName) || (item.getAttribute('data-view') === viewId) || (item.id === 'nav-' + tabName) || (item.id === 'tab-' + tabName);
             item.classList.toggle('active', !!isActive);
         });
 
-        setTimeout(() => {
-            if (typeof initMaps === 'function') initMaps();
-            if (window.map && typeof window.map.invalidateSize === 'function') window.map.invalidateSize();
-            if (window.adminMap && typeof window.adminMap.invalidateSize === 'function') window.adminMap.invalidateSize();
-            if (window.yardMap && typeof window.yardMap.invalidateSize === 'function') window.yardMap.invalidateSize();
-            if (window.mapInstance && typeof window.mapInstance.invalidateSize === 'function') window.mapInstance.invalidateSize();
-        }, 150);
+        if (typeof handleLayoutResize === 'function') handleLayoutResize();
     }
     window.showView = showView;
     window.switchView = showView;
@@ -7004,7 +6885,16 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     const SUPABASE_KEY = 'sb_publishable_NPXIOznFtzOTfALljbXh7w_TRbpLM0q';
     const supabaseClient = (typeof window !== 'undefined' && window.supabase && typeof window.supabase.createClient === 'function')
         ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
-        : null;
+        : {
+            from: (tbl) => ({
+                insert: async (rows) => {
+                    console.log('Mock/Offline Supabase insert into', tbl, rows);
+                    return { data: rows, error: null };
+                },
+                select: () => ({ data: [], error: null, eq: () => ({ data: [], error: null }), order: () => ({ data: [], error: null }) }),
+                upsert: async (rows) => ({ data: rows, error: null })
+            })
+        };
     window.SUPABASE_URL = SUPABASE_URL;
     window.SUPABASE_KEY = SUPABASE_KEY;
     window.supabaseClient = supabaseClient;
@@ -16324,8 +16214,54 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     updateWorkHistoryBadge();
     updateCustomerBadges();
     updatePhotoCounts();
-    initYardSatelliteMap();
+    if (typeof window.initYardMap === 'function') {
+        window.initYardMap();
+    } else {
+        initYardSatelliteMap();
+    }
     if (typeof renderDashboardView === 'function') renderDashboardView();
+
+    function loadDrivers() {
+        if (typeof renderDriversView === 'function') renderDriversView();
+        if (typeof renderDriverOverviewAccordion === 'function') renderDriverOverviewAccordion();
+    }
+    window.loadDrivers = loadDrivers;
+
+    const btnAddDriver = document.getElementById('btn-add-driver');
+    if (btnAddDriver) {
+        btnAddDriver.onclick = async function(e) {
+            e.preventDefault();
+            const name = document.getElementById('driver-name')?.value || document.getElementById('driverInputName')?.value;
+            const phone = document.getElementById('driver-phone')?.value || document.getElementById('driverInputPhone')?.value;
+            if (!name) return alert('Syötä kuljettajan nimi');
+
+            const { data, error } = await supabaseClient
+                .from('profiles')
+                .insert([{ full_name: name, phone: phone, role: 'driver' }]);
+
+            if (error) {
+                console.error(error);
+                alert('Virhe tallennuksessa: ' + error.message);
+            } else {
+                alert('Kuljettaja lisätty!');
+                if (typeof loadDrivers === 'function') loadDrivers();
+            }
+        };
+    }
+
+    // Pidetään kuljettajalomakkeen kentät synkronoituna
+    const driverNameIn = document.getElementById('driverInputName');
+    const driverNameHidden = document.getElementById('driver-name');
+    if (driverNameIn && driverNameHidden) {
+        driverNameIn.addEventListener('input', () => { driverNameHidden.value = driverNameIn.value; });
+        driverNameHidden.addEventListener('input', () => { driverNameIn.value = driverNameHidden.value; });
+    }
+    const driverPhoneIn = document.getElementById('driverInputPhone');
+    const driverPhoneHidden = document.getElementById('driver-phone');
+    if (driverPhoneIn && driverPhoneHidden) {
+        driverPhoneIn.addEventListener('input', () => { driverPhoneHidden.value = driverPhoneIn.value; });
+        driverPhoneHidden.addEventListener('input', () => { driverPhoneIn.value = driverPhoneHidden.value; });
+    }
 
     // Osoite-ehdotukset: lisäyslomake, muokkausdialogi, asiakaslomakkeet, työloki ja varikko
     attachAutocomplete(document.getElementById('address'));

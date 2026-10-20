@@ -216,10 +216,15 @@
 
     function showView(viewId) {
         if (!viewId || typeof document === 'undefined') return;
-        const allViews = document.querySelectorAll('.view-section, .view-pane');
-        allViews.forEach(v => { v.style.display = 'none'; });
-        const target = document.getElementById(viewId) || document.querySelector(`[data-view="${viewId}"]`);
-        if (target) target.style.display = 'block';
+        document.querySelectorAll('.view-section').forEach(el => el.style.display = 'none');
+        const target = document.getElementById(viewId) || (viewId === 'view-map' ? document.getElementById('viewRoutes') : null) || (viewId === 'viewRoutes' ? document.getElementById('view-map') : null) || (viewId === 'view-dashboard' ? document.getElementById('dashboard-view') : null) || (viewId === 'dashboard-view' ? document.getElementById('view-dashboard') : null);
+        if (target) {
+            target.style.display = 'block';
+            if ((viewId === 'view-map' || viewId === 'viewRoutes' || target.id === 'view-map' || target.id === 'viewRoutes') && (global.yardMap || (typeof window !== 'undefined' && window.yardMap))) {
+                const ym = global.yardMap || (typeof window !== 'undefined' && window.yardMap);
+                setTimeout(() => ym.invalidateSize(), 200);
+            }
+        }
         handleLayoutResize();
     }
 
