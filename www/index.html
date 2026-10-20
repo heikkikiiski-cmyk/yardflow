@@ -1062,6 +1062,40 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     </div>
 </div>
 
+<!-- PAKOLLISEN SALASANAN VAIHDON MODAALI (#modal-force-change-password) -->
+<div id="modal-force-change-password" class="modal-backdrop-custom modal-force-change-password" style="display: none; position: fixed; inset: 0; z-index: 100000; background: rgba(15, 23, 42, 0.94); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 20px;">
+    <div class="card" style="max-width: 440px; width: 100%; padding: 28px 24px; border-radius: 18px; background: var(--bg-card, #1e293b); border: 1px solid var(--border, rgba(255,255,255,0.12)); box-shadow: 0 16px 40px rgba(0,0,0,0.5);">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+            <span style="font-size: 1.6rem;">🔒</span>
+            <h3 id="forcePasswordModalTitle" style="margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--fg, #fff);">Aseta oma salasana jatkaaksesi</h3>
+        </div>
+        <p style="margin: 0 0 20px 0; font-size: 0.86rem; color: var(--muted, #94a3b8); line-height: 1.45;">
+            Tämä on ensimmäinen kirjautumisesi. Turvallisuussyistä sinun on vaihdettava aloitussalasana omaan henkilökohtaiseen salasanaasi (vähintään 6 merkkiä).
+        </p>
+
+        <form id="forceChangePasswordForm" onsubmit="handleForcePasswordSubmit(event)" style="display: flex; flex-direction: column; gap: 14px;">
+            <div>
+                <label for="forceNewPasswordInput" style="font-size: 0.82rem; font-weight: 700; color: var(--fg, #f8fafc); margin-bottom: 6px; display: block;">Uusi salasana * (vähintään 6 merkkiä):</label>
+                <input type="password" id="forceNewPasswordInput" placeholder="Vähintään 6 merkkiä" required minlength="6" autocomplete="new-password" style="width: 100%; min-height: 44px; padding: 10px 14px; font-size: 0.95rem; border-radius: var(--radius-md, 8px); background: var(--input-bg, #0b1120); border: 1px solid var(--input-border, rgba(255,255,255,0.14)); color: var(--fg, #fff); box-sizing: border-box;">
+            </div>
+
+            <div>
+                <label for="forceConfirmPasswordInput" style="font-size: 0.82rem; font-weight: 700; color: var(--fg, #f8fafc); margin-bottom: 6px; display: block;">Vahvista uusi salasana *:</label>
+                <input type="password" id="forceConfirmPasswordInput" placeholder="Kirjoita salasana uudelleen" required minlength="6" autocomplete="new-password" style="width: 100%; min-height: 44px; padding: 10px 14px; font-size: 0.95rem; border-radius: var(--radius-md, 8px); background: var(--input-bg, #0b1120); border: 1px solid var(--input-border, rgba(255,255,255,0.14)); color: var(--fg, #fff); box-sizing: border-box;">
+            </div>
+
+            <div id="forcePasswordErrorMessage" style="display: none; padding: 10px 12px; border-radius: 8px; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4); color: #f87171; font-size: 0.84rem; font-weight: 600;"></div>
+
+            <div class="dialog-actions modal-action-buttons" style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">
+                <button type="submit" id="btnSaveForcePassword" class="btn-primary btn-form-save" style="width: 100%; font-weight: 700; min-height: 46px; padding: 10px 18px; font-size: 0.95rem;">💾 Tallenna uusi salasana ja aloita työt</button>
+                <div style="text-align: center; font-size: 0.82rem; color: var(--muted, #94a3b8); margin-top: 4px;">
+                    Kirjauduitko väärällä tunnuksella? <a href="javascript:void(0)" onclick="logoutUser()" style="color: #ef4444; font-weight: 700; text-decoration: none; margin-left: 4px;">Kirjaudu ulos</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- SALASANAN ASETUSMODAALI (#modal-set-password / PASSWORD RECOVERY) -->
 <div id="modal-set-password" class="modal-backdrop-custom modal-set-password" style="display: none; position: fixed; inset: 0; z-index: 100000; background: rgba(15, 23, 42, 0.85); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 20px;">
     <div class="card" style="max-width: 440px; width: 100%; padding: 28px 24px; border-radius: 18px; background: var(--bg-card, #1e293b); border: 1px solid var(--border, rgba(255,255,255,0.12)); box-shadow: 0 16px 40px rgba(0,0,0,0.5);">
@@ -1934,10 +1968,10 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                         <input type="email" id="driverInputEmail" placeholder="esim. pekka@auraus.fi" style="margin-bottom: 0;">
                     </div>
                     <div>
-                        <label for="driverInputPassword">Aloitus-salasana tai PIN-koodi:</label>
-                        <input type="text" id="driverInputPassword" placeholder="esim. Kuski2026 tai 1234" style="margin-bottom: 0;">
+                        <label for="driverInputPassword" style="font-weight: 700;">Aloitussalasana * (väh. 6 merkkiä):</label>
+                        <input type="text" id="driverInputPassword" placeholder="esim. Aloitus2026" minlength="6" required style="margin-bottom: 0;">
                         <div style="font-size: 0.75rem; color: var(--muted); margin-top: 2px;">
-                            Käyttäjän salasana kirjautumista varten.
+                            Käyttäjän on vaihdettava salasana ensimmäisellä kirjautumisella.
                         </div>
                     </div>
                 </div>
@@ -9899,6 +9933,15 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             return;
         }
 
+        if (!editId && (!password || password.length < 6)) {
+            if (typeof showStatus === 'function') {
+                showStatus('Uudelle käyttäjälle on annettava aloitussalasana (vähintään 6 merkkiä)!', 'error');
+            } else {
+                alert('Uudelle käyttäjälle on annettava aloitussalasana (vähintään 6 merkkiä)!');
+            }
+            return;
+        }
+
         const permissions = {};
         PERMISSION_KEYS.forEach(k => {
             const cb = document.getElementById('perm_' + k);
@@ -9936,6 +9979,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                 role,
                 expires_at: expiresAt,
                 permissions,
+                must_change_password: true,
                 created_at: new Date().toISOString()
             });
         }
@@ -9945,15 +9989,56 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         applyPermissionsToUi();
         renderDriversView();
 
-        // Supabase: profiili ja sähköpostikutsu / aktivointilinkki
+        // Supabase: profiili ja suora auth-tunnus
         const client = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : null) || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
-        let inviteSent = false;
-        let inviteErrorMsg = null;
 
         if (client) {
-            // 1. Luodaan profiilitiedot ja oikeudet 'profiles'-tauluun Supabaseen
+            let authUserId = null;
+
+            // 1. Luodaan käyttäjätunnus suoraan (supabase.auth.signUp) annetulla aloitussalasanalla
+            if (client.auth && password && !editId) {
+                const authEmail = email || `${name.toLowerCase().replace(/[^a-z0-9]/g, '') || 'kayttaja'}@yardflow.fi`;
+                try {
+                    const { data: signUpData, error: signUpErr } = await client.auth.signUp({
+                        email: authEmail,
+                        password: password,
+                        options: {
+                            data: {
+                                name: name,
+                                phone: phone,
+                                vehicle: vehicle,
+                                role: role,
+                                permissions: permissions,
+                                must_change_password: true
+                            }
+                        }
+                    });
+                    if (signUpErr) {
+                        console.warn('Supabase signUp warning:', signUpErr);
+                    } else if (signUpData && signUpData.user && signUpData.user.id) {
+                        authUserId = signUpData.user.id;
+                    }
+                } catch (err) {
+                    console.warn('Supabase signUp error:', err);
+                }
+            }
+
+            // Jos saatiin suora auth-käyttäjätunnus, päivitetään ID
+            if (authUserId) {
+                targetDriverId = authUserId;
+                const dList = getStoredDrivers();
+                const dObj = dList.find(x => x.name === name && x.phone === phone);
+                if (dObj) {
+                    dObj.id = authUserId;
+                    persistDrivers(dList);
+                }
+            }
+
+            // 2. Tallennetaan 'profiles'-tauluun uusi sarake: must_change_password: true
             if (client.from) {
                 try {
+                    const isNew = !editId;
+                    const existingMustChange = editId ? (drivers.find(x => String(x.id) === String(editId))?.must_change_password || false) : true;
                     await client.from('profiles').upsert({
                         id: targetDriverId,
                         email: email || null,
@@ -9963,60 +10048,22 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                         role: role,
                         permissions: permissions,
                         expires_at: expiresAt,
+                        must_change_password: isNew ? true : existingMustChange,
                         updated_at: new Date().toISOString()
                     });
                 } catch (e) {
                     console.warn('Supabase profiles upsert error:', e);
                 }
             }
-
-            // 2. Lähetetään sähköpostikutsu / aktivointilinkki jos sähköposti on annettu
-            if (client.auth && email) {
-                try {
-                    const { data, error: inviteError } = await client.auth.resetPasswordForEmail(email, {
-                        redirectTo: 'https://yardflow.vercel.app'
-                    });
-
-                    if (inviteError) {
-                        console.warn('Supabase resetPasswordForEmail error:', inviteError);
-                        inviteErrorMsg = inviteError.message || 'Sähköpostipalvelun virhe';
-                    } else {
-                        inviteSent = true;
-                    }
-                } catch (err) {
-                    console.warn('resetPasswordForEmail caught error:', err);
-                    inviteErrorMsg = err?.message || 'Verkkovirhe';
-                }
-            }
-
-            // Jos admin antoi aloitussalasanan suoraan käsin, varmistetaan myös suora auth-tili
-            if (client.auth && password) {
-                const authEmail = email || `${name.toLowerCase().replace(/[^a-z0-9]/g, '') || 'kayttaja'}@yardflow.fi`;
-                client.auth.signUp({
-                    email: authEmail,
-                    password: password,
-                    options: {
-                        data: {
-                            name: name,
-                            phone: phone,
-                            vehicle: vehicle,
-                            role: role,
-                            permissions: permissions
-                        }
-                    }
-                }).catch(err => {
-                    console.warn('Supabase signUp warning:', err);
-                });
-            }
         }
 
         // Ilmoitus käyttäjälle
-        if (inviteSent) {
-            showStatus(`Käyttäjä luotu ja aktivointilinkki lähetetty osoitteeseen ${email}!`, 'success');
-        } else if (inviteErrorMsg) {
-            showStatus(`Käyttäjä tallennettu, mutta sähköpostikutsun lähetys epäonnistui (${inviteErrorMsg}). Voit asettaa aloitussalasanan suoraan käsin.`, 'warning');
-        } else {
-            showStatus(`Käyttäjä "${esc(name)}" tallennettu!`, 'success');
+        if (typeof showStatus === 'function') {
+            if (!editId) {
+                showStatus(`Käyttäjä "${esc(name)}" luotu ja aloitussalasana asetettu!`, 'success');
+            } else {
+                showStatus(`Käyttäjän "${esc(name)}" tiedot tallennettu!`, 'success');
+            }
         }
     }
     window.saveDriverFromForm = saveDriverFromForm;
@@ -10283,6 +10330,12 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             if (raw) {
                 const s = JSON.parse(raw);
                 if (s && s.user) {
+                    if (s.user.must_change_password) {
+                        window.pendingPasswordChangeUser = s.user;
+                        hideLoginView();
+                        showForceChangePasswordModal(s.user);
+                        return true;
+                    }
                     hideLoginView();
                     restoreUserSession(s.user);
                     return true;
@@ -10292,15 +10345,35 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
 
         const client = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : null) || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
         if (client && client.auth) {
-            client.auth.getSession().then(({ data }) => {
+            client.auth.getSession().then(async ({ data }) => {
                 if (data && data.session && data.session.user) {
                     const sbUser = data.session.user;
+                    let mustChange = !!sbUser.user_metadata?.must_change_password;
+
+                    if (client.from) {
+                        try {
+                            const { data: prof } = await client.from('profiles').select('must_change_password').eq('id', sbUser.id).single();
+                            if (prof && prof.must_change_password !== undefined) {
+                                mustChange = !!prof.must_change_password;
+                            }
+                        } catch (e) {}
+                    }
+
                     const sessionUser = {
                         id: sbUser.id,
                         name: sbUser.user_metadata?.name || sbUser.email,
                         email: sbUser.email,
-                        role: sbUser.user_metadata?.role || 'driver'
+                        role: sbUser.user_metadata?.role || 'driver',
+                        must_change_password: mustChange
                     };
+
+                    if (mustChange) {
+                        window.pendingPasswordChangeUser = sessionUser;
+                        hideLoginView();
+                        showForceChangePasswordModal(sessionUser);
+                        return;
+                    }
+
                     localStorage.setItem('yardflow_auth_session', JSON.stringify({
                         user: sessionUser,
                         logged_in_at: new Date().toISOString()
@@ -10400,8 +10473,17 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                     id: matchedDriver.id,
                     name: matchedDriver.name,
                     email: matchedDriver.email || `${matchedDriver.id}@yardflow.fi`,
-                    role: matchedDriver.role || 'driver'
+                    role: matchedDriver.role || 'driver',
+                    must_change_password: !!matchedDriver.must_change_password
                 };
+
+                // Tarkistetaan pakollinen salasanan vaihto
+                if (matchedDriver.must_change_password) {
+                    window.pendingPasswordChangeUser = sessionUser;
+                    hideLoginView();
+                    showForceChangePasswordModal(sessionUser);
+                    return;
+                }
 
                 localStorage.setItem('yardflow_auth_session', JSON.stringify({
                     user: sessionUser,
@@ -10433,13 +10515,40 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
 
                 if (!error && data && data.user) {
                     const sbUser = data.user;
-                    const role = sbUser.user_metadata?.role || 'driver';
+                    let mustChange = !!sbUser.user_metadata?.must_change_password;
+
+                    // Haetaan profiili 'profiles'-taulusta
+                    if (client.from) {
+                        try {
+                            const { data: prof } = await client.from('profiles').select('must_change_password, role, name').eq('id', sbUser.id).single();
+                            if (prof && prof.must_change_password !== undefined) {
+                                mustChange = !!prof.must_change_password;
+                            }
+                        } catch (pe) {
+                            console.warn('Supabase profiles query error:', pe);
+                        }
+                    }
+
+                    const localD = getStoredDrivers().find(d => String(d.id) === String(sbUser.id) || (d.email && d.email.toLowerCase() === (sbUser.email || '').toLowerCase()));
+                    if (localD && localD.must_change_password !== undefined) {
+                        mustChange = mustChange || !!localD.must_change_password;
+                    }
+
+                    const role = sbUser.user_metadata?.role || (localD ? localD.role : 'driver');
                     const sessionUser = {
                         id: sbUser.id,
-                        name: sbUser.user_metadata?.name || username,
+                        name: sbUser.user_metadata?.name || (localD ? localD.name : username),
                         email: sbUser.email,
-                        role: role
+                        role: role,
+                        must_change_password: mustChange
                     };
+
+                    if (mustChange) {
+                        window.pendingPasswordChangeUser = sessionUser;
+                        hideLoginView();
+                        showForceChangePasswordModal(sessionUser);
+                        return;
+                    }
 
                     localStorage.setItem('yardflow_auth_session', JSON.stringify({
                         user: sessionUser,
@@ -10489,6 +10598,8 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         } catch (e) {}
 
         if (typeof closeAppDrawer === 'function') closeAppDrawer();
+        if (typeof closeForceChangePasswordModal === 'function') closeForceChangePasswordModal();
+        window.pendingPasswordChangeUser = null;
 
         const passInput = document.getElementById('loginPassword');
         if (passInput) passInput.value = '';
@@ -10545,6 +10656,131 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         }
     }
     window.handleForgotPasswordClick = handleForgotPasswordClick;
+
+    // ============================================================
+    // 🔒 PAKOLLINEN SALASANAN VAIHTO (#modal-force-change-password)
+    // ============================================================
+    function showForceChangePasswordModal(user) {
+        if (user) window.pendingPasswordChangeUser = user;
+        const modal = document.getElementById('modal-force-change-password');
+        if (modal) modal.style.display = 'flex';
+        const errBox = document.getElementById('forcePasswordErrorMessage');
+        if (errBox) {
+            errBox.style.display = 'none';
+            errBox.textContent = '';
+        }
+        const p1 = document.getElementById('forceNewPasswordInput');
+        const p2 = document.getElementById('forceConfirmPasswordInput');
+        if (p1) p1.value = '';
+        if (p2) p2.value = '';
+        if (p1) p1.focus();
+    }
+    window.showForceChangePasswordModal = showForceChangePasswordModal;
+
+    function closeForceChangePasswordModal() {
+        const modal = document.getElementById('modal-force-change-password');
+        if (modal) modal.style.display = 'none';
+    }
+    window.closeForceChangePasswordModal = closeForceChangePasswordModal;
+
+    async function handleForcePasswordSubmit(event) {
+        if (event && event.preventDefault) event.preventDefault();
+        const p1 = document.getElementById('forceNewPasswordInput')?.value?.trim();
+        const p2 = document.getElementById('forceConfirmPasswordInput')?.value?.trim();
+        const errBox = document.getElementById('forcePasswordErrorMessage');
+        const btn = document.getElementById('btnSaveForcePassword');
+
+        if (errBox) {
+            errBox.style.display = 'none';
+            errBox.textContent = '';
+        }
+
+        if (!p1 || p1.length < 6) {
+            if (errBox) {
+                errBox.textContent = 'Salasanan on oltava vähintään 6 merkkiä pitkä.';
+                errBox.style.display = 'block';
+            }
+            return;
+        }
+
+        if (p1 !== p2) {
+            if (errBox) {
+                errBox.textContent = 'Salasanat eivät täsmää. Tarkista kirjoitusasu.';
+                errBox.style.display = 'block';
+            }
+            return;
+        }
+
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '⏳ Tallennetaan...';
+        }
+
+        try {
+            const client = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : null) || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+            const user = window.pendingPasswordChangeUser || {};
+
+            // 1. Päivitetään Supabase auth-salasana
+            if (client && client.auth) {
+                try {
+                    const { data, error } = await client.auth.updateUser({ password: p1 });
+                    if (error) {
+                        console.warn('Supabase updateUser warning:', error);
+                    }
+                } catch (e) {
+                    console.warn('auth.updateUser error:', e);
+                }
+            }
+
+            // 2. Päivitetään tietokantaan: must_change_password = false
+            if (client && client.from && user.id) {
+                try {
+                    await client.from('profiles').update({ must_change_password: false }).eq('id', user.id);
+                } catch (pe) {
+                    console.warn('Supabase profiles update error:', pe);
+                }
+            }
+
+            // 3. Päivitetään lokaali kuljettajatieto
+            const drivers = getStoredDrivers();
+            const dIdx = drivers.findIndex(x => String(x.id) === String(user.id) || (x.email && x.email.toLowerCase() === (user.email || '').toLowerCase()));
+            if (dIdx >= 0) {
+                drivers[dIdx].must_change_password = false;
+                drivers[dIdx].password = p1;
+                persistDrivers(drivers);
+            }
+
+            // 4. Päivitetään istunto ja tallennetaan
+            user.must_change_password = false;
+            localStorage.setItem('yardflow_auth_session', JSON.stringify({
+                user: user,
+                logged_in_at: new Date().toISOString()
+            }));
+            if (user.id) {
+                try { localStorage.setItem('yardflow_active_user_id', String(user.id)); } catch (e) {}
+            }
+
+            window.pendingPasswordChangeUser = null;
+            closeForceChangePasswordModal();
+            restoreUserSession(user);
+
+            if (typeof showStatus === 'function') {
+                showStatus('Uusi salasana tallennettu! Tervetuloa YardFlowhun.', 'success');
+            }
+        } catch (e) {
+            console.warn('handleForcePasswordSubmit error:', e);
+            if (errBox) {
+                errBox.textContent = e.message || 'Odottamaton virhe salasanan tallennuksessa.';
+                errBox.style.display = 'block';
+            }
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = '💾 Tallenna uusi salasana ja aloita työt';
+            }
+        }
+    }
+    window.handleForcePasswordSubmit = handleForcePasswordSubmit;
 
     // ============================================================
     // 🔑 SALASANAN ASETUS & RECOVERY (#modal-set-password)
