@@ -22,10 +22,9 @@
         try {
             if (!win.mapInstance && !mapEl._leaflet_id) {
                 win.mapInstance = L.map(mapEl.id).setView([61.4981, 23.7610], 13);
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                    maxZoom: 19,
-                    subdomains: 'abcd',
-                    attribution: '© OpenStreetMap contributors © CARTO'
+                L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+                    attribution: 'Tiles &copy; Esri',
+                    maxZoom: 19
                 }).addTo(win.mapInstance);
             }
             if (win.mapInstance && typeof win.mapInstance.invalidateSize === 'function') {
@@ -62,11 +61,12 @@
     function initMapResizeListeners(grid) {
         if (grid && typeof grid.on === 'function') {
             grid.on('resizestop', function(event, el) {
-                if (el && (el.querySelector('#map') || el.querySelector('#admin-map') || el.querySelector('#yardSatelliteMap') || el.querySelector('#customerGeofenceMap'))) {
+                if (el && (el.querySelector('#map') || el.querySelector('#admin-map') || el.querySelector('#yardSatelliteMap') || el.querySelector('#customerGeofenceMap') || el.querySelector('#dashboardCityMap'))) {
                     safeInvalidateMap(global.map || (typeof window !== 'undefined' ? window.map : null));
                     safeInvalidateMap(global.adminMap || (typeof window !== 'undefined' ? window.adminMap : null));
                     safeInvalidateMap(global.yardMap || (typeof window !== 'undefined' ? window.yardMap : null));
                     safeInvalidateMap(global.customerGeofenceMap || (typeof window !== 'undefined' ? window.customerGeofenceMap : null));
+                    safeInvalidateMap(global.dashboardCityMap || (typeof window !== 'undefined' ? window.dashboardCityMap : null));
                     safeInvalidateMap(global.mapInstance || (typeof window !== 'undefined' ? window.mapInstance : null));
                 }
             });
@@ -77,6 +77,7 @@
             safeInvalidateMap(global.adminMap || (typeof window !== 'undefined' ? window.adminMap : null));
             safeInvalidateMap(global.yardMap || (typeof window !== 'undefined' ? window.yardMap : null));
             safeInvalidateMap(global.customerGeofenceMap || (typeof window !== 'undefined' ? window.customerGeofenceMap : null));
+            safeInvalidateMap(global.dashboardCityMap || (typeof window !== 'undefined' ? window.dashboardCityMap : null));
             safeInvalidateMap(global.mapInstance || (typeof window !== 'undefined' ? window.mapInstance : null));
         };
 
@@ -87,6 +88,18 @@
                     setTimeout(resizeHandler, 300);
                 }
             });
+        }
+
+        if (typeof document !== 'undefined' && typeof ResizeObserver !== 'undefined') {
+            try {
+                const resizable = document.querySelectorAll('.map-container, .map-resizable-container');
+                resizable.forEach(el => {
+                    const ro = new ResizeObserver(() => {
+                        resizeHandler();
+                    });
+                    ro.observe(el);
+                });
+            } catch (e) {}
         }
     }
 

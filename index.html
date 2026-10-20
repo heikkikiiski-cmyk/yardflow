@@ -1278,9 +1278,9 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
             <img src="assets/logo.png" alt="YardFlow Logo" class="menu-logo" style="width: 28px; height: 28px; object-fit: contain; border-radius: 6px; flex-shrink: 0;">
             <div class="logo-title">Yard<span>Flow</span></div>
         </div>
-        <!-- Aktiivisen reitin / käyttäjän lyhyt nimi vasemmalla -->
-        <div id="topbarActiveBadge" class="header-active-info" style="font-size: 0.8rem; color: var(--fg-muted); border-left: 1px solid var(--border-default); padding-left: 10px; margin-left: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px;" title="Aktiivinen reitti ja käyttäjä">
-            <span id="topbarActiveRouteName">YardFlow</span>
+        <!-- Aktiivisen reitin / käyttäjän lyhyt nimi vasemmalla (oletuksena piilotettu tuplanimen poistamiseksi) -->
+        <div id="topbarActiveBadge" class="header-active-info" style="display: none;" title="Aktiivinen reitti ja käyttäjä">
+            <span id="topbarActiveRouteName"></span>
         </div>
     </div>
     <div class="header-actions">
@@ -1425,9 +1425,24 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
                         </div>
                     </div>
                     <div class="card-collapsible-body" style="padding: 0; position: relative;">
+                        <!-- YHTENÄINEN KARTTATYÖKALUPALKKI (.map-toolbar) -->
+                        <div class="map-toolbar" id="dashMapToolbar" style="border-radius: 0; border-left: none; border-right: none; border-top: none;">
+                            <button type="button" class="btn-map-tool" onclick="toggleDashboardCityMapBase(this)" title="Vaihda karttapohjaa">
+                                <span>🗺️</span> <span>Karttatyyli</span>
+                            </button>
+                            <button type="button" class="btn-map-tool" onclick="centerDashboardCityMap()" title="Keskitä kohteisiin">
+                                📍 Keskitä kohteisiin
+                            </button>
+                            <button type="button" class="btn-map-tool" onclick="centerDashboardCityMapUserLocation()" title="Oma sijainti">
+                                🎯 Oma sijainti
+                            </button>
+                            <button type="button" class="btn-map-tool" onclick="toggleMapFullscreen('dashboardCityMap', this)" title="Koko näyttö">
+                                ⛶ Koko näyttö
+                            </button>
+                        </div>
                         <div style="position: relative; width: 100%; height: 350px;" class="map-fullscreen-wrapper">
                             <div id="dashboardCityMap" style="width: 100%; height: 100%; min-height: 350px; background: #0b1120;"></div>
-                            <button type="button" class="map-btn-fullscreen" onclick="toggleMapFullscreen('dashboardCityMap', this)" title="Koko näyttö" aria-label="Koko näyttö">
+                            <button type="button" class="map-btn-fullscreen" onclick="toggleMapFullscreen('dashboardCityMap', this)" title="Koko näyttö" aria-label="Koko näyttö" style="display: none;">
                                 ⛶ Koko näyttö
                             </button>
                         </div>
@@ -1436,7 +1451,7 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
                                 <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #10b981;"></span> Vihreä = Kuitattu tänään
                             </span>
                             <span style="display: inline-flex; align-items: center; gap: 6px;">
-                                <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #f59e0b;"></span> Oranssi = Tekemättä
+                                <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #ef4444;"></span> Punainen = Tekemättä
                             </span>
                         </div>
                     </div>
@@ -1665,8 +1680,8 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
                 </div>
             </div>
 
-            <!-- Widget 3: Seuraava ajokohde -pikaopas -->
-            <div id="widget-next-yard" class="dashboard-widget widget-next-yard-card" style="margin-bottom: 12px;">
+            <!-- Widget 3: Seuraava ajokohde (piilotettu reittisuunnittelusta) -->
+            <div id="widget-next-yard" class="dashboard-widget widget-next-yard-card" style="display: none !important; margin-bottom: 12px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                     <span style="font-weight: 700; font-size: 0.78rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.04em;">📍 Seuraava ajokohde</span>
                     <span class="status-pill status-ready" style="font-size: 0.72rem; padding: 2px 8px;">Reitin seuraava</span>
@@ -1864,12 +1879,12 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
                 </div>
             </div>
 
-            <!-- YHDISTETTY TIIVIS TYÖJONO (#route-planning-card) -->
+            <!-- YHDISTETTY REITIN KOHDELISTA (#route-planning-card) -->
             <div id="route-planning-card" class="card Box collapsible-card" style="margin-top: 12px; padding: 0; overflow: hidden;">
                 <div class="card-header Box-header card-header-clickable" onclick="toggleCardCollapse(this)" style="display: flex; justify-content: space-between; align-items: center; gap: 8px; cursor: pointer; padding: 10px 14px;">
                     <div style="font-weight: 600; font-size: 0.92rem; display: flex; align-items: center; gap: 6px;">
                         <span>📋</span>
-                        <span>Työjono (<span id="taskCount">0 / 0 jäljellä</span>)</span>
+                        <span>Reitin kohteet (<span id="taskCount">0 / 0 jäljellä</span>)</span>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <span class="summary-km" id="summaryDistance" style="font-size: 0.8rem; color: var(--fg-muted);"></span>
@@ -2056,14 +2071,30 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
                 </div>
             </div>
 
-            <div style="position: relative; width: 100%;" class="map-fullscreen-wrapper">
+            <!-- YHTENÄINEN KARTTATYÖKALUPALKKI (.map-toolbar) -->
+            <div class="map-toolbar" id="yardMapToolbar">
+                <button type="button" class="btn-map-tool" id="btn-toggle-map-layer" onclick="toggleMapBaseUnified()" title="Vaihda karttapohjaa (Kartta / Satelliitti)">
+                    <span id="mapLayerToggleIcon">🛰️</span> <span id="mapLayerToggleLabel">Satelliitti</span>
+                </button>
+                <button type="button" class="btn-map-tool" id="btn-center-target-toolbar" onclick="centerMapOnCurrentTarget()" title="Keskitä kohteeseen">
+                    📍 Keskitä kohteeseen
+                </button>
+                <button type="button" class="btn-map-tool" id="btn-toolbar-gps" onclick="centerMapOnUserLocation()" title="Keskitä omaan sijaintiin (GPS)">
+                    🎯 Oma sijainti
+                </button>
+                <button type="button" class="btn-map-tool" id="btn-map-fullscreen-tb" onclick="toggleMapFullscreen('yardSatelliteMap', this)" title="Koko näyttö">
+                    ⛶ Koko näyttö
+                </button>
+            </div>
+
+            <div style="position: relative; width: 100%;" class="map-fullscreen-wrapper map-resizable-container" id="yardMapContainerWrapper">
                 <div id="yardSatelliteMap"></div>
-                <!-- KARTAN KOKORUUTUPAINIKE -->
-                <button type="button" id="btn-map-fullscreen" class="map-btn-fullscreen" onclick="toggleMapFullscreen('yardSatelliteMap', this)" title="Koko näyttö" aria-label="Koko näyttö">
+                <!-- KARTAN KOKORUUTUPAINIKE (yhteensopivuus) -->
+                <button type="button" id="btn-map-fullscreen" class="map-btn-fullscreen" onclick="toggleMapFullscreen('yardSatelliteMap', this)" title="Koko näyttö" aria-label="Koko näyttö" style="display: none;">
                     ⛶ Koko näyttö
                 </button>
                 <!-- KESKITÄ OMAAN SIJAINTIIN (GPS-PAINIKE FAB) -->
-                <button type="button" id="btn-gps-center" class="map-fab-gps" onclick="centerMapOnUserLocation()" title="Keskitä omaan sijaintiin (GPS)" aria-label="Keskitä omaan sijaintiin">
+                <button type="button" id="btn-gps-center" class="map-fab-gps" onclick="centerMapOnUserLocation()" title="Keskitä omaan sijaintiin (GPS)" aria-label="Keskitä omaan sijaintiin" style="display: none;">
                     <span class="gps-icon">🎯</span>
                 </button>
             </div>
@@ -2305,7 +2336,7 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
                     </div>
                 </div>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <button type="button" class="btn-primary" onclick="openAddDriverDrawer()" style="min-height: 40px; padding: 0 16px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                    <button type="button" class="btn-primary" id="btn-add-driver" onclick="openAddDriverDrawer()" style="min-height: 40px; padding: 0 16px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
                         ➕ Lisää käyttäjä / kuljettaja
                     </button>
                 </div>
@@ -4802,6 +4833,18 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
             if (typeof showStatus === 'function') showStatus('Ei käyttöoikeutta työnjohdon hallintatilaan.', 'warning');
             return;
         }
+
+        const savedRole = (mode === 'admin') ? 'admin' : 'driver';
+        try {
+            localStorage.setItem('yf_role', savedRole);
+            localStorage.setItem('yardflow_app_mode', mode);
+        } catch (e) {}
+
+        const drawerModeText = document.getElementById('drawerModeText');
+        if (drawerModeText) {
+            drawerModeText.textContent = (mode === 'admin') ? '🛠️ Työnjohtotila aktiivinen' : '🚜 Kenttätila aktiivinen';
+        }
+
         setAppMode(mode);
         if (mode === 'field') {
             if (typeof showView === 'function') showView('routes');
@@ -5509,6 +5552,26 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
                 }));
             }
 
+            const coreDashboardWidgetIds = ['dash-widget-progress', 'dash-widget-weather', 'dash-widget-map', 'dash-widget-drivers-accordion'];
+            if (currentView === 'dashboard' && Array.isArray(savedLayout)) {
+                coreDashboardWidgetIds.forEach((cId, cIdx) => {
+                    let entry = savedLayout.find(i => i.id === cId);
+                    if (!entry) {
+                        entry = {
+                            id: cId,
+                            x: cols === 1 ? 0 : (cIdx % 2 === 0 ? 0 : 6),
+                            y: cols === 1 ? cIdx * 4 : Math.floor(cIdx / 2) * 5,
+                            w: (cId === 'dash-widget-map' || cId === 'dash-widget-drivers-accordion') ? 12 : 6,
+                            h: (cId === 'dash-widget-map' || cId === 'dash-widget-drivers-accordion') ? 6 : 4,
+                            hidden: false
+                        };
+                        savedLayout.push(entry);
+                    } else {
+                        entry.hidden = false;
+                    }
+                });
+            }
+
             if (grid && Array.isArray(savedLayout)) {
                 const visibleItems = savedLayout.filter(i => !i.hidden);
                 const allZeroCoords = visibleItems.length > 1 && visibleItems.every(i => (i.x || 0) === 0 && (i.y || 0) === 0);
@@ -5828,10 +5891,9 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
             });
             window.dashboardCityMap = dashboardCityMap;
 
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                maxZoom: 19,
-                subdomains: 'abcd',
-                attribution: '© OpenStreetMap contributors © CARTO'
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri',
+                maxZoom: 19
             }).addTo(dashboardCityMap);
 
             renderDashboardCityMapMarkers();
@@ -5858,7 +5920,7 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
             if (!t.lat || !t.lon) return;
             validCount++;
             const isDone = !!t.done;
-            const color = isDone ? '#10b981' : '#f59e0b';
+            const color = isDone ? '#10b981' : '#ef4444';
             const driverName = t.driver || 'Ei määritelty';
             const statusText = isDone ? '✓ Kuitattu valmiiksi' : '⏱ Tekemättä';
 
@@ -6039,6 +6101,68 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
         }, 150);
     }
     window.toggleMapFullscreen = toggleMapFullscreen;
+
+    function toggleMapBaseUnified() {
+        const cur = (typeof currentMapBase !== 'undefined' && currentMapBase) ? currentMapBase : (localStorage.getItem('yardflow_map_base') || 'satellite');
+        const next = (cur === 'satellite') ? 'street' : 'satellite';
+        if (typeof setMapBaseLayer === 'function') {
+            setMapBaseLayer(next);
+        }
+        const label = document.getElementById('mapLayerToggleLabel');
+        const icon = document.getElementById('mapLayerToggleIcon');
+        if (label) label.textContent = (next === 'satellite') ? 'Satelliitti' : 'Peruskartta';
+        if (icon) icon.textContent = (next === 'satellite') ? '🛰️' : '🗺️';
+    }
+    window.toggleMapBaseUnified = toggleMapBaseUnified;
+
+    function centerDashboardCityMap() {
+        if (!dashboardCityMap || typeof L === 'undefined') return;
+        if (cityMarkersGroup && typeof cityMarkersGroup.getBounds === 'function' && cityMarkersGroup.getLayers().length > 0) {
+            try {
+                dashboardCityMap.fitBounds(cityMarkersGroup.getBounds().pad(0.12));
+            } catch (e) {}
+        } else {
+            dashboardCityMap.setView([61.4981, 23.7610], 12);
+        }
+    }
+    window.centerDashboardCityMap = centerDashboardCityMap;
+
+    function centerDashboardCityMapUserLocation() {
+        if (!dashboardCityMap || typeof navigator === 'undefined' || !navigator.geolocation) return;
+        navigator.geolocation.getCurrentPosition(pos => {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            dashboardCityMap.flyTo([lat, lng], 14, { duration: 0.8 });
+        }, err => {
+            console.warn('GPS location error:', err);
+        }, { enableHighAccuracy: true, timeout: 6000 });
+    }
+    window.centerDashboardCityMapUserLocation = centerDashboardCityMapUserLocation;
+
+    let dashboardCityMapBaseType = 'street';
+    let dashCityBaseLayer = null;
+    function toggleDashboardCityMapBase(btnEl) {
+        if (!dashboardCityMap || typeof L === 'undefined') return;
+        dashboardCityMapBaseType = (dashboardCityMapBaseType === 'street') ? 'satellite' : 'street';
+        const url = (dashboardCityMapBaseType === 'satellite')
+            ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+            : 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}';
+        
+        if (dashCityBaseLayer) {
+            dashboardCityMap.removeLayer(dashCityBaseLayer);
+        }
+        dashCityBaseLayer = L.tileLayer(url, {
+            attribution: 'Tiles &copy; Esri',
+            maxZoom: 19
+        }).addTo(dashboardCityMap);
+        if (typeof dashCityBaseLayer.bringToBack === 'function') {
+            dashCityBaseLayer.bringToBack();
+        }
+        if (btnEl) {
+            btnEl.innerHTML = (dashboardCityMapBaseType === 'satellite') ? '<span>🛰️</span> <span>Satelliitti</span>' : '<span>🗺️</span> <span>Peruskartta</span>';
+        }
+    }
+    window.toggleDashboardCityMapBase = toggleDashboardCityMapBase;
 
     // Render Dashboard View
     function renderDashboardView() {
@@ -11304,7 +11428,7 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
             if (drawerDividerAdmin) drawerDividerAdmin.style.setProperty('display', 'none', 'important');
 
             if (drawerModeText) {
-                drawerModeText.textContent = (currentAppMode === 'field') ? '🚜 Kenttätila aktiivinen' : '👔 Työnjohto aktiivinen';
+                drawerModeText.textContent = (currentAppMode === 'field') ? '🚜 Kenttätila aktiivinen' : '🛠️ Työnjohtotila aktiivinen';
             }
             if (appModeBadge) {
                 if (currentAppMode === 'field') {
@@ -11343,7 +11467,7 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
             if (drawerDividerAdmin) drawerDividerAdmin.style.setProperty('display', 'block', 'important');
 
             if (drawerModeText) {
-                drawerModeText.textContent = (currentAppMode === 'field') ? '🚜 Kenttätila aktiivinen' : '👑 Pääkäyttäjä aktiivinen';
+                drawerModeText.textContent = (currentAppMode === 'field') ? '🚜 Kenttätila aktiivinen' : '🛠️ Työnjohtotila aktiivinen';
             }
             if (appModeBadge) {
                 if (currentAppMode === 'field') {
@@ -15199,10 +15323,9 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
 
     function createCustomerGfTileLayer(baseType) {
         if (baseType === 'street') {
-            return L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                maxZoom: 19,
-                subdomains: 'abcd',
-                attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+            return L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri',
+                maxZoom: 19
             });
         }
         return L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
@@ -16377,10 +16500,9 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
                     maxZoom: 21,
                     attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics'
                 }),
-                street: L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                    maxZoom: 19,
-                    subdomains: 'abcd',
-                    attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+                street: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+                    attribution: 'Tiles &copy; Esri',
+                    maxZoom: 19
                 })
             };
         }
@@ -16432,6 +16554,10 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
         }
 
         updateMapSettingsUi();
+        const label = document.getElementById('mapLayerToggleLabel');
+        const icon = document.getElementById('mapLayerToggleIcon');
+        if (label) label.textContent = (layerName === 'satellite') ? 'Satelliitti' : 'Peruskartta';
+        if (icon) icon.textContent = (layerName === 'satellite') ? '🛰️' : '🗺️';
         const baseNameFi = layerName === 'street' ? 'Peruskartta' : 'Satelliitti';
         showStatus(`Karttapohjaksi vaihdettu: ${baseNameFi}.`, 'info');
     }
@@ -16523,10 +16649,9 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
         try {
             if (!window.mapInstance && !mapEl._leaflet_id) {
                 window.mapInstance = L.map(mapEl.id).setView([61.4981, 23.7610], 13);
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                    maxZoom: 19,
-                    subdomains: 'abcd',
-                    attribution: '© OpenStreetMap contributors © CARTO'
+                L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+                    attribution: 'Tiles &copy; Esri',
+                    maxZoom: 19
                 }).addTo(window.mapInstance);
             }
             if (window.mapInstance && typeof window.mapInstance.invalidateSize === 'function') {

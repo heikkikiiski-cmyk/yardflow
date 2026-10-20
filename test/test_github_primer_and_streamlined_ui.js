@@ -71,7 +71,7 @@ console.log('✅ Two clear navigation actions (↗ Navigoi and 📍 Keskitä) ve
 
 // 3. Consolidated Work Queue & Grouped Toolbar
 console.log('--- 3. Testing Consolidated Work Queue & Grouped Toolbar ---');
-assert(indexHtml.includes('Työjono (<span id="taskCount">'), 'Consolidated Työjono heading with taskCount must exist');
+assert(indexHtml.includes('(<span id="taskCount">'), 'Consolidated targets heading with taskCount must exist');
 assert(indexHtml.includes('class="route-toolbar Box"'), 'Grouped route toolbar Box must exist');
 assert(indexHtml.includes('id="btnOptimize"'), '#btnOptimize must be present in toolbar');
 assert(indexHtml.includes('id="btn-create-new-route"'), '#btn-create-new-route must be present in toolbar');

@@ -455,6 +455,26 @@
                 }));
             }
 
+            const coreDashboardWidgetIds = ['dash-widget-progress', 'dash-widget-weather', 'dash-widget-map', 'dash-widget-drivers-accordion'];
+            if (currentView === 'dashboard' && Array.isArray(savedLayout)) {
+                coreDashboardWidgetIds.forEach((cId, cIdx) => {
+                    let entry = savedLayout.find(i => i.id === cId);
+                    if (!entry) {
+                        entry = {
+                            id: cId,
+                            x: cols === 1 ? 0 : (cIdx % 2 === 0 ? 0 : 6),
+                            y: cols === 1 ? cIdx * 4 : Math.floor(cIdx / 2) * 5,
+                            w: (cId === 'dash-widget-map' || cId === 'dash-widget-drivers-accordion') ? 12 : 6,
+                            h: (cId === 'dash-widget-map' || cId === 'dash-widget-drivers-accordion') ? 6 : 4,
+                            hidden: false
+                        };
+                        savedLayout.push(entry);
+                    } else {
+                        entry.hidden = false;
+                    }
+                });
+            }
+
             if (grid && Array.isArray(savedLayout)) {
                 const visibleItems = savedLayout.filter(i => !i.hidden);
                 const allZeroCoords = visibleItems.length > 1 && visibleItems.every(i => (i.x || 0) === 0 && (i.y || 0) === 0);

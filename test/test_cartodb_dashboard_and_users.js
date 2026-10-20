@@ -17,15 +17,15 @@ const wwwHtml = fs.readFileSync(wwwIndexPath, 'utf-8');
 assert.strictEqual(html, wwwHtml, 'index.html and www/index.html must be strictly synchronized');
 console.log('✅ Synchronization verified between index.html and www/index.html');
 
-// 1. CartoDB Voyager Tile Layers (HTTP 403 prevention)
-console.log('\n--- 1. Testing CartoDB Voyager Tile Layer Replacement ---');
-assert(html.includes('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'), 'CartoDB Voyager tile layer present in index.html');
+// 1. Esri / ArcGIS Tile Layers (HTTP 403 & API Key prevention)
+console.log('\n--- 1. Testing Esri / ArcGIS Tile Layer Replacement ---');
+assert(html.includes('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}') || html.includes('World_Street_Map'), 'Esri World Street Map tile layer present in index.html');
 assert(!html.includes('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'), 'Blocked OpenStreetMap default tileLayer completely removed');
 
 const mapJs = fs.readFileSync(path.join(__dirname, '..', 'map.js'), 'utf-8');
-assert(mapJs.includes('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'), 'CartoDB Voyager present in map.js');
+assert(mapJs.includes('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}') || mapJs.includes('World_Street_Map'), 'Esri World Street Map present in map.js');
 assert(!mapJs.includes('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'), 'Blocked OSM tiles removed from map.js');
-console.log('✅ CartoDB Voyager tileLayer verified across all map initializations');
+console.log('✅ Esri / ArcGIS World Street Map tileLayer verified across all map initializations');
 
 // 2. Fullscreen Map Buttons and Logic
 console.log('\n--- 2. Testing Map Fullscreen Mode ---');

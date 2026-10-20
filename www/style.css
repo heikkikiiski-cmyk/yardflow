@@ -467,3 +467,63 @@ body.dashboard-editing .grid-stack-item > .ui-resizable-se::after {
     text-align: center;
 }
 
+/* ============================================================
+   Yhtenäinen kartan työkalupalkki (.map-toolbar) & venytettävä kartta
+   ============================================================ */
+.map-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--canvas-subtle, #0d1117);
+    border: 1px solid var(--border-default, #30363d);
+    border-bottom: none;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    flex-wrap: wrap;
+    z-index: 10;
+}
+
+.map-toolbar .btn-map-tool {
+    padding: 6px 12px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 34px;
+    border-radius: 6px;
+    background: var(--canvas-card, #161b22);
+    border: 1px solid var(--border-default, #30363d);
+    color: var(--fg, #e6edf3);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.map-toolbar .btn-map-tool:hover {
+    background: var(--accent, #1f6feb);
+    border-color: #388bfd;
+    color: #ffffff;
+}
+
+.map-container,
+.map-resizable-container {
+    resize: vertical;
+    overflow: auto;
+    min-height: 450px;
+    height: 600px;
+    position: relative;
+    width: 100%;
+    border: 1px solid var(--border-default, #30363d);
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+.map-container #yardSatelliteMap,
+.map-resizable-container #yardSatelliteMap {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 450px;
+}
+
+

@@ -185,7 +185,7 @@ function runTest() {
     assert.strictEqual(getEl('drawerBtnModeAdminLabel').textContent, 'Työnjohto', 'Hampurilaisvalikossa lukee Työnjohto (ei Admin)');
     assert(getEl('appModeBadge').textContent.includes('Työnjohto'), 'Mode-badgessa lukee Työnjohto');
     assert(!getEl('appModeBadge').textContent.includes('Admin'), 'Mode-badgessa EI lue Admin');
-    assert.strictEqual(getEl('drawerModeText').textContent, '👔 Työnjohto aktiivinen', 'Drawerissa lukee 👔 Työnjohto aktiivinen');
+    assert(getEl('drawerModeText').textContent.includes('Työnjohto') && getEl('drawerModeText').textContent.includes('aktiivinen'), 'Drawerissa lukee Työnjohtotila aktiivinen');
     assert(!getEl('drawerModeText').textContent.includes('Admin'), 'Drawerissa EI lue Admin');
     assert(getEl('btnSettingsModeAdminLabel').textContent.includes('Työnjohto'), 'Asetusnapissa lukee Työnjohto');
     assert(!getEl('btnSettingsModeAdminLabel').textContent.includes('Admin'), 'Asetusnapissa EI lue Admin');

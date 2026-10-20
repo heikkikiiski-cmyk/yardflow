@@ -8,7 +8,7 @@
             return global.getStoredDrivers();
         }
         try {
-            const raw = localStorage.getItem('yardflow_drivers');
+            const raw = localStorage.getItem('yardflow_drivers_v1') || localStorage.getItem('yardflow_drivers');
             return raw ? JSON.parse(raw) : [];
         } catch (e) {
             return [];
@@ -19,11 +19,19 @@
         if (typeof global.openAddDriverDrawer === 'function') {
             return global.openAddDriverDrawer(driverId);
         }
+        const drawer = document.getElementById('addDriverDrawer');
+        if (drawer) {
+            drawer.style.display = 'block';
+        }
     }
 
     function closeAddDriverDrawer() {
         if (typeof global.closeAddDriverDrawer === 'function') {
             return global.closeAddDriverDrawer();
+        }
+        const drawer = document.getElementById('addDriverDrawer');
+        if (drawer) {
+            drawer.style.display = 'none';
         }
     }
 
@@ -96,17 +104,19 @@
                 created_at: new Date().toISOString()
             };
 
-            const { data, error } = await client
-                .from('profiles')
-                .insert([profilePayload])
-                .select();
+            try {
+                const upsertPromise = client.from('profiles').upsert(profilePayload);
+                const { data, error } = (upsertPromise && typeof upsertPromise.select === 'function')
+                    ? await upsertPromise.select()
+                    : await upsertPromise;
 
-            if (error) {
-                console.warn('Supabase profiles insert error:', error);
-                // Yritetään upsertia jos rivi oli jo olemassa
-                await client.from('profiles').upsert(profilePayload);
-            } else {
-                profileResult = data;
+                if (error) {
+                    console.warn('Supabase profiles insert error:', error);
+                } else {
+                    profileResult = data;
+                }
+            } catch (pErr) {
+                console.warn('Supabase profiles query error:', pErr);
             }
         }
 
@@ -118,6 +128,70 @@
             return await global.saveDriverFromForm();
         }
         return await createUserProfile(driverData || {});
+    }
+
+    // Tapahtumankuuntelijat DOM-painikkeille (ei kaadu TypeErroriin)
+    if (typeof document !== 'undefined') {
+        const attachListeners = () => {
+            const btnAdd = document.getElementById('btn-add-driver');
+            if (btnAdd && !btnAdd.hasAttribute('data-bound')) {
+                btnAdd.setAttribute('data-bound', 'true');
+                btnAdd.addEventListener('click', async (e) => {
+                    const drawer = document.getElementById('addDriverDrawer');
+                    const isDrawerOpen = drawer && drawer.style.display !== 'none' && drawer.style.display !== '';
+                    const nameField = document.getElementById('driverInputName');
+
+                    if (isDrawerOpen && nameField && nameField.value.trim().length > 0) {
+                        e.preventDefault();
+                        if (typeof global.saveDriverFromForm === 'function') {
+                            try {
+                                await global.saveDriverFromForm();
+                            } catch (err) {
+                                console.error('Virhe kuljettajan tallennuksessa:', err);
+                                if (typeof global.showStatus === 'function') {
+                                    global.showStatus(err.message || 'Virhe tallennuksessa', 'error');
+                                } else {
+                                    alert(err.message || 'Virhe tallennuksessa');
+                                }
+                            }
+                        }
+                    } else {
+                        // Avaa lomakelaatikko
+                        if (typeof global.openAddDriverDrawer === 'function') {
+                            global.openAddDriverDrawer();
+                        } else {
+                            openAddDriverDrawer();
+                        }
+                    }
+                });
+            }
+
+            const btnSave = document.getElementById('btnSaveDriver');
+            if (btnSave && !btnSave.hasAttribute('data-bound')) {
+                btnSave.setAttribute('data-bound', 'true');
+                btnSave.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    if (typeof global.saveDriverFromForm === 'function') {
+                        try {
+                            await global.saveDriverFromForm();
+                        } catch (err) {
+                            console.error('Virhe kuljettajan tallennuksessa:', err);
+                            if (typeof global.showStatus === 'function') {
+                                global.showStatus(err.message || 'Virhe tallennuksessa', 'error');
+                            } else {
+                                alert(err.message || 'Virhe tallennuksessa');
+                            }
+                        }
+                    }
+                });
+            }
+        };
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', attachListeners);
+        } else {
+            attachListeners();
+        }
     }
 
     const target = typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : global);
