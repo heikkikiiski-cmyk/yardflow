@@ -86,7 +86,7 @@ const formChecks = [
     },
     {
         name: 'Map Drawing & Area Edit Actions (#yard-draw-actions)',
-        block: extractBlock(htmlContent, '<div id="yard-draw-actions"', '<div id="yardSatelliteMap">'),
+        block: extractBlock(htmlContent, '<div id="yard-draw-actions"', '<div id="yardMap"'),
         cancelBtn: /class="[^"]*btn-form-cancel[^"]*"[^>]*onclick="cancelYardDrawOrEdit\(\)"/,
         saveBtn: /class="[^"]*btn-form-save[^"]*"[^>]*onclick="saveAndFinishYardDraw\(\)"/
     }

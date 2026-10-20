@@ -219,10 +219,16 @@
         document.querySelectorAll('.view-section').forEach(el => el.style.display = 'none');
         const target = document.getElementById(viewId) || (viewId === 'view-map' ? document.getElementById('viewRoutes') : null) || (viewId === 'viewRoutes' ? document.getElementById('view-map') : null) || (viewId === 'view-dashboard' ? document.getElementById('dashboard-view') : null) || (viewId === 'dashboard-view' ? document.getElementById('view-dashboard') : null);
         if (target) {
-            target.style.display = 'block';
-            if ((viewId === 'view-map' || viewId === 'viewRoutes' || viewId === 'routes' || viewId === 'map' || target.id === 'view-map' || target.id === 'viewRoutes') && (global.yardMap || (typeof window !== 'undefined' && window.yardMap))) {
-                const ym = global.yardMap || (typeof window !== 'undefined' && window.yardMap);
-                setTimeout(() => ym.invalidateSize(), 200);
+            const isMapView = (viewId === 'view-map' || target.id === 'view-map' || viewId === 'routes' || viewId === 'map');
+            target.style.display = isMapView ? 'flex' : 'block';
+
+            if (isMapView && (typeof window !== 'undefined' && window.yardMap || global.yardMap)) {
+                const ym = (typeof window !== 'undefined' && window.yardMap) || global.yardMap;
+                setTimeout(() => { if (ym && ym.invalidateSize) ym.invalidateSize(); }, 200);
+            }
+            if ((viewId === 'view-dashboard' || target.id === 'view-dashboard' || viewId === 'dashboard') && (typeof window !== 'undefined' && window.dashboardCityMap || global.dashboardCityMap)) {
+                const dm = (typeof window !== 'undefined' && window.dashboardCityMap) || global.dashboardCityMap;
+                setTimeout(() => { if (dm && dm.invalidateSize) dm.invalidateSize(); }, 200);
             }
         }
         handleLayoutResize();

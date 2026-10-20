@@ -5,7 +5,7 @@
 
 window.initYardMap = function() {
   if (typeof document === 'undefined' || typeof document.getElementById !== 'function' || typeof L === 'undefined') return;
-  const mapElement = document.getElementById('map') || document.getElementById('yardMap');
+  const mapElement = document.getElementById('yardMap') || document.getElementById('map');
   if (!mapElement) return;
 
   if (window.yardMap && typeof window.yardMap.remove === 'function') {
@@ -28,6 +28,9 @@ window.initYardMap = function() {
   }).setView([61.4981, 23.7610], 13);
 
   window.yardMap = map;
+  if (typeof yardMap !== 'undefined') {
+    try { yardMap = map; } catch (e) {}
+  }
 
   // Pakotetaan Leaflet laskemaan oikeat mitat DOM-renderöinnin jälkeen
   setTimeout(() => {

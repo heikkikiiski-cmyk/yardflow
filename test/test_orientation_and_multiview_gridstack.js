@@ -54,29 +54,18 @@ assert(indexHtml.includes('<link rel="manifest" href="manifest.json">'), 'index.
 assert(indexHtml.includes('<script src="app.js"></script>'), 'index.html must load app.js');
 console.log('✅ Orientation unlock settings verified across manifests, config and code\n');
 
-// 2. Clean Multi-View Containers & Removal of GridStack classes
-console.log('--- 2. Testing Multi-View Containers & Clean Layout (GridStack Removed) ---');
-const expectedContainers = ['dashboard-grid', 'view-admin', 'view-targets'];
-expectedContainers.forEach(id => {
-    assert(indexHtml.includes(`id="${id}"`), `Container #${id} must exist in index.html`);
-});
+// 2. Clean Multi-View Containers & Removal of GridStack classes & Ghost Views
+console.log('--- 2. Testing Multi-View Containers & Clean Layout (GridStack & Ghost Views Removed) ---');
+assert(indexHtml.includes('id="dashboard-grid"'), 'Container #dashboard-grid must exist in index.html');
 
-// Verify #view-driver is completely removed per user request
+// Verify #view-driver, #view-admin and #view-targets are completely removed per user request
 assert(!indexHtml.includes('id="view-driver"'), '#view-driver container must be completely removed');
+assert(!indexHtml.includes('id="view-admin"'), '#view-admin container must be completely removed');
+assert(!indexHtml.includes('id="view-targets"'), '#view-targets container must be completely removed');
 
-// Verify class="grid-stack" is removed from views
-const adminBlock = indexHtml.substring(indexHtml.indexOf('id="view-admin"'), indexHtml.indexOf('id="view-targets"'));
-const targetsBlock = indexHtml.substring(indexHtml.indexOf('id="view-targets"'), indexHtml.indexOf('id="view-routes"'));
 const dashBlock = indexHtml.substring(indexHtml.indexOf('id="dashboard-grid"'), indexHtml.indexOf('id="dash-widget-drivers-accordion"') + 200);
-
-assert(!adminBlock.includes('class="grid-stack'), '#view-admin must NOT have grid-stack class');
-assert(!targetsBlock.includes('class="grid-stack'), '#view-targets must NOT have grid-stack class');
 assert(!dashBlock.includes('class="dashboard-grid grid-stack"'), '#dashboard-grid must NOT have grid-stack class');
-
-// Verify cards exist in each view
-assert(adminBlock.includes('id="admin-widget-map"'), 'Admin view must have admin-widget-map');
-assert(targetsBlock.includes('id="targets-widget-search"'), 'Targets view must have targets-widget-search');
-console.log('✅ All view containers and clean cards verified in DOM markup\n');
+console.log('✅ All clean view containers verified and ghost views removed\n');
 
 // 3. CSS for Clean Grid Layout and Responsiveness
 console.log('--- 3. Testing CSS for Clean Grid Layout & Responsiveness ---');

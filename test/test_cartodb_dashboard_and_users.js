@@ -30,7 +30,7 @@ console.log('✅ High accuracy OSM HOT tileLayer verified across map initializat
 // 2. Fullscreen Map Buttons and Logic
 console.log('\n--- 2. Testing Map Fullscreen Mode ---');
 assert(html.includes('id="btn-map-fullscreen"'), 'Fullscreen button present on routes map');
-assert(html.includes('toggleMapFullscreen(\'yardSatelliteMap\', this)'), 'Fullscreen handler attached to routes map');
+assert(html.includes('toggleMapFullscreen(\'yardMap\', this)') || html.includes('toggleMapFullscreen(\'yardSatelliteMap\', this)'), 'Fullscreen handler attached to routes map');
 assert(html.includes('toggleMapFullscreen(\'dashboardCityMap\', this)'), 'Fullscreen handler attached to dashboard city map');
 assert(html.includes('function toggleMapFullscreen'), 'toggleMapFullscreen defined in script');
 
