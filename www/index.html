@@ -778,6 +778,17 @@
             100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
         }
         .hud-counter-badge { background: rgba(255, 255, 255, 0.12); color: var(--text-main); padding: 2px 8px; border-radius: var(--radius-pill); font-weight: 700; font-size: 0.75rem; }
+        .route-step-indicator { font-size: 0.95rem; font-weight: 800; color: var(--accent-light, #38bdf8); letter-spacing: 0.05em; padding: 4px 10px; border-radius: var(--radius-sm, 6px); background: rgba(14, 165, 233, 0.14); border: 1px solid rgba(56, 189, 248, 0.35); display: inline-flex; align-items: center; justify-content: center; min-width: 52px; text-align: center; }
+        .map-fab-gps { position: absolute; right: 18px; bottom: 22px; z-index: 1000; width: 46px; height: 46px; border-radius: 50%; background: #0284c7; color: #ffffff; border: 2px solid rgba(255, 255, 255, 0.9); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45); display: flex; align-items: center; justify-content: center; font-size: 1.35rem; cursor: pointer; transition: transform 0.15s ease, background 0.2s ease, box-shadow 0.2s ease; user-select: none; -webkit-tap-highlight-color: transparent; }
+        .map-fab-gps:hover { background: #0369a1; transform: scale(1.08); box-shadow: 0 6px 20px rgba(2, 132, 199, 0.6); }
+        .map-fab-gps:active { transform: scale(0.92); }
+        .map-fab-gps.locating { background: #f59e0b; animation: gpsLocatingPulse 1s infinite alternate; }
+        @keyframes gpsLocatingPulse { from { transform: scale(1); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); } to { transform: scale(1.12); box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); } }
+        .user-location-marker-container { position: relative; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; }
+        .user-location-dot { width: 14px; height: 14px; background-color: #0284c7; border: 3px solid #ffffff; border-radius: 50%; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5); position: relative; z-index: 2; }
+        .user-location-pulse { position: absolute; width: 34px; height: 34px; border-radius: 50%; background: rgba(2, 132, 199, 0.4); animation: userLocationPulse 2s infinite ease-out; z-index: 1; }
+        .user-location-heading { position: absolute; top: -8px; left: 2px; width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-bottom: 7px solid #38bdf8; display: none; }
+        @keyframes userLocationPulse { 0% { transform: scale(0.4); opacity: 0.9; } 70% { transform: scale(1.5); opacity: 0; } 100% { transform: scale(1.5); opacity: 0; } }
         .driver-nav-quick-btn { background: #0284c7; color: #ffffff; border: none; border-radius: var(--radius-pill); padding: 6px 14px; font-size: 0.82rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35); }
         .driver-hud-title { font-size: 1.25rem; font-weight: 800; color: var(--text-main); line-height: 1.25; margin-bottom: 2px; letter-spacing: -0.01em; }
         .driver-hud-address { font-size: 0.88rem; color: var(--muted); margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
@@ -1733,17 +1744,20 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                         <button type="button" id="btn-prev-property" class="hud-step-nav-btn" onclick="navigateActiveProperty(-1)" title="Edellinen kohde reitillä" disabled>
                             <span>⏮️</span> <span>Edellinen</span>
                         </button>
-                        <div class="driver-hud-badge">
+                        <div class="driver-hud-badge route-step-badge">
                             <span class="hud-pulse-dot"></span>
-                            <span id="driverHudStep">SEURAAVA KOHDE</span>
-                            <span id="driverHudCounter" class="hud-counter-badge">0 / 0</span>
+                            <span id="driverHudStep" class="route-step-indicator">1 / 0</span>
+                            <span id="driverHudCounter" class="hud-counter-badge" style="display: none;">1 / 0</span>
                         </div>
                         <button type="button" id="btn-next-property" class="hud-step-nav-btn" onclick="navigateActiveProperty(1)" title="Seuraava kohde reitillä" disabled>
                             <span>Seuraava</span> <span>⏭️</span>
                         </button>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                         <div id="driverHudRouteInfo" style="font-size: 0.76rem; color: var(--accent-light, #38bdf8); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 140px;" title="Aktiivinen reitti ja kuljettaja"></div>
+                        <button type="button" id="btn-center-target-hud" class="driver-nav-quick-btn" onclick="centerMapOnCurrentTarget()" title="Keskitä kartta valittuun kohteeseen" style="background: rgba(14, 165, 233, 0.2); border: 1px solid #38bdf8; color: #38bdf8; display: inline-flex; align-items: center; gap: 4px;">
+                            <span>📍</span> <span>Keskitä kohteeseen</span>
+                        </button>
                         <button type="button" class="driver-nav-quick-btn" onclick="navigateToNextYard()" title="Avaa navigointi Google Mapsissa">
                             🧭 Navigoi
                         </button>
@@ -1829,10 +1843,11 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
 
             <div class="admin-only" style="margin-bottom: 10px;">
                 <label for="yardMapTargetSelect">Valitse tarkasteltava / piirrettävä kohde:</label>
-                <div style="display: flex; gap: 8px; align-items: center;">
-                    <select id="yardMapTargetSelect" onchange="selectYardMapTarget(this.value)" style="margin-bottom: 0; flex: 1;">
+                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                    <select id="yardMapTargetSelect" onchange="selectYardMapTarget(this.value)" style="margin-bottom: 0; flex: 1; min-width: 180px;">
                         <option value="">-- Valitse kohde listalta --</option>
                     </select>
+                    <button type="button" id="btn-center-target-admin" class="tiny-btn" onclick="centerMapOnCurrentTarget()" title="Keskitä karttanäkymä valittuun kohteeseen" style="padding: 7px 12px; white-space: nowrap; background: rgba(14, 165, 233, 0.2); border-color: #38bdf8; color: #38bdf8;">📍 Keskitä kohteeseen</button>
                     <button type="button" class="tiny-btn" onclick="openCurrentMapTargetEditModal()" title="Muokkaa valitun kohteen tietoja" style="padding: 7px 12px; white-space: nowrap;">✏️ Muokkaa</button>
                     <button type="button" class="tiny-btn danger" onclick="deleteCurrentMapTargetFromList()" title="Poista valittu kohde ajolistalta" style="padding: 7px 12px; white-space: nowrap;">🗑️ Poista</button>
                 </div>
@@ -1882,7 +1897,13 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                 </div>
             </div>
 
-            <div id="yardSatelliteMap"></div>
+            <div style="position: relative; width: 100%;">
+                <div id="yardSatelliteMap"></div>
+                <!-- KESKITÄ OMAAN SIJAINTIIN (GPS-PAINIKE FAB) -->
+                <button type="button" id="btn-gps-center" class="map-fab-gps" onclick="centerMapOnUserLocation()" title="Keskitä omaan sijaintiin (GPS)" aria-label="Keskitä omaan sijaintiin">
+                    <span class="gps-icon">🎯</span>
+                </button>
+            </div>
 
             <!-- KULJETTAJAN ALAPALKIN PIKATOIMINNOT (Näkyy vain kenttätilassa) -->
             <div id="driver-hud-bottom" class="driver-hud-bottom driver-only">
@@ -3904,6 +3925,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                 '</div>' +
                 badgeHtml +
                 '<div class="driver-queue-actions">' +
+                    '<button type="button" class="driver-queue-center-btn" onclick="event.stopPropagation(); centerMapOnTarget(' + task.id + ');" title="Keskitä kohteeseen kartalla" style="font-size: 0.74rem; padding: 3px 8px; border-radius: var(--radius-sm); background: rgba(14, 165, 233, 0.15); border: 1px solid #38bdf8; color: #38bdf8; cursor: pointer; white-space: nowrap;">📍 Keskitä</button>' +
                     '<button type="button" class="driver-queue-move-btn" onclick="moveDriverQueueItem(' + index + ', -1)" ' + (isFirst ? 'disabled' : '') + ' title="Siirrä ylemmäs">▲ Ylös</button>' +
                     '<button type="button" class="driver-queue-move-btn" onclick="moveDriverQueueItem(' + index + ', 1)" ' + (isLast ? 'disabled' : '') + ' title="Siirrä alemmas">▼ Alas</button>' +
                     (currentAppMode === 'admin' ? '<button type="button" class="tiny-btn danger btn-delete-task" style="padding: 2px 7px; font-size: 0.72rem; margin-left: 2px;" onclick="event.stopPropagation(); deleteTask(' + task.id + ', event);" title="Poista kohde ajolistalta">🗑️</button>' : '') +
@@ -4102,11 +4124,17 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         const btnPrev = document.getElementById('btn-prev-property');
         const btnNext = document.getElementById('btn-next-property');
 
-        if (hudCounter) hudCounter.textContent = `${done} / ${total}`;
+        const currentTask = getActiveOrNextTask();
+        const taskIndex = currentTask ? tasks.findIndex(t => String(t.id) === String(currentTask.id)) : -1;
+        const currentIndex = taskIndex >= 0 ? taskIndex : 0;
+        const currentTargetNum = currentIndex + 1;
+        const indicatorText = total > 0 ? `${currentTargetNum} / ${total}` : '0 / 0';
+
+        if (hudCounter) hudCounter.textContent = indicatorText;
 
         if (total === 0) {
             if (hudStep) {
-                hudStep.textContent = 'EI REITTIÄ';
+                hudStep.textContent = '0 / 0';
                 hudStep.style.color = '#94a3b8';
             }
             if (hudName) hudName.textContent = 'Ei kohteita ajolistalla';
@@ -4123,9 +4151,6 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
             return;
         }
 
-        const currentTask = getActiveOrNextTask();
-        const taskIndex = currentTask ? tasks.findIndex(t => String(t.id) === String(currentTask.id)) : -1;
-
         // Päivitetään Edellinen / Seuraava -painikkeiden tilat
         if (btnPrev) {
             btnPrev.disabled = (taskIndex <= 0);
@@ -4137,9 +4162,10 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         // Jos kaikki on tehty eikä mitään kohdetta ole erikseen valittu
         if (total > 0 && done === total && (!currentTask || activeSelectedTaskId == null)) {
             if (hudStep) {
-                hudStep.textContent = 'REITTI VALMIS';
+                hudStep.textContent = `${total} / ${total} (VALMIS ✓)`;
                 hudStep.style.color = '#10b981';
             }
+            if (hudCounter) hudCounter.textContent = `${total} / ${total}`;
             if (hudName) hudName.textContent = 'Kaikki kohteet kuitattu! 🎉';
             if (hudAddress) hudAddress.textContent = 'Päivän ajoreitti suoritettu onnistuneesti.';
             if (hudNote) hudNote.style.display = 'none';
@@ -4157,17 +4183,16 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
 
         const isDone = !!currentTask.done;
         const isBlocked = !!currentTask.blocked;
-        const stepNum = taskIndex >= 0 ? taskIndex + 1 : 1;
 
         if (hudStep) {
             if (isDone) {
-                hudStep.textContent = `KOHDE ${stepNum} (VALMIS ✓)`;
+                hudStep.textContent = `${indicatorText} (VALMIS ✓)`;
                 hudStep.style.color = '#10b981';
             } else if (isBlocked) {
-                hudStep.textContent = `KOHDE ${stepNum} (ESTE ⚠️)`;
+                hudStep.textContent = `${indicatorText} (ESTE ⚠️)`;
                 hudStep.style.color = '#f59e0b';
             } else {
-                hudStep.textContent = `KOHDE ${stepNum}`;
+                hudStep.textContent = indicatorText;
                 hudStep.style.color = '#38bdf8';
             }
         }
@@ -12612,7 +12637,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                 <div class="task-tools-row" style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; border-top: 1px solid var(--border); padding-top: 8px; gap: 6px; flex-wrap: wrap;">
                     <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
                         <button class="tiny-btn btn-primary" type="button" style="background: var(--accent-blue); color: #fff; font-weight: 600; padding: 6px 12px; font-size: 0.82rem;" onclick="selectActiveProperty(${task.id}, true)" title="Keskitä kartta kohteeseen">
-                            📍 Kartalle
+                            📍 Keskitä kohteeseen
                         </button>
                         <button class="tiny-btn" type="button" style="background: var(--bg-card); border: 1px solid var(--border); color: var(--fg); font-weight: 600; padding: 6px 12px; font-size: 0.82rem;" onclick="openPropertyEditForm(${task.id})" title="Avaa kohteen muokkaus">
                             ✏️ Muokkaa
@@ -14273,47 +14298,212 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         }
     }
 
-    async function centerMapOnTarget(key) {
-        if (!yardMap) return;
-        const target = resolveMapTargetObject(key);
-        if (!target) {
-            renderYardGeofenceCircle(null, key);
+    let userLocationMarker = null;
+    let userLocationAccuracyCircle = null;
+
+    function centerMapOnUserLocation() {
+        if (typeof navigator === 'undefined' || !navigator.geolocation) {
+            if (typeof showStatus === 'function') {
+                showStatus('GPS-paikannus ei ole tuettu laitteellasi.', 'warning');
+            } else {
+                alert('GPS-paikannus ei ole tuettu laitteellasi.');
+            }
             return;
         }
 
-        if (target.lat && target.lon) {
-            yardMap.setView([target.lat, target.lon], 18);
-            renderYardGeofenceCircle(null, key);
-            return;
-        }
-        if (target.taskRef && target.taskRef.lat && target.taskRef.lon) {
-            yardMap.setView([target.taskRef.lat, target.taskRef.lon], 18);
-            renderYardGeofenceCircle(null, key);
-            return;
+        const btn = document.getElementById('btn-gps-center');
+        if (btn) btn.classList.add('locating');
+
+        if (typeof showStatus === 'function') {
+            showStatus('Haetaan GPS-sijaintia...', 'info');
         }
 
-        if (target.address) {
-            const c = await fetchCoordinates(target.address);
-            if (c && c.lat && c.lon) {
-                target.lat = c.lat;
-                target.lon = c.lon;
-                if (target.taskRef) {
-                    target.taskRef.lat = c.lat;
-                    target.taskRef.lon = c.lon;
-                    localStorage.setItem('pihatyot_tasks_v4', JSON.stringify(tasks));
+        navigator.geolocation.getCurrentPosition(
+            pos => {
+                if (btn) btn.classList.remove('locating');
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                const accuracy = pos.coords.accuracy;
+                const heading = pos.coords.heading;
+
+                const map = window.yardMap || window.map;
+                if (!map) return;
+
+                // Keskistetään kartta: map.flyTo([lat, lng], 17)
+                if (typeof map.flyTo === 'function') {
+                    map.flyTo([lat, lng], 17, { duration: 1.2 });
+                } else if (typeof map.setView === 'function') {
+                    map.setView([lat, lng], 17);
                 }
-                if (target.custRef) {
-                    target.custRef.lat = c.lat;
-                    target.custRef.lon = c.lon;
-                    localStorage.setItem('pihatyot_customers_v1', JSON.stringify(customers));
+
+                // Piirretään/päivitetään kartalle sininen sijaintipiste suuntanuolineen/pulsseineen
+                if (typeof L !== 'undefined') {
+                    if (!userLocationMarker) {
+                        const icon = L.divIcon({
+                            className: 'user-location-marker-container',
+                            html: '<div class="user-location-pulse"></div><div class="user-location-dot"><div class="user-location-heading" id="userLocationHeading"></div></div>',
+                            iconSize: [28, 28],
+                            iconAnchor: [14, 14]
+                        });
+                        userLocationMarker = L.marker([lat, lng], {
+                            icon: icon,
+                            zIndexOffset: 1000,
+                            title: 'Oma sijainti'
+                        }).addTo(map);
+                    } else {
+                        userLocationMarker.setLatLng([lat, lng]);
+                        if (!map.hasLayer(userLocationMarker)) {
+                            userLocationMarker.addTo(map);
+                        }
+                    }
+
+                    const headingEl = document.getElementById('userLocationHeading');
+                    if (headingEl) {
+                        if (heading != null && !isNaN(heading)) {
+                            headingEl.style.display = 'block';
+                            headingEl.style.transform = `rotate(${heading}deg)`;
+                        } else {
+                            headingEl.style.display = 'none';
+                        }
+                    }
+
+                    if (accuracy && accuracy < 500) {
+                        if (!userLocationAccuracyCircle) {
+                            userLocationAccuracyCircle = L.circle([lat, lng], {
+                                radius: accuracy,
+                                color: '#0284c7',
+                                fillColor: '#0284c7',
+                                fillOpacity: 0.12,
+                                weight: 1
+                            }).addTo(map);
+                        } else {
+                            userLocationAccuracyCircle.setLatLng([lat, lng]);
+                            userLocationAccuracyCircle.setRadius(accuracy);
+                            if (!map.hasLayer(userLocationAccuracyCircle)) {
+                                userLocationAccuracyCircle.addTo(map);
+                            }
+                        }
+                    }
                 }
-                if (currentMapTargetKey === target.key) {
-                    yardMap.setView([c.lat, c.lon], 18);
-                    renderYardGeofenceCircle(null, target.key);
+
+                if (typeof showStatus === 'function') {
+                    showStatus('Keskitetty omaan sijaintiin (GPS)', 'success');
+                }
+            },
+            err => {
+                if (btn) btn.classList.remove('locating');
+                console.warn('GPS paikannusvirhe:', err);
+                const msg = err && err.code === 1 ? 'Sijaintilupa evätty. Salli GPS-sijainti selaimessa.' :
+                            err && err.code === 2 ? 'Sijaintia ei voitu määrittää.' :
+                            'Sijainnin haku aikakatkaistiin.';
+                if (typeof showStatus === 'function') {
+                    showStatus(msg, 'warning');
+                } else {
+                    alert(msg);
+                }
+            },
+            { enableHighAccuracy: true, timeout: 8000, maximumAge: 10000 }
+        );
+    }
+    window.centerMapOnUserLocation = centerMapOnUserLocation;
+    window.locateUserGPS = centerMapOnUserLocation;
+
+    async function centerMapOnTarget(targetOrKey, optionalLng) {
+        const map = window.yardMap || window.map;
+        if (!map) return;
+
+        let targetLat = null;
+        let targetLng = null;
+        let activeKey = null;
+
+        // 1. Numeriset koordinaatit parametrina: centerMapOnTarget(lat, lng)
+        if (typeof targetOrKey === 'number' && typeof optionalLng === 'number') {
+            targetLat = targetOrKey;
+            targetLng = optionalLng;
+        } else if (targetOrKey && typeof targetOrKey === 'object') {
+            // Kohde-olio tai koordinaattiolio { lat, lon / lng }
+            targetLat = Number(targetOrKey.lat);
+            targetLng = Number(targetOrKey.lon != null ? targetOrKey.lon : targetOrKey.lng);
+            if (targetOrKey.id && typeof selectActiveProperty === 'function') {
+                selectActiveProperty(targetOrKey.id, false);
+            }
+        } else if (targetOrKey && (typeof targetOrKey === 'string' || typeof targetOrKey === 'number')) {
+            // Task ID haku
+            const foundTask = (window.tasks || tasks || []).find(t => String(t.id) === String(targetOrKey));
+            if (foundTask && foundTask.lat && foundTask.lon) {
+                targetLat = Number(foundTask.lat);
+                targetLng = Number(foundTask.lon);
+                if (typeof selectActiveProperty === 'function') {
+                    selectActiveProperty(foundTask.id, false);
+                }
+            } else if (typeof resolveMapTargetObject === 'function') {
+                activeKey = String(targetOrKey);
+                const targetObj = resolveMapTargetObject(activeKey);
+                if (targetObj) {
+                    if (targetObj.lat && targetObj.lon) {
+                        targetLat = Number(targetObj.lat);
+                        targetLng = Number(targetObj.lon);
+                    } else if (targetObj.taskRef && targetObj.taskRef.lat && targetObj.taskRef.lon) {
+                        targetLat = Number(targetObj.taskRef.lat);
+                        targetLng = Number(targetObj.taskRef.lon);
+                    } else if (targetObj.address) {
+                        const c = await fetchCoordinates(targetObj.address);
+                        if (c && c.lat && c.lon) {
+                            targetLat = Number(c.lat);
+                            targetLng = Number(c.lon);
+                            targetObj.lat = c.lat;
+                            targetObj.lon = c.lon;
+                        }
+                    }
                 }
             }
         }
+
+        // 2. Jos parametriä ei annettu tai koordinaatteja ei löytynyt, käytä aktiivista kohdetta
+        if (targetLat == null || isNaN(targetLat)) {
+            const cur = (typeof getActiveOrNextTask === 'function' ? getActiveOrNextTask() : null) ||
+                        (window.tasks || tasks || []).find(t => String(t.id) === String(window.activeSelectedTaskId));
+            if (cur && cur.lat && cur.lon) {
+                targetLat = Number(cur.lat);
+                targetLng = Number(cur.lon);
+            }
+        }
+
+        // 3. Fallback: currentMapTargetKey
+        if ((targetLat == null || isNaN(targetLat)) && typeof currentMapTargetKey !== 'undefined' && currentMapTargetKey && typeof resolveMapTargetObject === 'function') {
+            const targetObj = resolveMapTargetObject(currentMapTargetKey);
+            if (targetObj) {
+                if (targetObj.lat && targetObj.lon) {
+                    targetLat = Number(targetObj.lat);
+                    targetLng = Number(targetObj.lon);
+                } else if (targetObj.taskRef && targetObj.taskRef.lat && targetObj.taskRef.lon) {
+                    targetLat = Number(targetObj.taskRef.lat);
+                    targetLng = Number(targetObj.taskRef.lon);
+                }
+            }
+        }
+
+        // 4. Keskistetään kartta: map.flyTo([targetLat, targetLng], 17)
+        if (targetLat != null && targetLng != null && !isNaN(targetLat) && !isNaN(targetLng)) {
+            if (typeof map.flyTo === 'function') {
+                map.flyTo([targetLat, targetLng], 17, { duration: 1.0 });
+            } else if (typeof map.setView === 'function') {
+                map.setView([targetLat, targetLng], 17);
+            }
+            if (typeof showStatus === 'function') {
+                showStatus('Keskitetty kohteeseen', 'info');
+            }
+            if (typeof renderYardGeofenceCircle === 'function' && typeof currentMapTargetKey !== 'undefined') {
+                renderYardGeofenceCircle(null, currentMapTargetKey);
+            }
+        } else {
+            if (typeof showStatus === 'function') {
+                showStatus('Valitulla kohteella ei ole määritettyjä koordinaatteja.', 'warning');
+            }
+        }
     }
+    window.centerMapOnTarget = centerMapOnTarget;
+    window.centerMapOnCurrentTarget = centerMapOnTarget;
 
     function selectYardMapTarget(key) {
         currentMapTargetKey = key || 'default_yard';

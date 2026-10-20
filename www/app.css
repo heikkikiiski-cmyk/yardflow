@@ -46,3 +46,131 @@
         height: 34px;
     }
 }
+
+/* ============================================================
+   Kartan GPS-keskityspainike (FAB) ja sijainti-indikaattorit
+   ============================================================ */
+.map-fab-gps {
+    position: absolute;
+    right: 18px;
+    bottom: 22px;
+    z-index: 1000;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: #0284c7;
+    color: #ffffff;
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.2s ease, box-shadow 0.2s ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.map-fab-gps:hover {
+    background: #0369a1;
+    transform: scale(1.08);
+    box-shadow: 0 6px 20px rgba(2, 132, 199, 0.6);
+}
+
+.map-fab-gps:active {
+    transform: scale(0.92);
+}
+
+.map-fab-gps.locating {
+    background: #f59e0b;
+    animation: gpsLocatingPulse 1s infinite alternate;
+}
+
+@keyframes gpsLocatingPulse {
+    from {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
+    }
+    to {
+        transform: scale(1.12);
+        box-shadow: 0 0 0 10px rgba(245, 158, 11, 0);
+    }
+}
+
+/* Oma sijainti kartalla (sininen piste ja pulssi) */
+.user-location-marker-container {
+    position: relative;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.user-location-dot {
+    width: 14px;
+    height: 14px;
+    background-color: #0284c7;
+    border: 3px solid #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    position: relative;
+    z-index: 2;
+}
+
+.user-location-pulse {
+    position: absolute;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(2, 132, 199, 0.4);
+    animation: userLocationPulse 2s infinite ease-out;
+    z-index: 1;
+}
+
+.user-location-heading {
+    position: absolute;
+    top: -8px;
+    left: 2px;
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-bottom: 7px solid #38bdf8;
+    display: none;
+}
+
+@keyframes userLocationPulse {
+    0% {
+        transform: scale(0.4);
+        opacity: 0.9;
+    }
+    70% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+}
+
+/* ============================================================
+   Reittinavigoinnin kohdeindikaattori (1 / 4)
+   ============================================================ */
+.route-step-indicator {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--accent-light, #38bdf8);
+    letter-spacing: 0.05em;
+    padding: 4px 10px;
+    border-radius: var(--radius-sm, 6px);
+    background: rgba(14, 165, 233, 0.14);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 52px;
+    text-align: center;
+}
