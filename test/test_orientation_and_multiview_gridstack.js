@@ -56,25 +56,24 @@ console.log('✅ Orientation unlock settings verified across manifests, config a
 
 // 2. Clean Multi-View Containers & Removal of GridStack classes
 console.log('--- 2. Testing Multi-View Containers & Clean Layout (GridStack Removed) ---');
-const expectedContainers = ['dashboard-grid', 'view-driver', 'view-admin', 'view-targets'];
+const expectedContainers = ['dashboard-grid', 'view-admin', 'view-targets'];
 expectedContainers.forEach(id => {
     assert(indexHtml.includes(`id="${id}"`), `Container #${id} must exist in index.html`);
 });
 
+// Verify #view-driver is completely removed per user request
+assert(!indexHtml.includes('id="view-driver"'), '#view-driver container must be completely removed');
+
 // Verify class="grid-stack" is removed from views
-const driverBlock = indexHtml.substring(indexHtml.indexOf('id="view-driver"'), indexHtml.indexOf('id="view-admin"'));
 const adminBlock = indexHtml.substring(indexHtml.indexOf('id="view-admin"'), indexHtml.indexOf('id="view-targets"'));
 const targetsBlock = indexHtml.substring(indexHtml.indexOf('id="view-targets"'), indexHtml.indexOf('id="view-routes"'));
 const dashBlock = indexHtml.substring(indexHtml.indexOf('id="dashboard-grid"'), indexHtml.indexOf('id="dash-widget-drivers-accordion"') + 200);
 
-assert(!driverBlock.includes('class="grid-stack'), '#view-driver must NOT have grid-stack class');
 assert(!adminBlock.includes('class="grid-stack'), '#view-admin must NOT have grid-stack class');
 assert(!targetsBlock.includes('class="grid-stack'), '#view-targets must NOT have grid-stack class');
 assert(!dashBlock.includes('class="dashboard-grid grid-stack"'), '#dashboard-grid must NOT have grid-stack class');
 
 // Verify cards exist in each view
-assert(driverBlock.includes('id="driver-widget-hud"'), 'Driver view must have driver-widget-hud');
-assert(driverBlock.includes('id="driver-widget-map"'), 'Driver view must have driver-widget-map');
 assert(adminBlock.includes('id="admin-widget-map"'), 'Admin view must have admin-widget-map');
 assert(targetsBlock.includes('id="targets-widget-search"'), 'Targets view must have targets-widget-search');
 console.log('✅ All view containers and clean cards verified in DOM markup\n');

@@ -34,6 +34,8 @@
     <script>
         (function() {
             try {
+                localStorage.setItem('yf_role', 'admin');
+                localStorage.setItem('yardflow_app_mode', 'admin');
                 localStorage.removeItem('yf_dashboard_layout');
                 localStorage.removeItem('gridstack_layout');
                 Object.keys(localStorage).forEach(function(k) {
@@ -1188,69 +1190,57 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     </div>
 
     <div class="drawer-user-info">
-        <span class="drawer-mode-indicator" id="drawerModeText">🚜 Kenttätila aktiivinen</span>
+        <span class="drawer-mode-indicator" id="drawerModeText">🛠️ Työnjohtotila aktiivinen</span>
         <span id="drawerConnectionBadge" style="font-size: 0.74rem; color: #10b981; font-weight: 700;">● Online</span>
     </div>
 
-    <!-- Käyttäjäroolin valitsin hampurilaisvalikon sisällä (Admin vs. Kuski) -->
-    <div class="drawer-mode-section" id="drawerModeSection">
-        <div class="drawer-mode-label">
-            <span>Käyttäjärooli</span>
-            <span style="font-weight: 500; font-size: 0.72rem; text-transform: none; color: var(--muted);">Valitse rooli:</span>
-        </div>
-        <div class="drawer-mode-grid" role="group" aria-label="Käyttäjäroolin valinta">
-            <button type="button" class="drawer-mode-btn field-mode-active active" id="drawerBtnModeField" onclick="selectAppModeFromDrawer('field')" data-view="viewRoutes" title="Siirry kuljettajan työnäkymään">
-                <span>🚜</span> <span>Kuljettaja</span>
-            </button>
-            <button type="button" class="drawer-mode-btn admin-mode-active" id="drawerBtnModeAdmin" onclick="selectAppModeFromDrawer('admin')" data-view="view-drivers" title="Siirry työnjohdon hallintatilaan">
-                <span>🛠️</span> <span id="drawerBtnModeAdminLabel">Työnjohto</span>
-            </button>
-        </div>
+    <!-- Työnjohdon tilatiedot (kuljettajatila poistettu sovelluksesta) -->
+    <div id="drawerModeSection" style="display: none;">
+        <span id="drawerBtnModeAdminLabel">Työnjohto</span>
+        <button type="button" id="drawerBtnModeAdmin"></button>
     </div>
 
     <nav class="drawer-nav">
-        <!-- 🏠 Koti (Kuski: Työpäivänäkymä / Admin: Dashboard) -->
+        <!-- 1. Dashboard -->
         <button type="button" class="drawer-nav-item active" id="nav-home" onclick="navToTab('dashboard')" data-view="dashboard-view">
             <span class="nav-item-icon">🏠</span>
-            <span class="nav-item-label" id="navHomeLabel">Koti / Dashboard</span>
+            <span class="nav-item-label" id="navHomeLabel">Dashboard</span>
         </button>
 
-        <!-- 🗺️ Kartta (Kuski: Reittikartta ja aurattavat alueet / Admin: Kartta & Reittisuunnittelu) -->
+        <!-- 2. Kartta & Reitinsuunnittelu -->
         <button type="button" class="drawer-nav-item" id="nav-map" onclick="navToTab('routes')" data-view="viewRoutes">
             <span class="nav-item-icon">🗺️</span>
             <span class="nav-item-label" id="navMapLabel">Kartta &amp; Reitinsuunnittelu</span>
         </button>
 
-        <!-- ADMIN-ONLY NÄKYMÄT -->
-        <!-- 🛣️ Reitit (Vain Admin: reittien luonti, hallinta ja listaus) -->
+        <!-- 3. Reitit -->
         <button type="button" class="drawer-nav-item" id="nav-routes-mgmt" onclick="navToTab('routes-mgmt')" data-view="view-routes">
             <span class="nav-item-icon">🛣️</span>
             <span class="nav-item-label">Reitit</span>
             <span class="nav-badge" id="drawerRouteCountBadge">0</span>
         </button>
 
-        <!-- 🚜 Kuljettajat (Vain Admin: kuskien lisäys, yhteystiedot, määritetyt reitit) -->
+        <!-- 4. Kuljettajat & Käyttäjät -->
         <button type="button" class="drawer-nav-item" id="nav-drivers" onclick="navToTab('drivers')" data-view="view-drivers">
             <span class="nav-item-icon">🚜</span>
-            <span class="nav-item-label">Työnjohto &amp; Kuljettajat</span>
+            <span class="nav-item-label">Kuljettajat &amp; Käyttäjät</span>
             <span class="nav-badge" id="drawerDriverCountBadge">0</span>
         </button>
 
-        <!-- 👥 Asiakkaat (Vain Admin) -->
+        <!-- 5. Asiakkaat & Kohteet -->
         <button type="button" class="drawer-nav-item" id="nav-customers" onclick="navToTab('customers')" data-view="customers-view">
             <span class="nav-item-icon">👥</span>
             <span class="nav-item-label">Asiakkaat &amp; Kohteet</span>
             <span class="nav-badge" id="drawerCustomerBadge">0</span>
         </button>
 
-        <!-- 📊 Raportit & Työlokit (Vain Admin) -->
+        <!-- 6. Raportit & Asetukset -->
         <button type="button" class="drawer-nav-item" id="nav-history" onclick="navToTab('history')" data-view="work-history-view">
             <span class="nav-item-icon">📊</span>
             <span class="nav-item-label">Raportit &amp; Työlokit</span>
             <span class="nav-badge" id="drawerHistoryBadge">0</span>
         </button>
 
-        <!-- 💶 Laskutus (Vain Admin) -->
         <button type="button" class="drawer-nav-item" id="nav-billing" onclick="navToTab('billing')" data-view="billing-view">
             <span class="nav-item-icon">💶</span>
             <span class="nav-item-label">Laskutus</span>
@@ -1258,7 +1248,6 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
 
         <div class="drawer-divider" id="drawerDividerAdmin"></div>
 
-        <!-- ⚙️ Asetukset (Käytettävissä kaikille asetuksien ja käyttäjätilan hallintaan) -->
         <button type="button" class="drawer-nav-item" id="nav-settings" onclick="navToTab('settings')" data-view="viewSettings">
             <span class="nav-item-icon">⚙️</span>
             <span class="nav-item-label">Asetukset</span>
@@ -2005,51 +1994,6 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         </div>
     </div>
 
-    <!-- NÄKYMÄ 1A: KULJETTAJAN REITTI JA TOIMINNOT (#view-driver) -->
-    <div id="view-driver" class="view-pane view-driver-grid view-section" data-view="view-driver" style="display: none; width: 100%; max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px;">
-        <!-- Card 1: Driver HUD -->
-        <div class="card" id="driver-widget-hud" style="box-sizing: border-box; overflow: auto; padding: 14px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <span style="font-weight: 800; font-size: 0.88rem; color: #38bdf8; text-transform: uppercase;">📍 Nykyinen kohde</span>
-                <div class="driver-hud-badge route-step-badge">
-                    <span class="hud-pulse-dot"></span>
-                    <span id="viewDriverHudStep" class="route-step-indicator">1 / 4</span>
-                </div>
-            </div>
-            <div id="viewDriverHudName" style="font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px;">Kohteen nimi</div>
-            <div id="viewDriverHudAddress" style="font-size: 0.88rem; color: var(--muted); margin-bottom: 10px;">📍 Osoite</div>
-            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                <button type="button" class="btn-primary" onclick="navigateToNextYard()" style="flex: 1; min-height: 40px; font-weight: 700;">🧭 Navigoi</button>
-                <button type="button" class="btn-outline" onclick="openPhotoCaptureForActiveTarget()" style="flex: 1; min-height: 40px;">📷 Ota kuva</button>
-            </div>
-        </div>
-
-        <!-- Card 2: Kartta -->
-        <div class="card" id="driver-widget-map" style="box-sizing: border-box; overflow: hidden; position: relative; padding: 0; min-height: 350px;">
-            <div id="driverMapContainer" style="width: 100%; height: 100%; min-height: 350px; background: #1e293b; display: flex; align-items: center; justify-content: center;">
-                <span style="color: var(--muted); font-size: 0.9rem;">🗺️ Reittikartta</span>
-            </div>
-            <button type="button" class="map-fab-gps" onclick="centerMapOnUserLocation()" title="Keskitä omaan sijaintiin (GPS)" style="position: absolute; right: 14px; bottom: 14px; z-index: 10;">
-                <span class="gps-icon">🎯</span>
-            </button>
-        </div>
-
-        <!-- Card 3: Kuittaus ja pikatoiminnot -->
-        <div class="card" id="driver-widget-actions" style="box-sizing: border-box; display: flex; gap: 10px; align-items: center; padding: 12px;">
-            <button type="button" class="btn-driver-complete" onclick="completeNextYard()" style="flex: 2; height: 100%; min-height: 46px;">
-                <span>✓</span> <span>KUITTAA TEHDYKSI</span>
-            </button>
-            <button type="button" class="btn-driver-obstacle" onclick="reportNextYardObstacle()" style="flex: 1; height: 100%; min-height: 46px;">
-                ⚠️ Este
-            </button>
-        </div>
-
-        <!-- Card 4: Päivän työjono -->
-        <div class="card" id="driver-widget-queue" style="box-sizing: border-box; overflow: auto; padding: 14px;">
-            <div style="font-weight: 700; margin-bottom: 8px;">📋 Päivän työjono</div>
-            <div id="viewDriverQueueList" style="font-size: 0.85rem; color: var(--muted);">Reitin kohteet järjestyksessä...</div>
-        </div>
-    </div>
 
     <!-- NÄKYMÄ 1D: TYÖNJOHDON / ADMININ NÄKYMÄ (#view-admin) -->
     <div id="view-admin" class="view-pane view-admin-grid view-section" data-view="view-admin" style="display: none; width: 100%; max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px;">
@@ -3586,15 +3530,16 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     window.updateThemeUI = updateThemeUI;
 
     // ============================================================
-    // 🚜 KÄYTTÖTILAN JA ROOLIEN HALLINTA (Kuljettaja vs. Työnjohto/Admin)
+    // 🛠️ KÄYTTÖTILAN JA ROOLIEN HALLINTA (Pysyvästi Työnjohto / Admin)
     // ============================================================
-    let currentAppMode = 'field'; // 'field' = Kuljettaja, 'admin' = Työnjohto
+    let currentAppMode = 'admin'; // Pysyvästi Työnjohto / Admin
 
     function setAppMode(mode) {
-        currentAppMode = (mode === 'admin') ? 'admin' : 'field';
-        window.currentAppMode = currentAppMode;
+        currentAppMode = 'admin';
+        window.currentAppMode = 'admin';
         try {
-            localStorage.setItem('yardflow_app_mode', currentAppMode);
+            localStorage.setItem('yf_role', 'admin');
+            localStorage.setItem('yardflow_app_mode', 'admin');
         } catch (e) {}
 
         document.documentElement.setAttribute('data-app-mode', currentAppMode);
@@ -16026,9 +15971,9 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                     maxZoom: 21,
                     attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics'
                 }),
-                street: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
-                    attribution: 'Tiles &copy; Esri',
-                    maxZoom: 19
+                street: L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '© OpenStreetMap contributors, Tiles style by HOT'
                 })
             };
         }

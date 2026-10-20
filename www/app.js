@@ -11,8 +11,11 @@
         screen.orientation.unlock().catch(() => {});
     }
 
-    // 2. KERTALUONTOINEN VANHAN WIDGET-DATAN SIIVOUS LOCALSTORAGESTA
+    // 2. KERTALUONTOINEN VANHAN WIDGET-DATAN SIIVOUS JA ROOLIN LUKITUS ADMINIKSI
     try {
+        localStorage.setItem('yf_role', 'admin');
+        localStorage.setItem('yardflow_app_mode', 'admin');
+        global.currentAppMode = 'admin';
         localStorage.removeItem('yf_dashboard_layout');
         localStorage.removeItem('gridstack_layout');
         Object.keys(localStorage).forEach(key => {
