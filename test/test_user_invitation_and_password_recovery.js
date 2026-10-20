@@ -67,8 +67,11 @@ function runTest() {
 
     const localStore = {};
     const sandbox = {
+        URLSearchParams: global.URLSearchParams || URLSearchParams,
+        console: console,
         window: {
-            location: { origin: 'https://yardflow.test' },
+            location: { origin: 'https://yardflow.test', hash: '', search: '', pathname: '/' },
+            history: { replaceState() {} },
             pendingPasswordChangeUser: null
         },
         document: {
@@ -161,7 +164,10 @@ function runTest() {
 
     vm.createContext(sandbox);
 
-    // Extract saveDriverFromForm, forced password functions, and recovery functions from HTML
+    // Extract functions from HTML
+    const resetCodeMatch = html.match(/async function requestPasswordReset\([\s\S]*?window\.handleForgotPasswordClick = handleForgotPasswordClick;/);
+    assert(resetCodeMatch, 'requestPasswordReset extracted');
+
     const saveDriverCodeMatch = html.match(/async function saveDriverFromForm\(\)[\s\S]*?window\.saveDriverFromForm = saveDriverFromForm;/);
     assert(saveDriverCodeMatch, 'saveDriverFromForm extracted');
 
@@ -172,6 +178,7 @@ function runTest() {
     assert(recoveryCodeMatch, 'Recovery code block extracted');
 
     vm.runInContext(`
+        ${resetCodeMatch[0]}
         ${saveDriverCodeMatch[0]}
         ${forcedPasswordCodeMatch[0]}
         ${recoveryCodeMatch[0]}
@@ -255,18 +262,38 @@ function runTest() {
         assert.strictEqual(session.user.must_change_password, false, 'Istunnossa must_change_password on false');
         console.log('✅ Forced password change validation, Supabase updateUser & profiles update verified');
 
-        // Test D: Password Recovery Modal (#modal-set-password)
-        sandbox.showSetPasswordModal();
-        assert.strictEqual(sandbox.document.getElementById('modal-set-password').style.display, 'flex');
-        sandbox.document.getElementById('newPasswordInput').value = 'PalautettuSalasana2026';
-        sandbox.document.getElementById('confirmPasswordInput').value = 'PalautettuSalasana2026';
-        return sandbox.handleSetPasswordSubmit({ preventDefault() {} });
-    }).then(() => {
-        assert.strictEqual(userPasswordUpdated, 'PalautettuSalasana2026');
-        assert.strictEqual(sandbox.document.getElementById('modal-set-password').style.display, 'none');
-        console.log('✅ Password recovery modal validation & submit verified');
+        // Test D: Password Recovery Link Detection from URL Hash or Search
+        sandbox.window.location.hash = '#access_token=test_token&type=recovery';
+        sandbox.window.location.search = '';
+        const detected = sandbox.checkPasswordRecoveryLink();
+        assert.strictEqual(detected, true, 'Recovery URL detected successfully');
+        assert.strictEqual(sandbox.document.getElementById('modal-set-password').style.display, 'flex', 'Recovery modal opened');
+        assert.strictEqual(sandbox.document.getElementById('view-login').style.display, 'none', 'Login view hidden when recovery active');
+        console.log('✅ URL hash/parameter recovery token detection verified');
 
-        console.log('\n🎉 All Initial Password & Forced Password Change tests PASSED successfully!');
+        // Test E: Password Reset Request (resetPasswordForEmail with redirectTo)
+        return sandbox.requestPasswordReset('pekka@auraus.fi').then(res => {
+            assert.strictEqual(resetPasswordCalls, 1, 'resetPasswordForEmail called once');
+            assert(!res.error, 'No error on reset request');
+            console.log('✅ requestPasswordReset with https://yardflow.vercel.app verified');
+
+            // Test F: Submit New Password & Page Reload
+            let reloaded = false;
+            let historyCleaned = false;
+            sandbox.location = { reload() { reloaded = true; } };
+            sandbox.window.history = { replaceState() { historyCleaned = true; } };
+
+            sandbox.document.getElementById('newPasswordInput').value = 'PalautettuSalasana2026';
+            sandbox.document.getElementById('confirmPasswordInput').value = 'PalautettuSalasana2026';
+            return sandbox.handleSetPasswordSubmit({ preventDefault() {} }).then(() => {
+                assert.strictEqual(userPasswordUpdated, 'PalautettuSalasana2026', 'updateUser called with new password');
+                assert.strictEqual(historyCleaned, true, 'history.replaceState called to clean tokens');
+                assert.strictEqual(reloaded, true, 'location.reload called');
+                console.log('✅ Password recovery modal validation, submit & token cleanup verified');
+
+                console.log('\n🎉 All Initial Password & Forced Password Change tests PASSED successfully!');
+            });
+        });
     });
 }
 

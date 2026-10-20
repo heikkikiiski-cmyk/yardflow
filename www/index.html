@@ -1122,7 +1122,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
 
             <div class="dialog-actions modal-action-buttons" style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
                 <button type="button" id="btnCancelSetPassword" class="btn-outline btn-form-cancel" style="min-width: 100px;" onclick="closeSetPasswordModal()">✕ Peruuta</button>
-                <button type="submit" id="btnSaveNewPassword" class="btn-primary btn-form-save" style="min-width: 180px; font-weight: 700; padding: 10px 18px;">💾 Tallenna salasana ja aloita</button>
+                <button type="submit" id="btnSaveNewPassword" class="btn-primary btn-form-save" style="min-width: 180px; font-weight: 700; padding: 10px 18px;">💾 Tallenna uusi salasana</button>
             </div>
         </form>
     </div>
@@ -10324,7 +10324,27 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     }
     window.restoreUserSession = restoreUserSession;
 
+    function isPasswordRecoveryUrl() {
+        try {
+            if (typeof window === 'undefined' || !window.location) return false;
+            const hash = window.location.hash || '';
+            const search = window.location.search || '';
+            const urlParams = (typeof URLSearchParams !== 'undefined') ? new URLSearchParams(search) : { get: () => null };
+            return hash.includes('type=recovery') || (urlParams.get && urlParams.get('type') === 'recovery') || hash.includes('access_token');
+        } catch (e) {
+            return false;
+        }
+    }
+    window.isPasswordRecoveryUrl = isPasswordRecoveryUrl;
+
     function checkAuthSession() {
+        if (isPasswordRecoveryUrl()) {
+            if (typeof checkPasswordRecoveryLink === 'function') {
+                checkPasswordRecoveryLink();
+            }
+            return false;
+        }
+
         try {
             const raw = localStorage.getItem('yardflow_auth_session');
             if (raw) {
@@ -10643,11 +10663,16 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         }
 
         try {
-            const { data, error } = await client.auth.resetPasswordForEmail(email, {
+            const { data, error } = await client.auth.resetPasswordForEmail(email.trim(), {
                 redirectTo: 'https://yardflow.vercel.app'
             });
             if (error) {
                 alert(`Salasanan nollauspyyntö epäonnistui: ${error.message}`);
+                const errBox = document.getElementById('loginErrorMessage');
+                if (errBox) {
+                    errBox.textContent = `Salasanan nollauspyyntö epäonnistui: ${error.message}`;
+                    errBox.style.display = 'block';
+                }
             } else {
                 alert(`Salasanan palautuslinkki on lähetetty osoitteeseen ${email}. Tarkista sähköpostisi!`);
             }
@@ -10786,8 +10811,11 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     // 🔑 SALASANAN ASETUS & RECOVERY (#modal-set-password)
     // ============================================================
     function showSetPasswordModal() {
-        const modal = document.getElementById('modal-set-password');
+        const modal = document.getElementById('modal-set-password') || document.getElementById('modal-reset-password');
         if (modal) modal.style.display = 'flex';
+        const loginView = document.getElementById('view-login');
+        if (loginView) loginView.style.display = 'none';
+
         const errBox = document.getElementById('setPasswordErrorMessage');
         if (errBox) {
             errBox.style.display = 'none';
@@ -10802,8 +10830,12 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     window.showSetPasswordModal = showSetPasswordModal;
 
     function closeSetPasswordModal() {
-        const modal = document.getElementById('modal-set-password');
+        const modal = document.getElementById('modal-set-password') || document.getElementById('modal-reset-password');
         if (modal) modal.style.display = 'none';
+        const raw = localStorage.getItem('yardflow_auth_session');
+        if (!raw) {
+            showLoginView();
+        }
     }
     window.closeSetPasswordModal = closeSetPasswordModal;
 
@@ -10820,18 +10852,22 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         }
 
         if (!p1 || p1.length < 6) {
+            const msg = 'Salasanan on oltava vähintään 6 merkkiä pitkä.';
             if (errBox) {
-                errBox.textContent = 'Salasanan on oltava vähintään 6 merkkiä pitkä.';
+                errBox.textContent = msg;
                 errBox.style.display = 'block';
             }
+            alert(msg);
             return;
         }
 
         if (p1 !== p2) {
+            const msg = 'Salasanat eivät täsmää. Tarkista kirjoitusasu.';
             if (errBox) {
-                errBox.textContent = 'Salasanat eivät täsmää. Tarkista kirjoitusasu.';
+                errBox.textContent = msg;
                 errBox.style.display = 'block';
             }
+            alert(msg);
             return;
         }
 
@@ -10842,34 +10878,38 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
 
         try {
             const client = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : null) || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
-            if (client && client.auth) {
-                const { data, error } = await client.auth.updateUser({ password: p1 });
-                if (error) {
-                    if (errBox) {
-                        errBox.textContent = error.message || 'Salasanan päivitys epäonnistui.';
-                        errBox.style.display = 'block';
-                    }
-                    return;
-                }
-
-                if (data && data.user) {
-                    const sbUser = data.user;
-                    const role = sbUser.user_metadata?.role || 'driver';
-                    const sessionUser = {
-                        id: sbUser.id,
-                        name: sbUser.user_metadata?.name || sbUser.email,
-                        email: sbUser.email,
-                        role: role
-                    };
-                    localStorage.setItem('yardflow_auth_session', JSON.stringify({ user: sessionUser, logged_in_at: new Date().toISOString() }));
-                    hideLoginView();
-                    restoreUserSession(sessionUser);
-                }
+            if (!client || !client.auth) {
+                alert('Supabase-yhteys ei ole käytettävissä.');
+                return;
             }
 
+            const { data, error } = await client.auth.updateUser({
+                password: p1
+            });
+
+            if (error) {
+                if (errBox) {
+                    errBox.textContent = error.message || 'Virhe salasanan päivityksessä.';
+                    errBox.style.display = 'block';
+                }
+                alert('Virhe salasanan päivityksessä: ' + error.message);
+                return;
+            }
+
+            alert('Salasana vaihdettu onnistuneesti! Voit nyt kirjautua uudella salasanallasi.');
+
+            // Siivotaan URL:n tokenit pois sotkemasta
+            try {
+                if (typeof window !== 'undefined' && window.history && window.location) {
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+            } catch (e) {}
+
             closeSetPasswordModal();
-            if (typeof showStatus === 'function') {
-                showStatus('Salasana asetettu onnistuneesti! Tervetuloa YardFlowhun.', 'success');
+
+            // Ohjataan kirjautumisruutuun tai suoraan sisään
+            if (typeof location !== 'undefined' && typeof location.reload === 'function') {
+                location.reload();
             }
         } catch (e) {
             console.warn('handleSetPasswordSubmit error:', e);
@@ -10877,34 +10917,63 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                 errBox.textContent = e.message || 'Odottamaton virhe salasanan tallennuksessa.';
                 errBox.style.display = 'block';
             }
+            alert('Virhe salasanan päivityksessä: ' + (e.message || e));
         } finally {
             if (btn) {
                 btn.disabled = false;
-                btn.textContent = '💾 Tallenna salasana ja aloita';
+                btn.textContent = '💾 Tallenna uusi salasana';
             }
         }
     }
     window.handleSetPasswordSubmit = handleSetPasswordSubmit;
 
+    function checkPasswordRecoveryLink() {
+        try {
+            if (typeof window === 'undefined' || !window.location) return false;
+            const hash = window.location.hash || '';
+            const search = window.location.search || '';
+            const urlParams = (typeof URLSearchParams !== 'undefined') ? new URLSearchParams(search || window.location.search) : { get: () => null };
+
+            if (hash.includes('type=recovery') || (urlParams.get && urlParams.get('type') === 'recovery') || hash.includes('access_token')) {
+                // Käyttäjä saapui salasanannollauslinkistä!
+                console.log('Tunnistettu salasanan nollauslinkki');
+
+                // Avataan suoraan uuden salasanan asetusikkuna
+                const modal = document.getElementById('modal-set-password') || document.getElementById('modal-reset-password');
+                if (modal) {
+                    modal.style.display = 'flex';
+                    // Piilotetaan tavallinen kirjautumisruutu taustalta
+                    const loginView = document.getElementById('view-login');
+                    if (loginView) loginView.style.display = 'none';
+                }
+                const errBox = document.getElementById('setPasswordErrorMessage');
+                if (errBox) {
+                    errBox.style.display = 'none';
+                    errBox.textContent = '';
+                }
+                const input1 = document.getElementById('newPasswordInput');
+                if (input1) input1.focus();
+                return true;
+            }
+        } catch (e) {
+            console.warn('checkPasswordRecoveryLink error:', e);
+        }
+        return false;
+    }
+    window.checkPasswordRecoveryLink = checkPasswordRecoveryLink;
+
     function initSupabaseAuthListener() {
+        checkPasswordRecoveryLink();
+
         const client = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : null) || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
         if (client && client.auth && typeof client.auth.onAuthStateChange === 'function') {
             client.auth.onAuthStateChange(async (event, session) => {
                 if (event === 'PASSWORD_RECOVERY') {
+                    console.log('Tunnistettu salasanan nollauslinkki (PASSWORD_RECOVERY)');
                     showSetPasswordModal();
                 }
             });
         }
-
-        try {
-            if (typeof window !== 'undefined' && window.location) {
-                const hash = window.location.hash || '';
-                const search = window.location.search || '';
-                if (hash.includes('type=recovery') || search.includes('type=recovery')) {
-                    setTimeout(() => showSetPasswordModal(), 200);
-                }
-            }
-        } catch (e) {}
     }
     window.initSupabaseAuthListener = initSupabaseAuthListener;
 
@@ -14697,6 +14766,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     applyDashboardPrefs();
     updateDrawerBadges();
     if (typeof applyPermissionsToUi === 'function') applyPermissionsToUi();
+    if (typeof checkPasswordRecoveryLink === 'function') checkPasswordRecoveryLink();
     if (typeof checkAuthSession === 'function') checkAuthSession();
     if (typeof initSupabaseAuthListener === 'function') initSupabaseAuthListener();
     restorePanelCollapseStates();
@@ -14716,6 +14786,7 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         if (navigator.onLine) syncPendingLogs();
         restorePanelCollapseStates();
         if (typeof updateMapSettingsUi === 'function') updateMapSettingsUi();
+        if (typeof checkPasswordRecoveryLink === 'function') checkPasswordRecoveryLink();
         if (typeof checkAuthSession === 'function') checkAuthSession();
         if (typeof initSupabaseAuthListener === 'function') initSupabaseAuthListener();
 
