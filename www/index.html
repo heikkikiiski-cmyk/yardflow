@@ -602,13 +602,47 @@
             #billing-view[style*="display: none"],
             #viewSettings[style*="display: none"] { display: none !important; }
 
-            #routeSidebarPanel { width: 52%; min-width: 480px; max-width: 58%; flex: 0 0 52%; height: 100%; overflow-y: auto; padding: 18px 16px; border-radius: 0; border: none; border-right: 1px solid var(--border); box-shadow: none; margin-bottom: 0; box-sizing: border-box; flex-shrink: 0; display: flex; flex-direction: column; background: var(--bg-main); }
+            #routeSidebarPanel { width: 420px; min-width: 380px; flex: 0 0 420px; height: 100%; overflow-y: auto; padding: 18px 16px; border-radius: 0; border: none; border-right: 1px solid var(--border); box-shadow: none; margin-bottom: 0; box-sizing: border-box; flex-shrink: 0; display: flex; flex-direction: column; background: var(--bg-main); }
 
             #property-list-container { flex: 1; overflow-y: auto; padding-right: 2px; }
 
-            #yardMapCard { width: 48%; flex: 1 1 48%; height: 100%; border-radius: 0; border: none; box-shadow: none; margin-bottom: 0; padding: 16px; box-sizing: border-box; display: flex !important; flex-direction: column; overflow: hidden; background: var(--bg-card); position: relative; }
+            #yardMapCard { flex: 1 1 auto; height: 100%; border-radius: 0; border: none; box-shadow: none; margin-bottom: 0; padding: 0; box-sizing: border-box; display: flex !important; flex-direction: column; overflow: hidden; background: var(--bg-card); position: relative; }
 
-            #yardMapCard #yardSatelliteMap { flex: 1; width: 100% !important; height: 100% !important; min-height: 380px; border-radius: var(--radius-lg); }
+            #yardMapCard #yardSatelliteMap { width: 100%; height: 100%; }
+
+            .view-content-split {
+              display: flex;
+              width: 100%;
+              height: calc(100vh - 60px);
+              overflow: hidden;
+            }
+
+            .view-sidebar-left {
+              width: 420px;
+              min-width: 380px;
+              height: 100%;
+              overflow-y: auto;
+              border-right: 1px solid var(--border-color, #30363d);
+            }
+
+            .map-container-wrapper {
+              flex: 1;
+              height: 100%;
+              position: relative;
+              background-color: #0d1117;
+            }
+
+            #map, #yardMap {
+              width: 100% !important;
+              height: 100% !important;
+              min-height: 400px;
+              position: absolute;
+              top: 0;
+              left: 0;
+              right: 0;
+              bottom: 0;
+              z-index: 1;
+            }
 
             
             html[data-app-mode="field"] #yardMapCard { padding: 24px 20px 20px 20px !important; }
@@ -1468,8 +1502,8 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
     </div>
 
     <!-- NÄKYMÄ 1: AJO & REITIT (#view-map / Kartta & Reitinsuunnittelu) -->
-    <div id="view-map" class="view-section" data-view="view-map">
-        <div class="card sidebar-column" id="routeSidebarPanel">
+    <div id="view-map" class="view-section view-content-split" data-view="view-map">
+        <div class="card sidebar-column view-sidebar-left" id="routeSidebarPanel">
             <!-- Widget 1: Pikahaku sivupalkissa -->
             <div id="widget-search" class="dashboard-widget">
                 <div class="property-search-wrapper" style="margin-bottom: 12px;">
@@ -1844,10 +1878,10 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
                 </button>
             </div>
 
-            <div style="position: relative; width: 100%;" class="map-fullscreen-wrapper map-resizable-container" id="yardMapContainerWrapper">
-                <div id="yardSatelliteMap">
-                    <div id="map" style="width: 100%; height: 500px; min-height: 420px; border-radius: 8px;"></div>
-                </div>
+            <div class="map-container-wrapper map-fullscreen-wrapper map-resizable-container" id="yardMapContainerWrapper" style="position: relative; flex: 1; width: 100%; height: 100%;">
+                <div id="yardSatelliteMap"></div>
+                <div id="map"></div>
+                <div id="yardMap" style="display: none;" aria-hidden="true"></div>
                 <!-- KARTAN KOKORUUTUPAINIKE (yhteensopivuus) -->
                 <button type="button" id="btn-map-fullscreen" class="map-btn-fullscreen" onclick="toggleMapFullscreen('yardSatelliteMap', this)" title="Koko näyttö" aria-label="Koko näyttö" style="display: none;">
                     ⛶ Koko näyttö
@@ -4572,8 +4606,20 @@ body.app-mode-field #dashboard-view #dash-widget-route-stats {
         if (target) {
             target.style.display = 'block';
             target.classList.add('active');
-            if ((viewId === 'view-map' || targetId === 'view-map' || viewId === 'viewRoutes') && window.yardMap) {
-                setTimeout(() => window.yardMap.invalidateSize(), 200);
+            if (viewId === 'view-map' || targetId === 'view-map' || viewId === 'viewRoutes' || viewId === 'routes' || viewId === 'map') {
+                if (typeof window.initYardMap === 'function' && !window.yardMap) {
+                    window.initYardMap();
+                }
+                setTimeout(() => {
+                    if (window.yardMap && typeof window.yardMap.invalidateSize === 'function') {
+                        window.yardMap.invalidateSize();
+                    }
+                }, 150);
+                setTimeout(() => {
+                    if (window.yardMap && typeof window.yardMap.invalidateSize === 'function') {
+                        window.yardMap.invalidateSize();
+                    }
+                }, 300);
             }
         }
 

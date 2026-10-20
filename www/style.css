@@ -406,6 +406,43 @@ html, body, .view-pane, .dashboard-grid, .view-section {
     min-height: 450px;
 }
 
+/* ============================================================
+   Kartan CSS ja asettelu (style.css)
+   ============================================================ */
+.view-content-split {
+  display: flex;
+  width: 100%;
+  height: calc(100vh - 60px);
+  overflow: hidden;
+}
+
+.view-sidebar-left {
+  width: 420px;
+  min-width: 380px;
+  height: 100%;
+  overflow-y: auto;
+  border-right: 1px solid var(--border-color, #30363d);
+}
+
+.map-container-wrapper {
+  flex: 1;
+  height: 100%;
+  position: relative;
+  background-color: #0d1117;
+}
+
+#map, #yardMap {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 400px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+}
+
 .app-dialog[open],
 dialog#modal-create-route[open] {
     position: fixed !important;

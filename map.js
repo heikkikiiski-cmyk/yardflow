@@ -4,61 +4,76 @@
  */
 
 window.initYardMap = function() {
-  if (typeof document === 'undefined' || typeof document.getElementById !== 'function') return;
-  const mapElement = document.getElementById('map');
+  if (typeof document === 'undefined' || typeof document.getElementById !== 'function' || typeof L === 'undefined') return;
+  const mapElement = document.getElementById('map') || document.getElementById('yardMap');
   if (!mapElement) return;
-  if (typeof L === 'undefined') return;
 
-  // Jos vanha kartta on olemassa, poistetaan se alta
   if (window.yardMap && typeof window.yardMap.remove === 'function') {
     window.yardMap.remove();
   }
 
-  const street = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+  const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
     maxZoom: 19,
-    attribution: '© OpenStreetMap HOT'
+    attribution: '© OpenStreetMap contributors, Tiles style by HOT'
   });
 
-  const sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  const satLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
     maxZoom: 19,
-    attribution: 'Tiles © Esri'
+    attribution: 'Tiles &copy; Esri'
   });
 
-  const map = L.map('map', {
-    layers: [street]
+  const map = L.map(mapElement, {
+    layers: [streetLayer],
+    zoomControl: true
   }).setView([61.4981, 23.7610], 13);
 
   window.yardMap = map;
-  let isSat = false;
 
+  // Pakotetaan Leaflet laskemaan oikeat mitat DOM-renderöinnin jälkeen
+  setTimeout(() => {
+    map.invalidateSize();
+  }, 150);
+
+  // Satelliitin vaihtonappi
+  let isSatellite = false;
   const toggleBtn = document.getElementById('btn-toggle-basemap');
   if (toggleBtn) {
-    toggleBtn.onclick = function(e) {
-      if (e && e.preventDefault) e.preventDefault();
-      if (!isSat) {
-        map.removeLayer(street);
-        map.addLayer(sat);
-        toggleBtn.textContent = '🗺️ Peruskartta';
-        isSat = true;
+    const freshBtn = toggleBtn.cloneNode(true);
+    toggleBtn.parentNode.replaceChild(freshBtn, toggleBtn);
+
+    freshBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (!isSatellite) {
+        map.removeLayer(streetLayer);
+        map.addLayer(satLayer);
+        freshBtn.innerHTML = '🗺️ Peruskartta';
+        isSatellite = true;
       } else {
-        map.removeLayer(sat);
-        map.addLayer(street);
-        toggleBtn.textContent = '🛰️ Satelliitti';
-        isSat = false;
+        map.removeLayer(satLayer);
+        map.addLayer(streetLayer);
+        freshBtn.innerHTML = '🛰️ Satelliitti';
+        isSatellite = false;
       }
-    };
+    });
   }
 };
+
+// Kutsutaan aina kun näkymä vaihdetaan Reittisuunnitteluun / Karttaan
+if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+  document.addEventListener('DOMContentLoaded', () => {
+    window.initYardMap();
+  });
+}
 
 // Määritellään toimivat tasot
 const streetLayer = (typeof L !== 'undefined') ? L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
   maxZoom: 19,
-  attribution: '© OpenStreetMap HOT'
+  attribution: '© OpenStreetMap contributors, Tiles style by HOT'
 }) : null;
 
 const satLayer = (typeof L !== 'undefined') ? L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
   maxZoom: 19,
-  attribution: 'Tiles © Esri'
+  attribution: 'Tiles &copy; Esri'
 }) : null;
 
 function initMapInstance(containerId) {
@@ -66,7 +81,7 @@ function initMapInstance(containerId) {
   const container = document.getElementById(containerId);
   if (!container) return null;
 
-  if (containerId === 'map') {
+  if (containerId === 'map' || containerId === 'yardMap') {
     if (typeof window.initYardMap === 'function') {
       window.initYardMap();
       return window.yardMap;
@@ -75,35 +90,43 @@ function initMapInstance(containerId) {
 
   const street = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
     maxZoom: 19,
-    attribution: '© OpenStreetMap HOT'
+    attribution: '© OpenStreetMap contributors, Tiles style by HOT'
   });
 
   const sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
     maxZoom: 19,
-    attribution: 'Tiles © Esri'
+    attribution: 'Tiles &copy; Esri'
   });
 
   const map = L.map(containerId, {
-    layers: [street]
+    layers: [street],
+    zoomControl: true
   }).setView([61.4981, 23.7610], 13);
+
+  setTimeout(() => {
+    map.invalidateSize();
+  }, 150);
 
   let isSat = false;
   const toggleBtn = document.getElementById('btn-toggle-basemap');
   if (toggleBtn) {
-    toggleBtn.onclick = function(e) {
-      if (e && e.preventDefault) e.preventDefault();
+    const freshBtn = toggleBtn.cloneNode(true);
+    toggleBtn.parentNode.replaceChild(freshBtn, toggleBtn);
+
+    freshBtn.addEventListener('click', (e) => {
+      e.preventDefault();
       if (!isSat) {
         map.removeLayer(street);
         map.addLayer(sat);
-        toggleBtn.textContent = '🗺️ Peruskartta';
+        freshBtn.innerHTML = '🗺️ Peruskartta';
         isSat = true;
       } else {
         map.removeLayer(sat);
         map.addLayer(street);
-        toggleBtn.textContent = '🛰️ Satelliitti';
+        freshBtn.innerHTML = '🛰️ Satelliitti';
         isSat = false;
       }
-    };
+    });
   }
 
   return map;
@@ -120,7 +143,7 @@ function safeInvalidateMap(m) {
 
 function initMaps() {
   if (typeof document === 'undefined' || typeof document.getElementById !== 'function' || typeof L === 'undefined') return;
-  if (document.getElementById('map') && typeof window.initYardMap === 'function') {
+  if ((document.getElementById('map') || document.getElementById('yardMap')) && typeof window.initYardMap === 'function') {
     window.initYardMap();
     return;
   }
@@ -140,7 +163,7 @@ function initMaps() {
 
 function toggleMapFullscreen(mapElementId, btnEl) {
   if (typeof document === 'undefined' || typeof document.getElementById !== 'function') return;
-  const el = typeof mapElementId === 'string' ? (document.getElementById(mapElementId) || document.getElementById('map')) : mapElementId;
+  const el = typeof mapElementId === 'string' ? (document.getElementById(mapElementId) || document.getElementById('map') || document.getElementById('yardMap')) : mapElementId;
   if (!el) return;
   const parent = el.closest('.map-fullscreen-wrapper') || el.parentElement;
   const targetEl = parent || el;
@@ -203,21 +226,4 @@ if (typeof global !== 'undefined' && global !== targetGlobal && global !== globa
   global.initMaps = initMaps;
   global.toggleMapFullscreen = toggleMapFullscreen;
   global.initMapResizeListeners = initMapResizeListeners;
-}
-
-if (typeof document !== 'undefined' && typeof setTimeout === 'function') {
-  const runInit = () => {
-    if (typeof document.getElementById === 'function' && document.getElementById('map') && typeof window.initYardMap === 'function') {
-      window.initYardMap();
-    } else {
-      initMaps();
-    }
-    initMapResizeListeners();
-  };
-
-  if (document.readyState === 'loading' && typeof document.addEventListener === 'function') {
-    document.addEventListener('DOMContentLoaded', runInit);
-  } else {
-    runInit();
-  }
 }
