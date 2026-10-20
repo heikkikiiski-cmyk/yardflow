@@ -47,160 +47,160 @@
     </script>
     <style>
         /* ============================================================
-           YARDFLOW – SLATE & APPLE HIG DESIGN SYSTEM
+           YARDFLOW – GITHUB PRIMER DESIGN SYSTEM
            ============================================================ */
 
         :root {
-            --header-height: 68px;
-            --radius: 14px;
-            --radius-sm: 8px;
-            --radius-md: 12px;
-            --radius-lg: 14px;
-            --radius-xl: 16px;
+            --header-height: 52px;
+            --radius: 6px;
+            --radius-sm: 4px;
+            --radius-md: 6px;
+            --radius-lg: 8px;
+            --radius-xl: 12px;
             --radius-pill: 20px;
             --ease: cubic-bezier(0.16, 1, 0.3, 1);
-            --transition: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            --transition: 0.15s ease;
             --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif;
             --font-display: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif;
         }
 
-        /* DARK THEME (Syvä liuskekiven harmaa / Slate 900) */
+        /* DARK THEME (GitHub Primer Dark) */
         html[data-theme="dark"],
         html:not([data-theme="light"]) {
             color-scheme: dark;
-            --bg-main: #0f172a;       /* Syvä liuskekiven harmaa */
-            --bg-card: #1e293b;       /* Korttien tausta */
-            --bg-card-hover: #334155;
-            --text-main: #f8fafc;     /* Puhdas kirkas teksti */
-            --text-muted: #94a3b8;    /* Vaaleanharmaa toissijainen tieto */
-            --accent-blue: #0ea5e9;   /* Pääkorostusväri */
-            --accent-green: #10b981;  /* Valmis-tila */
-            --accent-amber: #f59e0b;  /* Työn alla / Huomio */
+            --bg-main: var(--canvas-default, #0d1117);
+            --bg-card: var(--canvas-card, #161b22);
+            --bg-card-hover: #1f242c;
+            --text-main: var(--fg-default, #e6edf3);
+            --text-muted: var(--fg-muted, #848d97);
+            --accent-blue: #1f6feb;
+            --accent-green: #238636;
+            --accent-amber: #d29922;
 
             /* Komponenttien muuttujat */
-            --bg: var(--bg-main);
-            --bg-gradient: radial-gradient(ellipse 120% 50% at 50% -8%, rgba(14, 165, 233, 0.15), transparent 75%), var(--bg-main);
-            --header-bg: #0f172a; /* Peittävä tumma tausta */
-            --header-bg-glass: rgba(15, 23, 42, 0.95);
-            --header-border: rgba(255, 255, 255, 0.08);
-            --fg: var(--text-main);
-            --fg-secondary: #cbd5e1;
-            --muted: var(--text-muted);
-            --card: var(--bg-card);
-            --card-hover: var(--bg-card-hover);
-            --card-border: rgba(255, 255, 255, 0.06);
-            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-            --secondary: #172033;
-            --border: rgba(255, 255, 255, 0.1);
-            --border-light: rgba(255, 255, 255, 0.06);
-            --input-bg: #0b1120;
-            --input-border: rgba(255, 255, 255, 0.14);
-            --input-focus: var(--accent-blue);
-            --focus-ring: rgba(14, 165, 233, 0.35);
+            --bg: var(--canvas-default, #0d1117);
+            --bg-gradient: none;
+            --header-bg: var(--canvas-subtle, #010409);
+            --header-bg-glass: rgba(1, 4, 9, 0.95);
+            --header-border: var(--border-default, #30363d);
+            --fg: var(--fg-default, #e6edf3);
+            --fg-secondary: #848d97;
+            --muted: var(--fg-muted, #848d97);
+            --card: var(--canvas-card, #161b22);
+            --card-hover: #1f242c;
+            --card-border: var(--border-default, #30363d);
+            --card-shadow: none;
+            --secondary: #21262d;
+            --border: var(--border-default, #30363d);
+            --border-light: var(--border-muted, #21262d);
+            --input-bg: var(--canvas-inset, #0d1117);
+            --input-border: var(--border-default, #30363d);
+            --input-focus: #1f6feb;
+            --focus-ring: rgba(31, 111, 235, 0.35);
 
-            --accent: var(--accent-blue);
-            --accent-hover: #38bdf8;
-            --accent-soft: rgba(14, 165, 233, 0.15);
-            --accent-soft-hover: rgba(14, 165, 233, 0.25);
+            --accent: #1f6feb;
+            --accent-hover: #388bfd;
+            --accent-soft: rgba(31, 111, 235, 0.15);
+            --accent-soft-hover: rgba(31, 111, 235, 0.25);
             --accent-contrast: #ffffff;
             --cta-text: #ffffff;
 
-            --success: var(--accent-green);
-            --success-soft: rgba(16, 185, 129, 0.15);
-            --success-border: rgba(16, 185, 129, 0.4);
-            --success-text: #34d399;
+            --success: #238636;
+            --success-soft: rgba(35, 134, 54, 0.15);
+            --success-border: rgba(35, 134, 54, 0.4);
+            --success-text: #3fb950;
 
-            --warning: var(--accent-amber);
-            --warning-soft: rgba(245, 158, 11, 0.15);
-            --warning-border: rgba(245, 158, 11, 0.35);
-            --warning-text: #fbbf24;
+            --warning: #d29922;
+            --warning-soft: rgba(210, 153, 34, 0.15);
+            --warning-border: rgba(210, 153, 34, 0.35);
+            --warning-text: #e3b341;
 
-            --danger: #ef4444;
-            --danger-soft: rgba(239, 68, 68, 0.15);
-            --danger-border: rgba(239, 68, 68, 0.4);
-            --danger-text: #f87171;
+            --danger: #f85149;
+            --danger-soft: rgba(248, 81, 73, 0.15);
+            --danger-border: rgba(248, 81, 73, 0.4);
+            --danger-text: #f85149;
 
             /* Segmented Tabs */
-            --segmented-bg: rgba(30, 41, 59, 0.8);
-            --segmented-active: #334155;
+            --segmented-bg: #21262d;
+            --segmented-active: #30363d;
             --segmented-active-text: #ffffff;
-            --segmented-active-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+            --segmented-active-shadow: none;
 
             /* Modal & Glass */
-            --modal-bg: #1e293b;
-            --modal-backdrop: rgba(15, 23, 42, 0.75);
-            --menu-bg: #1e293b;
+            --modal-bg: var(--canvas-card, #161b22);
+            --modal-backdrop: rgba(1, 4, 9, 0.75);
+            --menu-bg: var(--canvas-card, #161b22);
         }
 
-        /* LIGHT THEME (Slate Light) */
+        /* LIGHT THEME (GitHub Primer Light) */
         html[data-theme="light"] {
             color-scheme: light;
-            --bg-main: #f8fafc;
-            --bg-card: #ffffff;
-            --bg-card-hover: #f1f5f9;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --accent-blue: #0284c7;
-            --accent-green: #059669;
-            --accent-amber: #d97706;
+            --bg-main: var(--canvas-default, #ffffff);
+            --bg-card: var(--canvas-card, #ffffff);
+            --bg-card-hover: #f3f4f6;
+            --text-main: var(--fg-default, #1f2328);
+            --text-muted: var(--fg-muted, #656d76);
+            --accent-blue: #0969da;
+            --accent-green: #1f883d;
+            --accent-amber: #9a6700;
 
-            --bg: var(--bg-main);
-            --bg-gradient: radial-gradient(ellipse 120% 50% at 50% -8%, rgba(14, 165, 233, 0.08), transparent 75%), var(--bg-main);
-            --header-bg: #ffffff; /* Peittävä vaalea tausta */
-            --header-bg-glass: rgba(255, 255, 255, 0.95);
-            --header-border: rgba(15, 23, 42, 0.08);
-            --fg: var(--text-main);
-            --fg-secondary: #475569;
-            --muted: var(--text-muted);
-            --card: var(--bg-card);
-            --card-hover: var(--bg-card-hover);
-            --card-border: rgba(15, 23, 42, 0.08);
-            --card-shadow: 0 2px 10px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
-            --secondary: #f1f5f9;
-            --border: rgba(15, 23, 42, 0.12);
-            --border-light: rgba(15, 23, 42, 0.06);
-            --input-bg: #ffffff;
-            --input-border: rgba(15, 23, 42, 0.18);
-            --input-focus: var(--accent-blue);
-            --focus-ring: rgba(2, 132, 199, 0.22);
+            --bg: var(--canvas-default, #ffffff);
+            --bg-gradient: none;
+            --header-bg: var(--canvas-subtle, #f6f8fa);
+            --header-bg-glass: rgba(246, 248, 250, 0.95);
+            --header-border: var(--border-default, #d0d7de);
+            --fg: var(--fg-default, #1f2328);
+            --fg-secondary: #656d76;
+            --muted: var(--fg-muted, #656d76);
+            --card: var(--canvas-card, #ffffff);
+            --card-hover: #f3f4f6;
+            --card-border: var(--border-default, #d0d7de);
+            --card-shadow: none;
+            --secondary: #f6f8fa;
+            --border: var(--border-default, #d0d7de);
+            --border-light: var(--border-muted, #d8dee4);
+            --input-bg: var(--canvas-inset, #f6f8fa);
+            --input-border: var(--border-default, #d0d7de);
+            --input-focus: #0969da;
+            --focus-ring: rgba(9, 105, 218, 0.22);
 
-            --accent: var(--accent-blue);
-            --accent-hover: #0369a1;
-            --accent-soft: rgba(2, 132, 199, 0.1);
-            --accent-soft-hover: rgba(2, 132, 199, 0.18);
+            --accent: #0969da;
+            --accent-hover: #0860ca;
+            --accent-soft: rgba(9, 105, 218, 0.1);
+            --accent-soft-hover: rgba(9, 105, 218, 0.18);
             --accent-contrast: #ffffff;
             --cta-text: #ffffff;
 
-            --success: var(--accent-green);
-            --success-soft: rgba(5, 150, 105, 0.12);
-            --success-border: rgba(5, 150, 105, 0.35);
-            --success-text: #047857;
+            --success: #1f883d;
+            --success-soft: rgba(31, 136, 61, 0.12);
+            --success-border: rgba(31, 136, 61, 0.35);
+            --success-text: #1a7f37;
 
-            --warning: var(--accent-amber);
-            --warning-soft: rgba(217, 119, 6, 0.12);
-            --warning-border: rgba(217, 119, 6, 0.35);
-            --warning-text: #b45309;
+            --warning: #9a6700;
+            --warning-soft: rgba(154, 103, 0, 0.12);
+            --warning-border: rgba(154, 103, 0, 0.35);
+            --warning-text: #9a6700;
 
-            --danger: #dc2626;
-            --danger-soft: rgba(220, 38, 38, 0.1);
-            --danger-border: rgba(220, 38, 38, 0.3);
-            --danger-text: #b91c1c;
+            --danger: #cf222e;
+            --danger-soft: rgba(207, 34, 46, 0.1);
+            --danger-border: rgba(207, 34, 46, 0.3);
+            --danger-text: #cf222e;
 
             /* Segmented Tabs */
-            --segmented-bg: #e2e8f0;
+            --segmented-bg: #eaeef2;
             --segmented-active: #ffffff;
-            --segmented-active-text: #0f172a;
-            --segmented-active-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            --segmented-active-text: #1f2328;
+            --segmented-active-shadow: 0 1px 3px rgba(31, 35, 40, 0.12);
 
             /* Modal & Glass */
-            --modal-bg: #ffffff;
-            --modal-backdrop: rgba(15, 23, 42, 0.45);
-            --menu-bg: #ffffff;
+            --modal-bg: var(--canvas-card, #ffffff);
+            --modal-backdrop: rgba(31, 35, 40, 0.45);
+            --menu-bg: var(--canvas-card, #ffffff);
         }
 
         * { box-sizing: border-box; }
 
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; margin: 0; padding: 4.8rem 16px 36px; background-color: var(--bg-main); background-image: var(--bg-gradient); background-attachment: fixed; color: var(--text-main); line-height: 1.48; transition: background-color var(--transition), color var(--transition); }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; margin: 0; padding: calc(var(--header-height, 52px) + 16px) 16px 36px; background-color: var(--bg-main); background-image: var(--bg-gradient); background-attachment: fixed; color: var(--text-main); line-height: 1.48; transition: background-color var(--transition), color var(--transition); }
 
         /* Apple Scrollbars */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -209,7 +209,7 @@
         ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
         /* ---- Apple Header ---- */
-        .app-header, #top-bar, .navbar, .header { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; height: var(--header-height, 64px); min-height: var(--header-height, 64px); display: flex; align-items: center; justify-content: space-between; padding: max(12px, env(safe-area-inset-top, 0px)) 16px 10px 16px; background: var(--header-bg); background-color: var(--header-bg); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); border-bottom: 1px solid var(--header-border); transition: background var(--transition), border-color var(--transition); box-sizing: border-box; flex-wrap: nowrap; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18); }
+        .app-header, #top-bar, .navbar, .header { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; height: var(--header-height, 52px); min-height: var(--header-height, 52px); display: flex; align-items: center; justify-content: space-between; padding: max(8px, env(safe-area-inset-top, 0px)) 16px 8px 16px; background: var(--header-bg); background-color: var(--header-bg); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); border-bottom: 1px solid var(--header-border); transition: background var(--transition), border-color var(--transition); box-sizing: border-box; flex-wrap: nowrap; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); }
 
         .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--fg); user-select: none; }
         .logo-mark { width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; color: #ffffff; flex-shrink: 0; }
@@ -232,7 +232,7 @@
         .theme-toggle-btn:hover .theme-toggle-icon { transform: rotate(20deg) scale(1.12); }
 
         /* ---- Container & Typography ---- */
-        .container, .main-container, #app-container, .field-mode-container { max-width: 620px; margin: 0 auto; padding-top: calc(var(--header-height, 65px) + 12px) !important; box-sizing: border-box; position: relative; z-index: 1; }
+        .container, .main-container, #app-container, .field-mode-container { max-width: 620px; margin: 0 auto; padding-top: calc(var(--header-height, 52px) + 12px) !important; box-sizing: border-box; position: relative; z-index: 1; }
 
         .hero-section { text-align: center; margin: 6px 0 20px; }
         .hero-title { font-family: var(--font-display); font-size: 1.85rem; line-height: 1.2; font-weight: 700; color: var(--fg); margin: 0 0 6px 0; letter-spacing: -0.03em; }
@@ -602,8 +602,9 @@
                 margin: 0;
                 padding: 0 12px 16px 12px;
                 overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
             }
-            .container, .main-container, #app-container, .field-mode-container { max-width: 620px; margin: 0 auto; padding-top: calc(var(--header-height, 65px) + 12px) !important; box-sizing: border-box; position: relative; z-index: 1; }
+            .container, .main-container, #app-container, .field-mode-container { max-width: 620px; margin: 0 auto; padding-top: calc(var(--header-height, 52px) + 12px) !important; box-sizing: border-box; position: relative; z-index: 1; }
             #yardMapCard #yardSatelliteMap { height: 420px; }
             /* Touch friendly buttons */
             .btn-action, .btn-secondary, .btn-complete-main, .btn-obstacle-action { min-height: 48px; }
@@ -704,7 +705,7 @@
         html[data-app-mode="field"] .container,
         html[data-app-mode="field"] .main-container,
         html[data-app-mode="field"] #app-container,
-        html[data-app-mode="field"] .field-mode-container { padding-top: calc(var(--header-height, 68px) + env(safe-area-inset-top, 0px) + 24px) !important; position: relative; z-index: 1; }
+        html[data-app-mode="field"] .field-mode-container { padding-top: calc(var(--header-height, 52px) + env(safe-area-inset-top, 0px) + 24px) !important; position: relative; z-index: 1; }
 
         html[data-app-mode="field"] #viewRoutes { width: 100% !important; height: 100% !important; }
 
@@ -10796,7 +10797,7 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
             if (!banner) {
                 banner = document.createElement('div');
                 banner.id = 'userExpiredBanner';
-                banner.style.cssText = 'background: #dc2626; color: #fff; padding: 10px 16px; font-weight: 700; text-align: center; position: fixed; top: 64px; left: 0; right: 0; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.3);';
+                banner.style.cssText = 'background: #dc2626; color: #fff; padding: 10px 16px; font-weight: 700; text-align: center; position: fixed; top: var(--header-height, 52px); left: 0; right: 0; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.3);';
                 banner.innerHTML = `⚠️ Käyttäjän "${esc(user.name)}" käyttöoikeus on päättynyt (${new Date(user.expires_at).toLocaleString('fi-FI')}). Toiminnot on estetty.`;
                 document.body.appendChild(banner);
             } else {
