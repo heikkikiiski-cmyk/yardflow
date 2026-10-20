@@ -25,10 +25,7 @@
     <script src="https://unpkg.com/exifr@7.1.3/dist/lite.umd.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet-path-transform@1.1.3/dist/L.Path.Transform.js" crossorigin=""></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- GridStack.js for customizable & responsive Android widget grid -->
-    <link href="https://cdn.jsdelivr.net/npm/gridstack@10.3.1/dist/gridstack.min.css" rel="stylesheet"/>
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/gridstack@10.3.1/dist/gridstack-all.js"></script>
     <script src="theme.js"></script>
     <script src="app.js"></script>
     <script src="dashboard.js"></script>
@@ -1058,10 +1055,7 @@
 /* Kuljettajan virtaviivainen dashboard: piilotetaan ylimääräiset laatikot ja pikalinkit */
 body.app-mode-field #dashboard-view #dash-widget-shortcuts,
 body.app-mode-field #dashboard-view #dash-widget-recent-logs,
-body.app-mode-field #dashboard-view #dash-widget-route-stats,
-body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-shortcuts"],
-body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-recent-logs"],
-body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-stats"] {
+body.app-mode-field #dashboard-view #dash-widget-route-stats {
     display: none !important;
 }
 
@@ -1295,14 +1289,6 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
         </div>
     </div>
     <div class="header-actions">
-        <!-- Muokkaa näkymää / Valmis & Tallenna -->
-        <button type="button" id="btn-toggle-dashboard-edit" class="btn-toggle-dashboard-edit btn btn-outline" onclick="toggleDashboardEditMode()" title="Muokkaa näkymää">
-            <span>✏️</span> <span class="edit-btn-text">Muokkaa</span>
-        </button>
-        <button type="button" id="btn-topbar-add-widget" class="btn btn-primary" onclick="openAddWidgetModal()" title="Lisää piilotettu tai uusi kortti" style="display: none;">
-            <span>➕</span> <span>Lisää kortti</span>
-        </button>
-
         <!-- Yhteystilakuvake ☁️ -->
         <div id="connectionStatusIndicator" class="connection-status-pill" title="Yhteystila: Yhdistetty paikallisesti ja pilveen" onclick="checkNetworkConnection(true)">
             <span class="connection-status-dot"></span>
@@ -1348,312 +1334,259 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
                     <button type="button" class="btn-primary" onclick="switchTab('routes')" style="display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 16px; font-weight: 600;">
                         🗺️ Avaa karttanäkymä
                     </button>
-                    <button type="button" id="btn-hero-toggle-edit" class="btn-toggle-dashboard-edit btn-outline" onclick="toggleDashboardEditMode()" style="display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 14px; font-weight: 600;" title="Muokkaa näkymää">
-                        <span>✏️</span> <span class="edit-btn-text">Muokkaa näkymää</span>
-                    </button>
-                    <button type="button" id="btn-add-widget" class="btn-primary" onclick="openAddWidgetModal()" style="display: none; align-items: center; gap: 6px; min-height: 40px; padding: 0 16px; font-weight: 700; background: #0284c7;" title="Lisää piilotettu tai uusi kortti">
-                        <span>➕</span> <span>Lisää kortti</span>
-                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- Android-Widget GridStack Grid -->
-        <div class="dashboard-grid grid-stack" id="dashboard-grid">
+        <!-- Kiinteä ja selkeä CSS Grid Dashboard -->
+        <div class="dashboard-grid" id="dashboard-grid">
             
-            <!-- WIDGET 1: [Päivän tilanne] (#dash-widget-progress) -->
-            <div class="grid-stack-item" gs-id="dash-widget-progress" gs-x="0" gs-y="0" gs-w="6" gs-h="4" gs-min-w="3" gs-min-h="2">
-                <div class="grid-stack-item-content card dash-widget-card collapsible-card" id="dash-widget-progress">
-                    <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('dash-widget-progress')" title="Piilota kortti" style="display: none;">✕</button>
-                    <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
-                        <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
-                            <span>📊</span> <span>Päivän tilanne</span>
-                        </h3>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span id="dashProgressPercent" style="font-weight: 800; font-size: 1.1rem; color: #10b981;">0%</span>
-                            <span class="collapse-chevron">▾</span>
-                        </div>
-                    </div>
-                    <div class="card-collapsible-body">
-                        <div style="font-size: 1.15rem; font-weight: 800; color: var(--fg); margin-bottom: 8px;" id="dashProgressSummaryText">
-                            Tehty 0 / 0 pihaa (0 %)
-                        </div>
-                        <div class="progress-bar-track" style="height: 12px; border-radius: 6px; background: var(--bg-secondary); overflow: hidden; margin-bottom: 12px;">
-                            <div id="dashProgressBarFill" class="progress-bar-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #10b981, #059669); transition: width 0.4s ease;"></div>
-                        </div>
-                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center;">
-                            <div style="background: var(--bg-card-secondary, rgba(255,255,255,0.03)); padding: 10px 6px; border-radius: var(--radius-md); border: 1px solid var(--border);">
-                                <div style="font-size: 0.74rem; color: var(--muted); text-transform: uppercase;">Kuitatut</div>
-                                <div id="dashDoneCount" style="font-size: 1.25rem; font-weight: 800; color: #10b981; margin-top: 2px;">0</div>
-                            </div>
-                            <div style="background: var(--bg-card-secondary, rgba(255,255,255,0.03)); padding: 10px 6px; border-radius: var(--radius-md); border: 1px solid var(--border);">
-                                <div style="font-size: 0.74rem; color: var(--muted); text-transform: uppercase;">Jäljellä</div>
-                                <div id="dashRemainingCount" style="font-size: 1.25rem; font-weight: 800; color: var(--accent-amber, #f59e0b); margin-top: 2px;">0</div>
-                            </div>
-                            <div style="background: var(--bg-card-secondary, rgba(255,255,255,0.03)); padding: 10px 6px; border-radius: var(--radius-md); border: 1px solid var(--border);">
-                                <div style="font-size: 0.74rem; color: var(--muted); text-transform: uppercase;">Yhteensä</div>
-                                <div id="dashTotalCount" style="font-size: 1.25rem; font-weight: 800; color: var(--fg); margin-top: 2px;">0</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- WIDGET A: SÄÄTIEDOT & ENNUSTE (#dash-widget-weather) -->
-            <div class="grid-stack-item" gs-id="dash-widget-weather" gs-x="6" gs-y="0" gs-w="6" gs-h="4" gs-min-w="3" gs-min-h="2">
-                <div class="grid-stack-item-content card dash-widget-card collapsible-card" id="dash-widget-weather">
-                    <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('dash-widget-weather')" title="Piilota kortti" style="display: none;">✕</button>
-                    <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
-                        <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
-                            <span>❄️</span> <span>Säätiedot &amp; Lumiennuste</span>
-                        </h3>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span class="badge" id="dashWeatherLocationBadge" style="font-size: 0.74rem;">Tampere</span>
-                            <span class="collapse-chevron">▾</span>
-                        </div>
-                    </div>
-                    <div class="card-collapsible-body" id="dashWeatherBody">
-                        <div id="dashWeatherContent">
-                            <div style="padding: 12px; text-align: center; color: var(--muted); font-size: 0.85rem;">
-                                Haetaan reaaliaikaista säätietoa...
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- WIDGET B: KOKO KAUPUNGIN TILANNEKARTTA (#dash-widget-map) -->
-            <div class="grid-stack-item" gs-id="dash-widget-map" gs-x="0" gs-y="4" gs-w="12" gs-h="6" gs-min-w="6" gs-min-h="4">
-                <div class="grid-stack-item-content card dash-widget-card collapsible-card" id="dash-widget-map">
-                    <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('dash-widget-map')" title="Piilota kortti" style="display: none;">✕</button>
-                    <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
-                        <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
-                            <span>🗺️</span> <span>Koko kaupungin tilannekartta</span>
-                        </h3>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span class="status-pill status-ready" id="dashCityMapCountBadge" style="font-size: 0.74rem;">0 kohdetta</span>
-                            <span class="collapse-chevron">▾</span>
-                        </div>
-                    </div>
-                    <div class="card-collapsible-body" style="padding: 0; position: relative;">
-                        <!-- YHTENÄINEN KARTTATYÖKALUPALKKI (.map-toolbar) -->
-                        <div class="map-toolbar" id="dashMapToolbar" style="border-radius: 0; border-left: none; border-right: none; border-top: none;">
-                            <button type="button" class="btn-map-tool" onclick="toggleDashboardCityMapBase(this)" title="Vaihda karttapohjaa">
-                                <span>🗺️</span> <span>Karttatyyli</span>
-                            </button>
-                            <button type="button" class="btn-map-tool" onclick="centerDashboardCityMap()" title="Keskitä kohteisiin">
-                                📍 Keskitä kohteisiin
-                            </button>
-                            <button type="button" class="btn-map-tool" onclick="centerDashboardCityMapUserLocation()" title="Oma sijainti">
-                                🎯 Oma sijainti
-                            </button>
-                            <button type="button" class="btn-map-tool" onclick="toggleMapFullscreen('dashboardCityMap', this)" title="Koko näyttö">
-                                ⛶ Koko näyttö
-                            </button>
-                        </div>
-                        <div style="position: relative; width: 100%; height: 350px;" class="map-fullscreen-wrapper">
-                            <div id="dashboardCityMap" style="width: 100%; height: 100%; min-height: 350px; background: #0b1120;"></div>
-                            <button type="button" class="map-btn-fullscreen" onclick="toggleMapFullscreen('dashboardCityMap', this)" title="Koko näyttö" aria-label="Koko näyttö" style="display: none;">
-                                ⛶ Koko näyttö
-                            </button>
-                        </div>
-                        <div style="padding: 8px 14px; display: flex; gap: 16px; align-items: center; font-size: 0.78rem; border-top: 1px solid var(--border-default, #30363d); background: var(--canvas-subtle, #0d1117); flex-wrap: wrap;">
-                            <span style="display: inline-flex; align-items: center; gap: 6px;">
-                                <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #10b981;"></span> Vihreä = Kuitattu tänään
-                            </span>
-                            <span style="display: inline-flex; align-items: center; gap: 6px;">
-                                <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #ef4444;"></span> Punainen = Tekemättä
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- WIDGET D: KULJETTAJATILANNE (#dash-widget-drivers-accordion) -->
-            <div class="grid-stack-item" gs-id="dash-widget-drivers-accordion" gs-x="0" gs-y="10" gs-w="12" gs-h="6" gs-min-w="6" gs-min-h="4">
-                <div class="grid-stack-item-content card dash-widget-card collapsible-card" id="dash-widget-drivers-accordion">
-                    <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('dash-widget-drivers-accordion')" title="Piilota kortti" style="display: none;">✕</button>
-                    <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
-                        <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
-                            <span>🚜</span> <span>Kuljettajatilanne</span>
-                        </h3>
+            <!-- OSIO 1: SÄÄTIEDOT & ENNUSTE (#dash-widget-weather) -->
+            <div class="card dash-widget-card dash-widget-weather collapsible-card" id="dash-widget-weather">
+                <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
+                    <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+                        <span>❄️</span> <span>Säätiedot &amp; Lumiennuste</span>
+                    </h3>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="badge" id="dashWeatherLocationBadge" style="font-size: 0.74rem;">Tampere</span>
                         <span class="collapse-chevron">▾</span>
                     </div>
-                    <div class="card-collapsible-body">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
-                            <div style="display: flex; gap: 6px;">
-                                <button type="button" class="btn-filter-pill active" id="btnFilterDriversAll" onclick="setDriverOverviewFilter('all', this)">Kaikki</button>
-                                <button type="button" class="btn-filter-pill" id="btnFilterDriversPending" onclick="setDriverOverviewFilter('pending', this)">Tekemättä</button>
-                                <button type="button" class="btn-filter-pill" id="btnFilterDriversDone" onclick="setDriverOverviewFilter('done', this)">Valmiit</button>
-                            </div>
-                            <div id="driverOverviewSummary" style="font-size: 0.8rem; color: var(--fg-muted, #848d97);">
-                                0 kuljettajaa
-                            </div>
-                        </div>
-                        <div id="driverAccordionContainer">
-                            <!-- Populated dynamically -->
+                </div>
+                <div class="card-collapsible-body" id="dashWeatherBody">
+                    <div id="dashWeatherContent">
+                        <div style="padding: 12px; text-align: center; color: var(--muted); font-size: 0.85rem;">
+                            Haetaan reaaliaikaista säätietoa...
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- WIDGET 2: [Seuraava kohde] (#dash-widget-next-stop) -->
-            <div class="grid-stack-item" gs-id="dash-widget-next-stop" gs-x="6" gs-y="0" gs-w="6" gs-h="4" gs-min-w="3" gs-min-h="2">
-                <div class="grid-stack-item-content card dash-widget-card collapsible-card" id="dash-widget-next-stop">
-                    <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('dash-widget-next-stop')" title="Piilota kortti" style="display: none;">✕</button>
-                    <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
-                        <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
-                            <span>📍</span> <span>Seuraava ajokohde</span>
-                        </h3>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span class="status-pill status-ready" id="dashNextStopOrder" style="font-size: 0.74rem;">Seuraava #1</span>
-                            <span class="collapse-chevron">▾</span>
-                        </div>
-                    </div>
-                    <div class="card-collapsible-body">
-                        <div id="dashNextStopContent">
-                            <!-- Populated dynamically -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- WIDGET 3: [Reitin pika-analyysi / Siirtymämatkat] (#dash-widget-route-stats) -->
-            <div class="grid-stack-item admin-only" gs-id="dash-widget-route-stats" gs-x="0" gs-y="4" gs-w="6" gs-h="4" gs-min-w="3" gs-min-h="2">
-                <div class="grid-stack-item-content card dash-widget-card collapsible-card admin-only" id="dash-widget-route-stats">
-                    <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('dash-widget-route-stats')" title="Piilota kortti" style="display: none;">✕</button>
-                    <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
-                        <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
-                            <span>⚡</span> <span>Siirtymämatkat &amp; Ajoaika</span>
-                        </h3>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span style="font-size: 0.75rem; color: var(--muted);">Tietä pitkin</span>
-                            <span class="collapse-chevron">▾</span>
-                        </div>
-                    </div>
-                    <div class="card-collapsible-body">
-                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center;">
-                            <div style="background: var(--bg-card-secondary, rgba(255,255,255,0.03)); padding: 10px 6px; border-radius: var(--radius-md); border: 1px solid var(--border);">
-                                <div style="font-size: 0.74rem; color: var(--muted);">Siirtymät</div>
-                                <div id="dashRouteDistance" style="font-size: 1.1rem; font-weight: 800; color: var(--fg); margin-top: 2px;">0.0 km</div>
-                            </div>
-                            <div style="background: var(--bg-card-secondary, rgba(255,255,255,0.03)); padding: 10px 6px; border-radius: var(--radius-md); border: 1px solid var(--border);">
-                                <div style="font-size: 0.74rem; color: var(--muted);">Ajoaika</div>
-                                <div id="dashRouteDuration" style="font-size: 1.1rem; font-weight: 800; color: var(--fg); margin-top: 2px;">0 min</div>
-                            </div>
-                            <div style="background: var(--bg-card-secondary, rgba(255,255,255,0.03)); padding: 10px 6px; border-radius: var(--radius-md); border: 1px solid var(--border);">
-                                <div style="font-size: 0.74rem; color: var(--muted);">Kohteita</div>
-                                <div id="dashRouteStopsCountSmall" style="font-size: 1.1rem; font-weight: 800; color: #10b981; margin-top: 2px;">0 kpl</div>
-                            </div>
-                        </div>
-                        <div style="margin-top: 12px; font-size: 0.78rem; color: var(--muted); display: flex; justify-content: space-between; align-items: center;">
-                            <span id="dashRouteStopsCount">0 kohdetta reitillä</span>
-                            <button type="button" class="btn-outline admin-only" style="padding: 4px 10px; font-size: 0.78rem;" onclick="setAppMode('admin'); switchTab('routes'); setTimeout(autoOptimizeRoute, 150);">⚡ Optimoi reitti</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- WIDGET 4: [Päivän esteet & huomiot] (#dash-widget-tickets) -->
-            <div class="grid-stack-item" gs-id="dash-widget-tickets" gs-x="6" gs-y="4" gs-w="6" gs-h="4" gs-min-w="3" gs-min-h="2">
-                <div class="grid-stack-item-content card dash-widget-card collapsible-card" id="dash-widget-tickets">
-                    <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('dash-widget-tickets')" title="Piilota kortti" style="display: none;">✕</button>
-                    <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
-                        <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
-                            <span>⚠️</span> <span>Päivän esteet</span>
-                        </h3>
-                        <span class="status-pill status-ready" id="dashTicketsBadge" style="font-size: 0.74rem;">0 kpl</span>
-                    </div>
-                    <div class="card-collapsible-body">
-                        <div id="dashTicketsList" style="font-size: 0.85rem; color: var(--muted);">
-                            Ei aktiivisia esteitä tai erityishuomioita.
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- WIDGET 5: [Päivän työjono & ajojärjestys] (#dash-widget-queue) -->
-            <div class="grid-stack-item" gs-id="dash-widget-queue" gs-x="0" gs-y="8" gs-w="6" gs-h="4" gs-min-w="3" gs-min-h="2">
-                <div class="grid-stack-item-content card dash-widget-card collapsible-card" id="dash-widget-queue">
-                    <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('dash-widget-queue')" title="Piilota kortti" style="display: none;">✕</button>
-                    <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
-                        <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
-                            <span>🚜</span> <span>Työjono</span>
-                        </h3>
-                        <span class="status-pill" id="dashQueueCountBadge" style="font-size: 0.74rem;">0 kohdetta</span>
-                    </div>
-                    <div class="card-collapsible-body">
-                        <div id="dashQueueList" style="max-height: 180px; overflow-y: auto;">
-                            <div style="font-size: 0.84rem; color: var(--muted);">Ei kohteita aktiivisella reitillä.</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- WIDGET 6: [Pikalinkit / Reitin pikatoiminnot] (#dash-widget-shortcuts) -->
-            <div class="grid-stack-item" gs-id="dash-widget-shortcuts" gs-x="6" gs-y="8" gs-w="6" gs-h="4" gs-min-w="3" gs-min-h="2">
-                <div class="grid-stack-item-content card dash-widget-card collapsible-card" id="dash-widget-shortcuts">
-                    <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('dash-widget-shortcuts')" title="Piilota kortti" style="display: none;">✕</button>
-                    <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
-                        <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
-                            <span>🚀</span> <span>Pikalinkit</span>
-                        </h3>
+            <!-- OSIO 2: TÖIDEN EDISTYMINEN (#dash-widget-progress) -->
+            <div class="card dash-widget-card dash-widget-progress collapsible-card" id="dash-widget-progress">
+                <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
+                    <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+                        <span>📊</span> <span>Päivän tilanne</span>
+                    </h3>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span id="dashProgressPercent" style="font-weight: 800; font-size: 1.1rem; color: #10b981;">0%</span>
                         <span class="collapse-chevron">▾</span>
                     </div>
-                    <div class="card-collapsible-body">
-                        <div style="display: flex; flex-direction: column; gap: 8px;">
-                            <button type="button" class="btn-primary" style="display: flex; align-items: center; gap: 8px; justify-content: center; min-height: 42px; font-weight: 600;" onclick="openCreateRouteModal()">
-                                <span>➕</span> <span>Luo uusi reitti</span>
-                            </button>
-                            <button type="button" class="btn-secondary" style="display: flex; align-items: center; gap: 8px; justify-content: center; min-height: 42px;" onclick="switchTab('history'); setTimeout(exportWorkHistoryPDF, 150);">
-                                <span>📄</span> <span>Lataa työraportti (PDF)</span>
-                            </button>
-                            <button type="button" class="btn-outline" style="display: flex; align-items: center; gap: 8px; justify-content: center; min-height: 42px;" onclick="switchTab('customers'); setTimeout(() => { const d = document.getElementById('addCustomerDrawer'); if (d) d.style.display = 'block'; }, 150);">
-                                <span>👥</span> <span>Uusi asiakas</span>
-                            </button>
+                </div>
+                <div class="card-collapsible-body">
+                    <div style="font-size: 1.15rem; font-weight: 800; color: var(--fg); margin-bottom: 8px;" id="dashProgressSummaryText">
+                        Tehty 0 / 0 pihaa (0 %)
+                    </div>
+                    <div class="progress-bar-track" style="height: 12px; border-radius: 6px; background: var(--bg-secondary); overflow: hidden; margin-bottom: 12px;">
+                        <div id="dashProgressBarFill" class="progress-bar-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #10b981, #059669); transition: width 0.4s ease;"></div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center;">
+                        <div style="background: var(--bg-card-secondary, rgba(255,255,255,0.03)); padding: 10px 6px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                            <div style="font-size: 0.74rem; color: var(--muted); text-transform: uppercase;">Kuitatut</div>
+                            <div id="dashDoneCount" style="font-size: 1.25rem; font-weight: 800; color: #10b981; margin-top: 2px;">0</div>
+                        </div>
+                        <div style="background: var(--bg-card-secondary, rgba(255,255,255,0.03)); padding: 10px 6px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                            <div style="font-size: 0.74rem; color: var(--muted); text-transform: uppercase;">Jäljellä</div>
+                            <div id="dashRemainingCount" style="font-size: 1.25rem; font-weight: 800; color: var(--accent-amber, #f59e0b); margin-top: 2px;">0</div>
+                        </div>
+                        <div style="background: var(--bg-card-secondary, rgba(255,255,255,0.03)); padding: 10px 6px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                            <div style="font-size: 0.74rem; color: var(--muted); text-transform: uppercase;">Yhteensä</div>
+                            <div id="dashTotalCount" style="font-size: 1.25rem; font-weight: 800; color: var(--fg); margin-top: 2px;">0</div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- WIDGET 7: [Viimeisimmät kuittaukset] (#dash-widget-recent-logs) -->
-            <div class="grid-stack-item admin-only" gs-id="dash-widget-recent-logs" gs-x="0" gs-y="12" gs-w="12" gs-h="4" gs-min-w="4" gs-min-h="2">
-                <div class="grid-stack-item-content card dash-widget-card collapsible-card admin-only" id="dash-widget-recent-logs">
-                    <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('dash-widget-recent-logs')" title="Piilota kortti" style="display: none;">✕</button>
-                    <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
-                        <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
-                            <span>📋</span> <span>Viimeisimmät kuittaukset</span>
-                        </h3>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <button type="button" class="btn-outline" style="padding: 4px 10px; font-size: 0.78rem;" onclick="event.stopPropagation(); switchTab('history')">Näytä kaikki työt →</button>
-                            <span class="collapse-chevron">▾</span>
-                        </div>
+            <!-- OSIO 3: KOKONAISTILANNEKARTTA (#dash-widget-map) -->
+            <div class="card dash-widget-card dash-widget-map collapsible-card" id="dash-widget-map">
+                <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
+                    <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+                        <span>🗺️</span> <span>Kokonaistilannekartta</span>
+                    </h3>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="status-pill status-ready" id="dashCityMapCountBadge" style="font-size: 0.74rem;">0 kohdetta</span>
+                        <span class="collapse-chevron">▾</span>
                     </div>
-                    <div class="card-collapsible-body">
-                        <div id="dashRecentLogsList">
-                            <!-- Populated dynamically -->
-                        </div>
+                </div>
+                <div class="card-collapsible-body" style="padding: 0; position: relative;">
+                    <!-- YHTENÄINEN KARTTATYÖKALUPALKKI (.map-toolbar) -->
+                    <div class="map-toolbar" id="dashMapToolbar" style="border-radius: 0; border-left: none; border-right: none; border-top: none;">
+                        <button type="button" class="btn-map-tool" onclick="toggleDashboardCityMapBase(this)" title="Vaihda karttapohjaa">
+                            <span>🗺️</span> <span>Karttatyyli</span>
+                        </button>
+                        <button type="button" class="btn-map-tool" onclick="centerDashboardCityMap()" title="Keskitä kohteisiin">
+                            📍 Keskitä kohteisiin
+                        </button>
+                        <button type="button" class="btn-map-tool" onclick="centerDashboardCityMapUserLocation()" title="Oma sijainti">
+                            🎯 Oma sijainti
+                        </button>
+                        <button type="button" class="btn-map-tool" onclick="toggleMapFullscreen('dashboardCityMap', this)" title="Koko näyttö">
+                            ⛶ Koko näyttö
+                        </button>
+                    </div>
+                    <div style="position: relative; width: 100%; height: 350px;" class="map-fullscreen-wrapper">
+                        <div id="dashboardCityMap" style="width: 100%; height: 100%; min-height: 350px; background: #0b1120;"></div>
+                        <button type="button" class="map-btn-fullscreen" onclick="toggleMapFullscreen('dashboardCityMap', this)" title="Koko näyttö" aria-label="Koko näyttö" style="display: none;">
+                            ⛶ Koko näyttö
+                        </button>
+                    </div>
+                    <div style="padding: 8px 14px; display: flex; gap: 16px; align-items: center; font-size: 0.78rem; border-top: 1px solid var(--border-default, #30363d); background: var(--canvas-subtle, #0d1117); flex-wrap: wrap;">
+                        <span style="display: inline-flex; align-items: center; gap: 6px;">
+                            <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #10b981;"></span> Vihreä = Kuitattu tänään
+                        </span>
+                        <span style="display: inline-flex; align-items: center; gap: 6px;">
+                            <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #ef4444;"></span> Punainen = Tekemättä
+                        </span>
                     </div>
                 </div>
             </div>
 
-        </div>
-    </div>
+            <!-- OSIO 4: KULJETTAJATILANNE (Accordion) (#dash-widget-drivers-accordion) -->
+            <div class="card dash-widget-card dash-widget-drivers-accordion collapsible-card" id="dash-widget-drivers-accordion">
+                <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
+                    <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+                        <span>🚜</span> <span>Kuljettajatilanne</span>
+                    </h3>
+                    <span class="collapse-chevron">▾</span>
+                </div>
+                <div class="card-collapsible-body">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+                        <div style="display: flex; gap: 6px;">
+                            <button type="button" class="btn-filter-pill active" id="btnFilterDriversAll" onclick="setDriverOverviewFilter('all', this)">Kaikki</button>
+                            <button type="button" class="btn-filter-pill" id="btnFilterDriversPending" onclick="setDriverOverviewFilter('pending', this)">Tekemättä</button>
+                            <button type="button" class="btn-filter-pill" id="btnFilterDriversDone" onclick="setDriverOverviewFilter('done', this)">Valmiit</button>
+                        </div>
+                        <div id="driverOverviewSummary" style="font-size: 0.8rem; color: var(--fg-muted, #848d97);">
+                            0 kuljettajaa
+                        </div>
+                    </div>
+                    <div id="driverAccordionContainer">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+            </div>
 
-    <!-- LISÄÄ WIDGET -MODAALI (#modal-add-widget) -->
-    <div id="modal-add-widget" class="modal-backdrop-custom modal-add-widget" style="display: none; position: fixed; inset: 0; z-index: 100000; background: rgba(15, 23, 42, 0.88); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 20px;">
-        <div class="card" style="max-width: 520px; width: 100%; max-height: 85vh; display: flex; flex-direction: column; padding: 24px; border-radius: 18px; background: var(--bg-card, #1e293b); border: 1px solid var(--border, rgba(255,255,255,0.12)); box-shadow: 0 16px 40px rgba(0,0,0,0.5);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
-                <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; display: flex; align-items: center; gap: 8px; color: var(--fg, #fff);">
-                    <span>➕</span> <span>Lisää kortti näkymään</span>
-                </h3>
-                <button type="button" class="tiny-btn" onclick="closeAddWidgetModal()" style="font-size: 1rem; padding: 4px 10px;">✕</button>
+            <!-- LISÄKORTTI: SEURAAVA KOHDE (#dash-widget-next-stop) -->
+            <div class="card dash-widget-card dash-widget-next-stop collapsible-card" id="dash-widget-next-stop">
+                <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
+                    <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+                        <span>📍</span> <span>Seuraava ajokohde</span>
+                    </h3>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="status-pill status-ready" id="dashNextStopOrder" style="font-size: 0.74rem;">Seuraava #1</span>
+                        <span class="collapse-chevron">▾</span>
+                    </div>
+                </div>
+                <div class="card-collapsible-body">
+                    <div id="dashNextStopContent">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
             </div>
-            <p style="margin: 0 0 14px 0; font-size: 0.85rem; color: var(--muted, #94a3b8);">Valitse haluamasi widget tai palauta piilotettu kortti päänäkymään:</p>
-            <div id="available-widgets-list" style="overflow-y: auto; flex: 1; max-height: 50vh; padding-right: 4px;"></div>
-            <div style="display: flex; justify-content: flex-end; margin-top: 16px; padding-top: 10px; border-top: 1px solid var(--border);">
-                <button type="button" class="btn btn-secondary btn-outline" onclick="closeAddWidgetModal()" style="padding: 8px 18px;">✕ Sulje</button>
+
+            <!-- LISÄKORTTI: SIIRTYMÄMATKAT (#dash-widget-route-stats) -->
+            <div class="card dash-widget-card dash-widget-route-stats collapsible-card admin-only" id="dash-widget-route-stats">
+                <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
+                    <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+                        <span>⚡</span> <span>Siirtymämatkat &amp; Ajoaika</span>
+                    </h3>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 0.75rem; color: var(--muted);">Tietä pitkin</span>
+                        <span class="collapse-chevron">▾</span>
+                    </div>
+                </div>
+                <div class="card-collapsible-body">
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center;">
+                        <div style="background: var(--bg-card-secondary, rgba(255,255,255,0.03)); padding: 10px 6px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                            <div style="font-size: 0.74rem; color: var(--muted);">Siirtymät</div>
+                            <div id="dashRouteDistance" style="font-size: 1.1rem; font-weight: 800; color: var(--fg); margin-top: 2px;">0.0 km</div>
+                        </div>
+                        <div style="background: var(--bg-card-secondary, rgba(255,255,255,0.03)); padding: 10px 6px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                            <div style="font-size: 0.74rem; color: var(--muted);">Ajoaika</div>
+                            <div id="dashRouteDuration" style="font-size: 1.1rem; font-weight: 800; color: var(--fg); margin-top: 2px;">0 min</div>
+                        </div>
+                        <div style="background: var(--bg-card-secondary, rgba(255,255,255,0.03)); padding: 10px 6px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                            <div style="font-size: 0.74rem; color: var(--muted);">Kohteita</div>
+                            <div id="dashRouteStopsCountSmall" style="font-size: 1.1rem; font-weight: 800; color: #10b981; margin-top: 2px;">0 kpl</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 12px; font-size: 0.78rem; color: var(--muted); display: flex; justify-content: space-between; align-items: center;">
+                        <span id="dashRouteStopsCount">0 kohdetta reitillä</span>
+                        <button type="button" class="btn-outline admin-only" style="padding: 4px 10px; font-size: 0.78rem;" onclick="setAppMode('admin'); switchTab('routes'); setTimeout(autoOptimizeRoute, 150);">⚡ Optimoi reitti</button>
+                    </div>
+                </div>
             </div>
+
+            <!-- LISÄKORTTI: PÄIVÄN ESTEET (#dash-widget-tickets) -->
+            <div class="card dash-widget-card dash-widget-tickets collapsible-card" id="dash-widget-tickets">
+                <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
+                    <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+                        <span>⚠️</span> <span>Päivän esteet</span>
+                    </h3>
+                    <span class="status-pill status-ready" id="dashTicketsBadge" style="font-size: 0.74rem;">0 kpl</span>
+                </div>
+                <div class="card-collapsible-body">
+                    <div id="dashTicketsList" style="font-size: 0.85rem; color: var(--muted);">
+                        Ei aktiivisia esteitä tai erityishuomioita.
+                    </div>
+                </div>
+            </div>
+
+            <!-- LISÄKORTTI: TYÖJONO (#dash-widget-queue) -->
+            <div class="card dash-widget-card dash-widget-queue collapsible-card" id="dash-widget-queue">
+                <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
+                    <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+                        <span>🚜</span> <span>Työjono</span>
+                    </h3>
+                    <span class="status-pill" id="dashQueueCountBadge" style="font-size: 0.74rem;">0 kohdetta</span>
+                </div>
+                <div class="card-collapsible-body">
+                    <div id="dashQueueList" style="max-height: 180px; overflow-y: auto;">
+                        <div style="font-size: 0.84rem; color: var(--muted);">Ei kohteita aktiivisella reitillä.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LISÄKORTTI: PIKALINKIT (#dash-widget-shortcuts) -->
+            <div class="card dash-widget-card dash-widget-shortcuts collapsible-card" id="dash-widget-shortcuts">
+                <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
+                    <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+                        <span>🚀</span> <span>Pikalinkit</span>
+                    </h3>
+                    <span class="collapse-chevron">▾</span>
+                </div>
+                <div class="card-collapsible-body">
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <button type="button" class="btn-primary" style="display: flex; align-items: center; gap: 8px; justify-content: center; min-height: 42px; font-weight: 600;" onclick="openCreateRouteModal()">
+                            <span>➕</span> <span>Luo uusi reitti</span>
+                        </button>
+                        <button type="button" class="btn-secondary" style="display: flex; align-items: center; gap: 8px; justify-content: center; min-height: 42px;" onclick="switchTab('history'); setTimeout(exportWorkHistoryPDF, 150);">
+                            <span>📄</span> <span>Lataa työraportti (PDF)</span>
+                        </button>
+                        <button type="button" class="btn-outline" style="display: flex; align-items: center; gap: 8px; justify-content: center; min-height: 42px;" onclick="switchTab('customers'); setTimeout(() => { const d = document.getElementById('addCustomerDrawer'); if (d) d.style.display = 'block'; }, 150);">
+                            <span>👥</span> <span>Uusi asiakas</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LISÄKORTTI: VIIMEISIMMÄT KUITTAUKSET (#dash-widget-recent-logs) -->
+            <div class="card dash-widget-card dash-widget-recent-logs collapsible-card admin-only" id="dash-widget-recent-logs">
+                <div class="dash-widget-header card-header-clickable" onclick="toggleCardCollapse(this)">
+                    <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+                        <span>📋</span> <span>Viimeisimmät kuittaukset</span>
+                    </h3>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <button type="button" class="btn-outline" style="padding: 4px 10px; font-size: 0.78rem;" onclick="event.stopPropagation(); switchTab('history')">Näytä kaikki työt →</button>
+                        <span class="collapse-chevron">▾</span>
+                    </div>
+                </div>
+                <div class="card-collapsible-body">
+                    <div id="dashRecentLogsList">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -1999,30 +1932,13 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
 
             <h3>
                 <span id="yardMapTitleText">🗺️ Kartta &amp; Alueiden piirto</span>
-                <div class="admin-map-quick-controls" style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
-                    <div class="admin-only" style="display: inline-flex; background: rgba(0,0,0,0.25); padding: 2px; border-radius: var(--radius-sm); border: 1px solid var(--border); gap: 2px;">
-                        <button type="button" id="adminMapBaseSatBtn" class="tiny-btn active" onclick="setMapBaseLayer('satellite')" title="🛰️ Satelliitti (Esri World Imagery)">
-                            🛰️ Satelliitti
-                        </button>
-                        <button type="button" id="adminMapBaseStreetBtn" class="tiny-btn" onclick="setMapBaseLayer('street')" title="🗺️ Normaali kartta (OpenStreetMap)">
-                            🗺️ Normaali kartta
-                        </button>
-                    </div>
-                    <button type="button" id="quickMapBaseToggleBtn" class="tiny-btn driver-only" onclick="toggleMapBaseQuick()" title="Vaihda karttapohjaa (Satelliitti / Selkeä peruskartta)">
-                        🛰️ Satelliitti
-                    </button>
-                    <button type="button" id="quickMapBoundariesBtn" class="tiny-btn" onclick="toggleBoundariesQuick()" title="Kytke tontin- ja kiinteistörajat päälle tai pois">
-                        📐 Rajat: Pois
-                    </button>
-                    <button type="button" id="btn-toggle-geofence-quick" class="tiny-btn driver-only" onclick="toggleDriverGeofenceLayer()" title="Piilota tai näytä geofencing">
-                        🚫 Geofence
-                    </button>
-                    <button type="button" id="btn-toggle-plow-areas-quick" class="tiny-btn driver-only" onclick="toggleDriverPlowAreasLayer()" title="Piilota tai näytä aurausalueet">
-                        🚜 Alueet
-                    </button>
-                    <button type="button" class="tiny-btn" onclick="openStreetViewCurrentMapTarget()" title="Avaa valittu kohde Google Street View -katunäkymässä">
-                        🛣️ Street View
-                    </button>
+                <div style="display: none;">
+                    <button type="button" id="adminMapBaseSatBtn" onclick="setMapBaseLayer('satellite')"></button>
+                    <button type="button" id="adminMapBaseStreetBtn" onclick="setMapBaseLayer('street')"></button>
+                    <button type="button" id="quickMapBoundariesBtn" onclick="toggleBoundariesQuick()"></button>
+                    <button type="button" id="quickMapBaseToggleBtn" onclick="toggleMapBaseQuick()"></button>
+                    <button type="button" id="btn-toggle-geofence-quick" onclick="toggleDriverGeofenceLayer()"></button>
+                    <button type="button" id="btn-toggle-plow-areas-quick" onclick="toggleDriverPlowAreasLayer()"></button>
                 </div>
             </h3>
 
@@ -2084,7 +2000,7 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
 
             <!-- YHTENÄINEN KARTTATYÖKALUPALKKI (.map-toolbar) -->
             <div class="map-toolbar" id="yardMapToolbar">
-                <button type="button" class="btn-map-tool" id="btn-toggle-map-layer" onclick="toggleMapBaseUnified()" title="Vaihda karttapohjaa (Kartta / Satelliitti)">
+                <button type="button" class="btn-map-tool" id="btn-toggle-basemap" onclick="toggleMapBaseUnified()" title="Vaihda karttapohjaa (Kartta / Satelliitti)">
                     <span id="mapLayerToggleIcon">🛰️</span> <span id="mapLayerToggleLabel">Satelliitti</span>
                 </button>
                 <button type="button" class="btn-map-tool" id="btn-center-target-toolbar" onclick="centerMapOnCurrentTarget()" title="Keskitä kohteeseen">
@@ -2130,166 +2046,106 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
         </div>
     </div>
 
-    <!-- NÄKYMÄ 1A: KULJETTAJAN REITTI JA WIDGETIT (#view-driver) -->
-    <div id="view-driver" class="grid-stack view-pane view-driver-grid view-section" data-view="view-driver" style="display: none; width: 100%; max-width: 1200px; margin: 0 auto;">
-        <!-- Widget 1: Driver HUD -->
-        <div class="grid-stack-item" gs-id="driver-widget-hud" gs-w="12" gs-h="4" gs-x="0" gs-y="0">
-            <div class="grid-stack-item-content">
-                <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('driver-widget-hud', 'driver')" title="Piilota kortti">✕</button>
-                <div class="card" style="height: 100%; box-sizing: border-box; overflow: auto; padding: 14px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <span style="font-weight: 800; font-size: 0.88rem; color: #38bdf8; text-transform: uppercase;">📍 Nykyinen kohde</span>
-                        <div class="driver-hud-badge route-step-badge">
-                            <span class="hud-pulse-dot"></span>
-                            <span id="viewDriverHudStep" class="route-step-indicator">1 / 4</span>
-                        </div>
-                    </div>
-                    <div id="viewDriverHudName" style="font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px;">Kohteen nimi</div>
-                    <div id="viewDriverHudAddress" style="font-size: 0.88rem; color: var(--muted); margin-bottom: 10px;">📍 Osoite</div>
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                        <button type="button" class="btn-primary" onclick="navigateToNextYard()" style="flex: 1; min-height: 40px; font-weight: 700;">🧭 Navigoi</button>
-                        <button type="button" class="btn-outline" onclick="openPhotoCaptureForActiveTarget()" style="flex: 1; min-height: 40px;">📷 Ota kuva</button>
-                    </div>
+    <!-- NÄKYMÄ 1A: KULJETTAJAN REITTI JA TOIMINNOT (#view-driver) -->
+    <div id="view-driver" class="view-pane view-driver-grid view-section" data-view="view-driver" style="display: none; width: 100%; max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px;">
+        <!-- Card 1: Driver HUD -->
+        <div class="card" id="driver-widget-hud" style="box-sizing: border-box; overflow: auto; padding: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-weight: 800; font-size: 0.88rem; color: #38bdf8; text-transform: uppercase;">📍 Nykyinen kohde</span>
+                <div class="driver-hud-badge route-step-badge">
+                    <span class="hud-pulse-dot"></span>
+                    <span id="viewDriverHudStep" class="route-step-indicator">1 / 4</span>
                 </div>
+            </div>
+            <div id="viewDriverHudName" style="font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px;">Kohteen nimi</div>
+            <div id="viewDriverHudAddress" style="font-size: 0.88rem; color: var(--muted); margin-bottom: 10px;">📍 Osoite</div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button type="button" class="btn-primary" onclick="navigateToNextYard()" style="flex: 1; min-height: 40px; font-weight: 700;">🧭 Navigoi</button>
+                <button type="button" class="btn-outline" onclick="openPhotoCaptureForActiveTarget()" style="flex: 1; min-height: 40px;">📷 Ota kuva</button>
             </div>
         </div>
 
-        <!-- Widget 2: Kartta -->
-        <div class="grid-stack-item" gs-id="driver-widget-map" gs-w="12" gs-h="7" gs-x="0" gs-y="4">
-            <div class="grid-stack-item-content">
-                <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('driver-widget-map', 'driver')" title="Piilota kortti">✕</button>
-                <div class="card" style="height: 100%; box-sizing: border-box; overflow: hidden; position: relative; padding: 0;">
-                    <div id="driverMapContainer" style="width: 100%; height: 100%; min-height: 280px; background: #1e293b; display: flex; align-items: center; justify-content: center;">
-                        <span style="color: var(--muted); font-size: 0.9rem;">🗺️ Reittikartta</span>
-                    </div>
-                    <button type="button" class="map-fab-gps" onclick="centerMapOnUserLocation()" title="Keskitä omaan sijaintiin (GPS)" style="position: absolute; right: 14px; bottom: 14px; z-index: 10;">
-                        <span class="gps-icon">🎯</span>
-                    </button>
-                </div>
+        <!-- Card 2: Kartta -->
+        <div class="card" id="driver-widget-map" style="box-sizing: border-box; overflow: hidden; position: relative; padding: 0; min-height: 350px;">
+            <div id="driverMapContainer" style="width: 100%; height: 100%; min-height: 350px; background: #1e293b; display: flex; align-items: center; justify-content: center;">
+                <span style="color: var(--muted); font-size: 0.9rem;">🗺️ Reittikartta</span>
             </div>
+            <button type="button" class="map-fab-gps" onclick="centerMapOnUserLocation()" title="Keskitä omaan sijaintiin (GPS)" style="position: absolute; right: 14px; bottom: 14px; z-index: 10;">
+                <span class="gps-icon">🎯</span>
+            </button>
         </div>
 
-        <!-- Widget 3: Kuittaus ja pikatoiminnot -->
-        <div class="grid-stack-item" gs-id="driver-widget-actions" gs-w="12" gs-h="3" gs-x="0" gs-y="11">
-            <div class="grid-stack-item-content">
-                <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('driver-widget-actions', 'driver')" title="Piilota kortti">✕</button>
-                <div class="card" style="height: 100%; box-sizing: border-box; display: flex; gap: 10px; align-items: center; padding: 12px;">
-                    <button type="button" class="btn-driver-complete" onclick="completeNextYard()" style="flex: 2; height: 100%; min-height: 46px;">
-                        <span>✓</span> <span>KUITTAA TEHDYKSI</span>
-                    </button>
-                    <button type="button" class="btn-driver-obstacle" onclick="reportNextYardObstacle()" style="flex: 1; height: 100%; min-height: 46px;">
-                        ⚠️ Este
-                    </button>
-                </div>
-            </div>
+        <!-- Card 3: Kuittaus ja pikatoiminnot -->
+        <div class="card" id="driver-widget-actions" style="box-sizing: border-box; display: flex; gap: 10px; align-items: center; padding: 12px;">
+            <button type="button" class="btn-driver-complete" onclick="completeNextYard()" style="flex: 2; height: 100%; min-height: 46px;">
+                <span>✓</span> <span>KUITTAA TEHDYKSI</span>
+            </button>
+            <button type="button" class="btn-driver-obstacle" onclick="reportNextYardObstacle()" style="flex: 1; height: 100%; min-height: 46px;">
+                ⚠️ Este
+            </button>
         </div>
 
-        <!-- Widget 4: Päivän työjono -->
-        <div class="grid-stack-item" gs-id="driver-widget-queue" gs-w="12" gs-h="4" gs-x="0" gs-y="14">
-            <div class="grid-stack-item-content">
-                <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('driver-widget-queue', 'driver')" title="Piilota kortti">✕</button>
-                <div class="card" style="height: 100%; box-sizing: border-box; overflow: auto; padding: 14px;">
-                    <div style="font-weight: 700; margin-bottom: 8px;">📋 Päivän työjono</div>
-                    <div id="viewDriverQueueList" style="font-size: 0.85rem; color: var(--muted);">Reitin kohteet järjestyksessä...</div>
-                </div>
-            </div>
+        <!-- Card 4: Päivän työjono -->
+        <div class="card" id="driver-widget-queue" style="box-sizing: border-box; overflow: auto; padding: 14px;">
+            <div style="font-weight: 700; margin-bottom: 8px;">📋 Päivän työjono</div>
+            <div id="viewDriverQueueList" style="font-size: 0.85rem; color: var(--muted);">Reitin kohteet järjestyksessä...</div>
         </div>
     </div>
 
     <!-- NÄKYMÄ 1D: TYÖNJOHDON / ADMININ NÄKYMÄ (#view-admin) -->
-    <div id="view-admin" class="grid-stack view-pane view-admin-grid view-section" data-view="view-admin" style="display: none; width: 100%; max-width: 1200px; margin: 0 auto;">
-        <!-- Widget 1: Admin Kartta & Piirto -->
-        <div class="grid-stack-item" gs-id="admin-widget-map" gs-w="8" gs-h="7" gs-x="0" gs-y="0">
-            <div class="grid-stack-item-content">
-                <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('admin-widget-map', 'admin')" title="Piilota kortti">✕</button>
-                <div class="card" style="height: 100%; box-sizing: border-box; overflow: hidden; padding: 14px;">
-                    <div style="font-weight: 700; margin-bottom: 6px;">🗺️ Kartta ja aluepiirto</div>
-                    <div style="font-size: 0.8rem; color: var(--muted); margin-bottom: 8px;">Piirrä ja muokkaa kiinteistöjen aurausalueita ja rajauksia</div>
-                    <div id="adminMapPlaceholder" style="height: calc(100% - 50px); background: #1e293b; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; color: var(--muted);">
-                        🛰️ Satelliittikartta ja piirtotyökalut
-                    </div>
-                </div>
+    <div id="view-admin" class="view-pane view-admin-grid view-section" data-view="view-admin" style="display: none; width: 100%; max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px;">
+        <!-- Card 1: Admin Kartta & Piirto -->
+        <div class="card" id="admin-widget-map" style="box-sizing: border-box; overflow: hidden; padding: 14px;">
+            <div style="font-weight: 700; margin-bottom: 6px;">🗺️ Kartta ja aluepiirto</div>
+            <div style="font-size: 0.8rem; color: var(--muted); margin-bottom: 8px;">Piirrä ja muokkaa kiinteistöjen aurausalueita ja rajauksia</div>
+            <div id="adminMapPlaceholder" style="min-height: 250px; background: #1e293b; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; color: var(--muted);">
+                🛰️ Satelliittikartta ja piirtotyökalut
             </div>
         </div>
 
-        <!-- Widget 2: Reitin kohteet -->
-        <div class="grid-stack-item" gs-id="admin-widget-targets" gs-w="4" gs-h="7" gs-x="8" gs-y="0">
-            <div class="grid-stack-item-content">
-                <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('admin-widget-targets', 'admin')" title="Piilota kortti">✕</button>
-                <div class="card" style="height: 100%; box-sizing: border-box; overflow: auto; padding: 14px;">
-                    <div style="font-weight: 700; margin-bottom: 8px;">📋 Reitin kohteet</div>
-                    <div id="adminTargetsList" style="font-size: 0.85rem; color: var(--muted);">Valitse ja järjestä reitin kiinteistöt...</div>
-                </div>
-            </div>
+        <!-- Card 2: Reitin kohteet -->
+        <div class="card" id="admin-widget-targets" style="box-sizing: border-box; overflow: auto; padding: 14px;">
+            <div style="font-weight: 700; margin-bottom: 8px;">📋 Reitin kohteet</div>
+            <div id="adminTargetsList" style="font-size: 0.85rem; color: var(--muted);">Valitse ja järjestä reitin kiinteistöt...</div>
         </div>
 
-        <!-- Widget 3: Reittien optimointi & tilastot -->
-        <div class="grid-stack-item" gs-id="admin-widget-stats" gs-w="6" gs-h="4" gs-x="0" gs-y="7">
-            <div class="grid-stack-item-content">
-                <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('admin-widget-stats', 'admin')" title="Piilota kortti">✕</button>
-                <div class="card" style="height: 100%; box-sizing: border-box; padding: 14px;">
-                    <div style="font-weight: 700; margin-bottom: 6px;">⚡ Reittioptimointi &amp; siirtymät</div>
-                    <div style="font-size: 0.82rem; color: var(--muted);">OSRM-reitityksen siirtymämatkat ja ajoaikaennusteet</div>
-                </div>
-            </div>
+        <!-- Card 3: Reittien optimointi & tilastot -->
+        <div class="card" id="admin-widget-stats" style="box-sizing: border-box; padding: 14px;">
+            <div style="font-weight: 700; margin-bottom: 6px;">⚡ Reittioptimointi &amp; siirtymät</div>
+            <div style="font-size: 0.82rem; color: var(--muted);">OSRM-reitityksen siirtymämatkat ja ajoaikaennusteet</div>
         </div>
 
-        <!-- Widget 4: Tallennetut reitit & hallinta -->
-        <div class="grid-stack-item" gs-id="admin-widget-routes" gs-w="6" gs-h="4" gs-x="6" gs-y="7">
-            <div class="grid-stack-item-content">
-                <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('admin-widget-routes', 'admin')" title="Piilota kortti">✕</button>
-                <div class="card" style="height: 100%; box-sizing: border-box; padding: 14px;">
-                    <div style="font-weight: 700; margin-bottom: 6px;">📁 Tallennetut reitit</div>
-                    <div style="font-size: 0.82rem; color: var(--muted);">Aktiiviset ajolenkit ja kuljettajamääritykset</div>
-                </div>
-            </div>
+        <!-- Card 4: Tallennetut reitit & hallinta -->
+        <div class="card" id="admin-widget-routes" style="box-sizing: border-box; padding: 14px;">
+            <div style="font-weight: 700; margin-bottom: 6px;">📁 Tallennetut reitit</div>
+            <div style="font-size: 0.82rem; color: var(--muted);">Aktiiviset ajolenkit ja kuljettajamääritykset</div>
         </div>
     </div>
 
     <!-- NÄKYMÄ 1E: KOHTEET & TYÖT (#view-targets) -->
-    <div id="view-targets" class="grid-stack view-pane view-targets-grid view-section" data-view="view-targets" style="display: none; width: 100%; max-width: 1200px; margin: 0 auto;">
-        <!-- Widget 1: Pikahaku -->
-        <div class="grid-stack-item" gs-id="targets-widget-search" gs-w="4" gs-h="3" gs-x="0" gs-y="0">
-            <div class="grid-stack-item-content">
-                <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('targets-widget-search', 'targets')" title="Piilota kortti">✕</button>
-                <div class="card" style="height: 100%; box-sizing: border-box; padding: 14px;">
-                    <div style="font-weight: 700; margin-bottom: 6px;">🔍 Kohteiden pikahaku</div>
-                    <input type="text" placeholder="Hae nimellä tai osoitteella..." style="width: 100%; margin-bottom: 0;">
-                </div>
-            </div>
+    <div id="view-targets" class="view-pane view-targets-grid view-section" data-view="view-targets" style="display: none; width: 100%; max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px;">
+        <!-- Card 1: Pikahaku -->
+        <div class="card" id="targets-widget-search" style="box-sizing: border-box; padding: 14px;">
+            <div style="font-weight: 700; margin-bottom: 6px;">🔍 Kohteiden pikahaku</div>
+            <input type="text" placeholder="Hae nimellä tai osoitteella..." style="width: 100%; margin-bottom: 0;">
         </div>
 
-        <!-- Widget 2: Päivän edistyminen -->
-        <div class="grid-stack-item" gs-id="targets-widget-progress" gs-w="4" gs-h="3" gs-x="4" gs-y="0">
-            <div class="grid-stack-item-content">
-                <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('targets-widget-progress', 'targets')" title="Piilota kortti">✕</button>
-                <div class="card" style="height: 100%; box-sizing: border-box; padding: 14px;">
-                    <div style="font-weight: 700; margin-bottom: 6px;">📊 Edistyminen</div>
-                    <div style="font-size: 0.85rem; color: var(--muted);">Kuitatut ja jäljellä olevat pihatyöt</div>
-                </div>
-            </div>
+        <!-- Card 2: Päivän edistyminen -->
+        <div class="card" id="targets-widget-progress" style="box-sizing: border-box; padding: 14px;">
+            <div style="font-weight: 700; margin-bottom: 6px;">📊 Edistyminen</div>
+            <div style="font-size: 0.85rem; color: var(--muted);">Kuitattujen kohteiden tilannekatsaus</div>
         </div>
 
-        <!-- Widget 3: Seuraava ajokohde -->
-        <div class="grid-stack-item" gs-id="targets-widget-next-stop" gs-w="4" gs-h="3" gs-x="8" gs-y="0">
-            <div class="grid-stack-item-content">
-                <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('targets-widget-next-stop', 'targets')" title="Piilota kortti">✕</button>
-                <div class="card" style="height: 100%; box-sizing: border-box; padding: 14px;">
-                    <div style="font-weight: 700; margin-bottom: 6px;">📍 Seuraava ajokohde</div>
-                    <div style="font-size: 0.85rem; color: var(--muted);">Opastus seuraavaan kohteeseen</div>
-                </div>
-            </div>
+        <!-- Card 3: Seuraava ajokohde -->
+        <div class="card" id="targets-widget-next-stop" style="box-sizing: border-box; padding: 14px;">
+            <div style="font-weight: 700; margin-bottom: 6px;">📍 Seuraava ajokohde</div>
+            <div style="font-size: 0.85rem; color: var(--muted);">Opastus seuraavaan kohteeseen</div>
         </div>
 
-        <!-- Widget 4: Kohteet & Työt -lista -->
-        <div class="grid-stack-item" gs-id="targets-widget-list" gs-w="12" gs-h="6" gs-x="0" gs-y="3">
-            <div class="grid-stack-item-content">
-                <button type="button" class="card-remove-btn" onclick="removeDashboardWidget('targets-widget-list', 'targets')" title="Piilota kortti">✕</button>
-                <div class="card" style="height: 100%; box-sizing: border-box; overflow: auto; padding: 14px;">
-                    <div style="font-weight: 700; margin-bottom: 8px;">🏢 Kaikki kiinteistöt ja työtehtävät</div>
-                    <div id="viewTargetsFullList" style="font-size: 0.85rem; color: var(--muted);">Kiinteistörekisterin kohteet ja tilat...</div>
-                </div>
-            </div>
+        <!-- Card 4: Kohteet & Työt -lista -->
+        <div class="card" id="targets-widget-list" style="box-sizing: border-box; overflow: auto; padding: 14px;">
+            <div style="font-weight: 700; margin-bottom: 8px;">🏢 Kaikki kiinteistöt ja työtehtävät</div>
+            <div id="viewTargetsFullList" style="font-size: 0.85rem; color: var(--muted);">Kiinteistörekisterin kohteet ja tilat...</div>
         </div>
     </div>
 
@@ -5037,7 +4893,7 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
     };
 
     // ============================================================
-    // 📱 ANDROID-WIDGET GRIDSTACK CARD SYSTEM & EDIT MODE
+    // 📱 YARDFLOW DASHBOARD CARD SYSTEM
     // ============================================================
     let isDashboardEditMode = false;
     const DASHBOARD_AVAILABLE_WIDGETS = [
@@ -5216,59 +5072,27 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
     function initViewGrid(viewName) {
         if (!viewName) viewName = getCurrentViewName();
         if (gridInstances[viewName]) return gridInstances[viewName];
-        if (typeof GridStack === 'undefined') return null;
-
         const gridEl = getGridContainer(viewName);
         if (!gridEl) return null;
-
-        // Varmista, ettei mikään GridStack-alustus kaadu, jos sivunäkymä on piilossa (display: none)
-        if (!isGridContainerVisible(gridEl, viewName)) {
-            return null;
-        }
-
-        if (gridEl.gridstack) {
-            gridInstances[viewName] = gridEl.gridstack;
-            if (viewName === 'dashboard') window.dashboardGrid = gridEl.gridstack;
-            return gridEl.gridstack;
-        }
-
-        const isLandscape = window.innerWidth > window.innerHeight;
-        const isMobile = window.innerWidth < 768;
-        const targetColumns = isMobile && !isLandscape ? 1 : (isLandscape && isMobile ? 6 : 12);
-        const isEditActive = !!(window.isEditMode || window.isDashboardEditMode || isDashboardEditMode);
-
-        let grid = null;
-        try {
-            grid = GridStack.init({
-                column: targetColumns,
-                cellHeight: '70px',
-                margin: 10,
-                animate: true,
-                float: true,
-                disableDrag: true,   // Oletuksena LUKITTU
-                disableResize: true, // Oletuksena LUKITTU
-                staticGrid: !isEditActive // Kosketuselkeiden suojaus ilman muokkaustilaa
-            }, gridEl);
-        } catch (initErr) {
-            console.warn('GridStack.init failed for ' + viewName, initErr);
-            return null;
-        }
-
-        gridInstances[viewName] = grid;
-        if (viewName === 'dashboard') window.dashboardGrid = grid;
+        const gridObj = {
+            el: gridEl,
+            getColumn: () => 12,
+            column: () => {},
+            setStatic: () => {},
+            enableMove: () => {},
+            enableResize: () => {},
+            removeWidget: () => {},
+            makeWidget: () => {},
+            update: () => {},
+            on: () => {}
+        };
+        gridInstances[viewName] = gridObj;
+        if (viewName === 'dashboard') window.dashboardGrid = gridObj;
         if (!activeGrid || viewName === getCurrentViewName()) {
-            activeGrid = grid;
-            window.activeGrid = grid;
+            activeGrid = gridObj;
+            window.activeGrid = gridObj;
         }
-
-        try {
-            loadDashboardGridLayout(viewName, grid);
-        } catch (e) {
-            console.warn('loadGridLayout error in initViewGrid:', e);
-        }
-
-        initMapResizeListeners(grid);
-        return grid;
+        return gridObj;
     }
     window.initViewGrid = initViewGrid;
 
@@ -5306,355 +5130,43 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
     window.initDashboardGrid = initDashboardGrid;
 
     function toggleDashboardEditMode(enable) {
-        if (typeof enable === 'undefined') {
-            enable = !(window.isEditMode || window.isDashboardEditMode || isDashboardEditMode);
-        }
-        isDashboardEditMode = !!enable;
-        window.isDashboardEditMode = isDashboardEditMode;
-        window.isEditMode = isDashboardEditMode;
-
-        let curGrid = getActiveGrid();
-        if (!curGrid && typeof initViewGrid === 'function') {
-            curGrid = initViewGrid('dashboard') || initViewGrid(getCurrentViewName());
-        }
-        if (!curGrid && window.dashboardGrid) {
-            curGrid = window.dashboardGrid;
-        }
-
-        const allGrids = new Set([
-            curGrid,
-            window.activeGrid,
-            window.dashboardGrid,
-            ...(window.gridInstances ? Object.values(window.gridInstances) : [])
-        ]);
-
-        allGrids.forEach(g => {
-            if (g) {
-                try {
-                    if (typeof g.setStatic === 'function') g.setStatic(!enable);
-                    if (typeof g.enableMove === 'function') g.enableMove(enable);
-                    if (typeof g.enableResize === 'function') g.enableResize(enable);
-                } catch (e) {
-                    console.warn('toggleDashboardEditMode grid update error:', e);
-                }
-            }
-        });
-
-        document.body.classList.toggle('dashboard-editing', enable);
-
-        // Näytetään/piilotetaan muokkaustoiminnot (poistoraksit, lisäysvalikko)
-        document.querySelectorAll('.card-remove-btn').forEach(b => {
-            b.style.display = enable ? 'flex' : 'none';
-        });
-
-        const addBtn = document.getElementById('btn-add-widget');
-        if (addBtn) addBtn.style.display = enable ? 'inline-flex' : 'none';
-        const topAddBtn = document.getElementById('btn-topbar-add-widget');
-        if (topAddBtn) topAddBtn.style.display = enable ? 'inline-flex' : 'none';
-
-        // Päivitetään muokkauspainikkeen tekstit ja ikonit
-        const editBtns = document.querySelectorAll('.btn-toggle-dashboard-edit');
-        editBtns.forEach(btn => {
-            if (enable) {
-                btn.innerHTML = '<span>💾</span> <span class="edit-btn-text">Valmis / Tallenna</span>';
-                btn.classList.add('is-editing', 'btn-primary');
-                btn.classList.remove('btn-outline');
-                btn.title = 'Tallenna asettelu ja lukitse ruutu';
-            } else {
-                btn.innerHTML = '<span>✏️</span> <span class="edit-btn-text">Muokkaa näkymää</span>';
-                btn.classList.remove('is-editing', 'btn-primary');
-                btn.classList.add('btn-outline');
-                btn.title = 'Muokkaa korttien asettelua ja kokoa';
-            }
-        });
-
-        if (!enable) {
-            saveDashboardGridLayout();
-            if (typeof showToast === 'function') {
-                showToast('Asettelu tallennettu ja lukittu!', 'success');
-            }
+        isDashboardEditMode = false;
+        window.isDashboardEditMode = false;
+        window.isEditMode = false;
+        if (document.body) {
+            document.body.classList.remove('dashboard-editing');
         }
     }
     window.toggleDashboardEditMode = toggleDashboardEditMode;
     window.toggleEditMode = toggleDashboardEditMode;
 
     function removeDashboardWidget(widgetId, viewName) {
-        const itemEl = document.querySelector(`.grid-stack-item[gs-id="${widgetId}"]`) || document.getElementById(widgetId);
-        if (!itemEl) return;
-
-        const parentGridItem = itemEl.classList.contains('grid-stack-item') ? itemEl : itemEl.closest('.grid-stack-item');
-        const grid = (viewName && gridInstances[viewName]) || activeGrid || window.dashboardGrid;
-
-        if (parentGridItem) {
-            parentGridItem.style.display = 'none';
-            if (grid && typeof grid.removeWidget === 'function') {
-                grid.removeWidget(parentGridItem, false);
-            }
-        } else {
-            itemEl.style.display = 'none';
-        }
-
-        saveDashboardGridLayout(viewName);
-        if (typeof showToast === 'function') {
-            showToast('Kortti piilotettu. Voit palauttaa sen [➕ Lisää kortti] -valikosta.', 'info');
-        }
+        const itemEl = document.getElementById(widgetId);
+        if (itemEl) itemEl.style.display = 'none';
     }
     window.removeDashboardWidget = removeDashboardWidget;
 
-    function openAddWidgetModal(viewName) {
-        const modal = document.getElementById('modal-add-widget');
-        const listEl = document.getElementById('available-widgets-list');
-        if (!modal || !listEl) return;
-
-        const curView = viewName || getCurrentViewName();
-        const widgets = VIEW_WIDGETS[curView] || DASHBOARD_AVAILABLE_WIDGETS;
-
-        listEl.innerHTML = '';
-        widgets.forEach(w => {
-            const itemEl = document.querySelector(`.grid-stack-item[gs-id="${w.id}"]`) || document.getElementById(w.id);
-            const isVisible = itemEl && itemEl.style.display !== 'none' && (!itemEl.closest('.grid-stack-item') || itemEl.closest('.grid-stack-item').style.display !== 'none');
-
-            const cardRow = document.createElement('div');
-            cardRow.className = 'available-widget-item';
-            cardRow.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); margin-bottom: 8px; gap: 12px;';
-            cardRow.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <span style="font-size: 1.4rem;">${w.icon}</span>
-                    <div>
-                        <div style="font-weight: 700; font-size: 0.95rem; color: var(--fg);">${w.title}</div>
-                        <div style="font-size: 0.78rem; color: var(--muted);">${w.desc}</div>
-                    </div>
-                </div>
-                <div>
-                    ${isVisible
-                        ? '<span class="status-pill status-ready" style="font-size: 0.78rem;">✓ Näytöllä</span>'
-                        : `<button type="button" class="btn-primary tiny-btn" onclick="addDashboardWidget('${w.id}', '${curView}')" style="padding: 6px 14px; font-weight: 700; background: #0284c7;">➕ Lisää</button>`
-                    }
-                </div>
-            `;
-            listEl.appendChild(cardRow);
-        });
-
-        modal.style.display = 'flex';
-    }
+    function openAddWidgetModal(viewName) {}
     window.openAddWidgetModal = openAddWidgetModal;
 
-    function closeAddWidgetModal() {
-        const modal = document.getElementById('modal-add-widget');
-        if (modal) modal.style.display = 'none';
-    }
+    function closeAddWidgetModal() {}
     window.closeAddWidgetModal = closeAddWidgetModal;
 
     function addDashboardWidget(widgetId, viewName) {
-        const itemEl = document.querySelector(`.grid-stack-item[gs-id="${widgetId}"]`) || document.getElementById(widgetId);
-        const parentGridItem = itemEl && itemEl.classList.contains('grid-stack-item') ? itemEl : (itemEl ? itemEl.closest('.grid-stack-item') : null);
-        const grid = (viewName && gridInstances[viewName]) || activeGrid || window.dashboardGrid;
-
-        if (parentGridItem) {
-            parentGridItem.style.display = '';
-            if (grid && typeof grid.makeWidget === 'function') {
-                grid.makeWidget(parentGridItem);
-            }
-        } else if (itemEl) {
-            itemEl.style.display = '';
-        }
-
-        closeAddWidgetModal();
-        saveDashboardGridLayout(viewName);
-        if (typeof showToast === 'function') {
-            showToast('Kortti lisätty näkymään!', 'success');
-        }
+        const itemEl = document.getElementById(widgetId);
+        if (itemEl) itemEl.style.display = '';
     }
     window.addDashboardWidget = addDashboardWidget;
 
-    function getDashboardGridLayout(gridOrView) {
-        const items = [];
-        let gridEl = null;
-
-        try {
-            if (typeof gridOrView === 'string') {
-                if (gridInstances[gridOrView] && gridInstances[gridOrView].el) {
-                    gridEl = gridInstances[gridOrView].el;
-                } else {
-                    gridEl = getGridContainer(gridOrView);
-                }
-            } else if (gridOrView && gridOrView.el) {
-                gridEl = gridOrView.el;
-            } else {
-                const cur = getCurrentViewName();
-                if (gridInstances[cur] && gridInstances[cur].el) {
-                    gridEl = gridInstances[cur].el;
-                } else {
-                    gridEl = getGridContainer(cur);
-                }
-            }
-
-            if (!gridEl || typeof gridEl.querySelectorAll !== 'function') return items;
-
-            gridEl.querySelectorAll('.grid-stack-item').forEach(el => {
-                const id = el.getAttribute('gs-id') || el.id;
-                const node = el.gridstackNode || {};
-                const x = (typeof node.x === 'number') ? node.x : parseInt(el.getAttribute('gs-x') || 0, 10);
-                const y = (typeof node.y === 'number') ? node.y : parseInt(el.getAttribute('gs-y') || 0, 10);
-                const w = (typeof node.w === 'number') ? node.w : parseInt(el.getAttribute('gs-w') || 6, 10);
-                const h = (typeof node.h === 'number') ? node.h : parseInt(el.getAttribute('gs-h') || 4, 10);
-                const hidden = el.style.display === 'none';
-                items.push({ id, x, y, w, h, hidden });
-            });
-        } catch (e) {
-            console.warn('getDashboardGridLayout error:', e);
-        }
-        return items;
-    }
+    function getDashboardGridLayout(gridOrView) { return []; }
     window.getDashboardGridLayout = getDashboardGridLayout;
     window.getGridLayout = getDashboardGridLayout;
 
-    function saveDashboardGridLayout(currentView) {
-        if (!currentView) currentView = getCurrentViewName();
-        const isLandscape = window.innerWidth > window.innerHeight;
-        const storageKey = `yf_grid_layout_${currentView}_${isLandscape ? 'land' : 'port'}`;
-        const layoutData = getDashboardGridLayout(currentView);
-        if (layoutData && layoutData.length > 0) {
-            try {
-                localStorage.setItem(storageKey, JSON.stringify(layoutData));
-                localStorage.setItem('yf_grid_layout_' + currentView, JSON.stringify(layoutData));
-            } catch (e) {
-                console.warn('saveDashboardGridLayout error:', e);
-            }
-        }
-        return layoutData;
-    }
+    function saveDashboardGridLayout(currentView) { return []; }
     window.saveDashboardGridLayout = saveDashboardGridLayout;
     window.saveGridLayout = saveDashboardGridLayout;
 
-    function loadDashboardGridLayout(currentView, grid) {
-        if (!currentView) currentView = getCurrentViewName();
-        const isLandscape = window.innerWidth > window.innerHeight;
-        const isMobile = window.innerWidth < 768;
-        const orient = isLandscape ? 'land' : 'port';
-        const storageKey = `yf_grid_layout_${currentView}_${orient}`;
-
-        try {
-            let raw = null;
-            try {
-                raw = localStorage.getItem(storageKey);
-                if (!raw) {
-                    raw = localStorage.getItem('yf_grid_layout_' + currentView);
-                }
-                if (!raw && currentView.startsWith('view-')) {
-                    const stripped = currentView.replace('view-', '');
-                    raw = localStorage.getItem(`yf_grid_layout_${stripped}_${orient}`) || localStorage.getItem(`yf_grid_layout_${stripped}`);
-                }
-            } catch (storageErr) {
-                console.warn('localStorage read error:', storageErr);
-            }
-
-            let savedLayout = null;
-            if (raw) {
-                try {
-                    savedLayout = JSON.parse(raw);
-                } catch (parseErr) {
-                    console.warn('Corrupted layout JSON in localStorage for', currentView, parseErr);
-                    savedLayout = null;
-                }
-            }
-
-            const targetColumns = isMobile && !isLandscape ? 1 : (isLandscape && isMobile ? 6 : 12);
-            const cols = (grid && typeof grid.getColumn === 'function') ? grid.getColumn() : targetColumns;
-
-            if (!savedLayout || !Array.isArray(savedLayout)) {
-                const widgets = VIEW_WIDGETS[currentView] || VIEW_WIDGETS['dashboard'] || [];
-                savedLayout = widgets.map((w, idx) => ({
-                    id: w.id,
-                    x: cols === 1 ? 0 : ((idx % Math.max(1, Math.floor(cols / (w.defaultW || 6)))) * (w.defaultW || 6)),
-                    y: cols === 1 ? (idx * (w.defaultH || 4)) : (Math.floor(idx / 2) * (w.defaultH || 4)),
-                    w: cols === 1 ? 1 : (w.defaultW || 6),
-                    h: w.defaultH || 4,
-                    hidden: false
-                }));
-            }
-
-            const coreDashboardWidgetIds = ['dash-widget-progress', 'dash-widget-weather', 'dash-widget-map', 'dash-widget-drivers-accordion'];
-            if (currentView === 'dashboard' && Array.isArray(savedLayout)) {
-                coreDashboardWidgetIds.forEach((cId, cIdx) => {
-                    let entry = savedLayout.find(i => i.id === cId);
-                    if (!entry) {
-                        entry = {
-                            id: cId,
-                            x: cols === 1 ? 0 : (cIdx % 2 === 0 ? 0 : 6),
-                            y: cols === 1 ? cIdx * 4 : Math.floor(cIdx / 2) * 5,
-                            w: (cId === 'dash-widget-map' || cId === 'dash-widget-drivers-accordion') ? 12 : 6,
-                            h: (cId === 'dash-widget-map' || cId === 'dash-widget-drivers-accordion') ? 6 : 4,
-                            hidden: false
-                        };
-                        savedLayout.push(entry);
-                    } else {
-                        entry.hidden = false;
-                    }
-                });
-            }
-
-            if (grid && Array.isArray(savedLayout)) {
-                const visibleItems = savedLayout.filter(i => !i.hidden);
-                const allZeroCoords = visibleItems.length > 1 && visibleItems.every(i => (i.x || 0) === 0 && (i.y || 0) === 0);
-
-                savedLayout.forEach((item, idx) => {
-                    try {
-                        const itemEl = (grid.el && typeof grid.el.querySelector === 'function') ? (grid.el.querySelector(`[gs-id="${item.id}"]`) || document.getElementById(item.id)) : null;
-                        if (!itemEl) return;
-                        const parentGridItem = itemEl.classList.contains('grid-stack-item') ? itemEl : itemEl.closest('.grid-stack-item');
-                        if (!parentGridItem) return;
-
-                        if (currentView === 'dashboard' && coreDashboardWidgetIds.includes(item.id)) {
-                            item.hidden = false;
-                        }
-
-                        if (item.hidden) {
-                            parentGridItem.style.display = 'none';
-                            if (typeof grid.removeWidget === 'function') {
-                                grid.removeWidget(parentGridItem, false);
-                            }
-                        } else {
-                            parentGridItem.style.display = '';
-
-                            let targetW = parseInt(item.w || 6, 10);
-                            let targetH = parseInt(item.h || 4, 10);
-                            let targetX = parseInt(item.x || 0, 10);
-                            let targetY = parseInt(item.y || 0, 10);
-
-                            // MOBIILIN OLETUSASETTELU (1-sarake / fallback):
-                            // Mobiililaitteilla (< 768px) pystytilassa sarakemäärä on 1.
-                            // Älä pakota työpöydän koordinaatteja (x, y, w, h) mobiiliin, jos ne rikkovat leveyden.
-                            if (cols === 1) {
-                                targetW = 1;
-                                targetX = 0;
-                                targetY = idx * targetH;
-                            } else {
-                                if (allZeroCoords) {
-                                    targetX = parseInt(parentGridItem.getAttribute('gs-x') || ((idx % 2) * 6), 10);
-                                    targetY = parseInt(parentGridItem.getAttribute('gs-y') || (Math.floor(idx / 2) * 4), 10);
-                                }
-                                if (targetW > cols) targetW = cols;
-                                if (targetX + targetW > cols) {
-                                    targetX = Math.max(0, cols - targetW);
-                                }
-                            }
-
-                            if (typeof grid.update === 'function') {
-                                grid.update(parentGridItem, { x: targetX, y: targetY, w: targetW, h: targetH });
-                            }
-                        }
-                    } catch (itemErr) {
-                        console.warn('Error applying layout item', item, itemErr);
-                    }
-                });
-            }
-            return savedLayout;
-        } catch (e) {
-            console.warn('loadDashboardGridLayout error:', e);
-            return null;
-        }
-    }
+    function loadDashboardGridLayout(currentView, grid) { return []; }
     window.loadDashboardGridLayout = loadDashboardGridLayout;
     window.loadGridLayout = loadDashboardGridLayout;
 
@@ -5724,10 +5236,6 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
         function setWDisplay(el, isVisible) {
             if (!el) return;
             el.style.display = isVisible ? '' : 'none';
-            const parent = el.classList.contains('grid-stack-item') ? el : el.closest('.grid-stack-item');
-            if (parent && parent !== el) {
-                parent.style.display = isVisible ? '' : 'none';
-            }
         }
 
         setWDisplay(wProgress, prefs.progress);
@@ -6129,15 +5637,12 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
     window.toggleMapFullscreen = toggleMapFullscreen;
 
     function toggleMapBaseUnified() {
-        const cur = (typeof currentMapBase !== 'undefined' && currentMapBase) ? currentMapBase : (localStorage.getItem('yardflow_map_base') || 'satellite');
-        const next = (cur === 'satellite') ? 'street' : 'satellite';
-        if (typeof setMapBaseLayer === 'function') {
-            setMapBaseLayer(next);
+        const nextBase = (currentMapBase === 'street') ? 'satellite' : 'street';
+        setMapBaseLayer(nextBase);
+        const toggleBtn = document.getElementById('btn-toggle-basemap') || document.getElementById('btn-toggle-map-layer');
+        if (toggleBtn) {
+            toggleBtn.innerHTML = (nextBase === 'satellite') ? '<span id="mapLayerToggleIcon">🗺️</span> <span id="mapLayerToggleLabel">Peruskartta</span>' : '<span id="mapLayerToggleIcon">🛰️</span> <span id="mapLayerToggleLabel">Satelliitti</span>';
         }
-        const label = document.getElementById('mapLayerToggleLabel');
-        const icon = document.getElementById('mapLayerToggleIcon');
-        if (label) label.textContent = (next === 'satellite') ? 'Satelliitti' : 'Peruskartta';
-        if (icon) icon.textContent = (next === 'satellite') ? '🛰️' : '🗺️';
     }
     window.toggleMapBaseUnified = toggleMapBaseUnified;
 
@@ -6172,20 +5677,18 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
         dashboardCityMapBaseType = (dashboardCityMapBaseType === 'street') ? 'satellite' : 'street';
         const url = (dashboardCityMapBaseType === 'satellite')
             ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
-            : 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}';
+            : 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png';
         
         if (dashCityBaseLayer) {
             dashboardCityMap.removeLayer(dashCityBaseLayer);
         }
         dashCityBaseLayer = L.tileLayer(url, {
-            attribution: 'Tiles &copy; Esri',
+            attribution: (dashboardCityMapBaseType === 'satellite') ? 'Tiles &copy; Esri' : '© OpenStreetMap contributors, Tiles style by HOT',
             maxZoom: 19
         }).addTo(dashboardCityMap);
-        if (typeof dashCityBaseLayer.bringToBack === 'function') {
-            dashCityBaseLayer.bringToBack();
-        }
+        if (typeof dashCityBaseLayer.bringToBack === 'function') dashCityBaseLayer.bringToBack();
         if (btnEl) {
-            btnEl.innerHTML = (dashboardCityMapBaseType === 'satellite') ? '<span>🛰️</span> <span>Satelliitti</span>' : '<span>🗺️</span> <span>Peruskartta</span>';
+            btnEl.innerHTML = (dashboardCityMapBaseType === 'satellite') ? '<span>🗺️</span> <span>Peruskartta</span>' : '<span>🛰️</span> <span>Satelliitti</span>';
         }
     }
     window.toggleDashboardCityMapBase = toggleDashboardCityMapBase;
@@ -6200,8 +5703,6 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
             const el = document.getElementById(id);
             if (el) {
                 el.style.display = '';
-                const p = el.closest('.grid-stack-item');
-                if (p) p.style.display = '';
             }
         });
 
@@ -6409,7 +5910,7 @@ body.app-mode-field #dashboard-view .grid-stack-item[gs-id="dash-widget-route-st
             renderDriverOverviewAccordion();
         }
 
-        // Alustetaan GridStack jos saatavilla
+        // Alustetaan dashboard-näkymä
         if (typeof initDashboardGrid === 'function') {
             initDashboardGrid();
         }

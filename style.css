@@ -154,208 +154,88 @@ body {
 }
 
 /* ============================================================
-   YardFlow – Android-Widget GridStack Styles & Responsiveness
+   YardFlow – Fixed CSS Grid Dashboard & Clean View Layouts
    ============================================================ */
 
-/* Normal mode: clean, locked cards */
-.grid-stack {
-    position: relative;
-    min-height: 200px;
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 16px;
     width: 100%;
+    margin-bottom: 24px;
 }
 
-.grid-stack-item {
-    transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s ease;
+/* 4 Main Dashboard Sections & Sub-Cards */
+.dashboard-grid .dash-widget-weather {
+    grid-column: span 6;
 }
 
-.grid-stack-item-content {
-    inset: 0 !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
+.dashboard-grid .dash-widget-progress {
+    grid-column: span 6;
+}
+
+.dashboard-grid .dash-widget-map {
+    grid-column: span 12;
+}
+
+.dashboard-grid .dash-widget-drivers-accordion {
+    grid-column: span 12;
+}
+
+.dashboard-grid .dash-widget-next-stop {
+    grid-column: span 6;
+}
+
+.dashboard-grid .dash-widget-route-stats {
+    grid-column: span 6;
+}
+
+.dashboard-grid .dash-widget-tickets {
+    grid-column: span 6;
+}
+
+.dashboard-grid .dash-widget-queue {
+    grid-column: span 6;
+}
+
+.dashboard-grid .dash-widget-shortcuts {
+    grid-column: span 6;
+}
+
+.dashboard-grid .dash-widget-recent-logs {
+    grid-column: span 12;
+}
+
+.dash-widget-card {
     height: 100%;
     box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
 }
 
-.grid-stack-item-content.card,
-.grid-stack-item-content > .card {
-    height: 100%;
-    margin-bottom: 0 !important;
-    box-sizing: border-box;
-    overflow-y: auto;
-}
-
-/* Poistorasti kortin kulmassa */
-.card-remove-btn {
-    position: absolute;
-    top: 6px;
-    right: 6px;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: #ef4444;
-    color: #ffffff;
-    border: 2px solid #ffffff;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.45);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    font-weight: 800;
-    line-height: 1;
-    cursor: pointer;
-    z-index: 1000;
-    transition: transform 0.18s ease, background 0.18s ease;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-}
-
-.card-remove-btn:hover {
-    background: #dc2626;
-    transform: scale(1.18);
-}
-
-.card-remove-btn:active {
-    transform: scale(0.92);
-}
-
-/* MUOKKAUSTILA (Android-kotivalikon kaltainen liike & korostus) */
-body.dashboard-editing .grid-stack-item {
-    cursor: grab;
-}
-
-body.dashboard-editing .grid-stack-item:active {
-    cursor: grabbing;
-}
-
-body.dashboard-editing .grid-stack-item-content {
-    border: 2px dashed rgba(56, 189, 248, 0.75) !important;
-    box-shadow: 0 0 16px rgba(56, 189, 248, 0.3), 0 8px 24px rgba(0, 0, 0, 0.45) !important;
-    animation: androidWidgetJiggle 2.6s infinite ease-in-out alternate;
-    border-radius: var(--radius-lg, 14px);
-}
-
-body.dashboard-editing .grid-stack-item:nth-child(2n) .grid-stack-item-content {
-    animation-delay: 0.25s;
-    animation-duration: 2.9s;
-}
-
-body.dashboard-editing .grid-stack-item:nth-child(3n) .grid-stack-item-content {
-    animation-delay: 0.5s;
-    animation-duration: 2.7s;
-}
-
-@keyframes androidWidgetJiggle {
-    0% {
-        transform: rotate(0deg) scale(1);
+@media (max-width: 900px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
     }
-    20% {
-        transform: rotate(-0.4deg) scale(0.998);
-    }
-    40% {
-        transform: rotate(0.4deg) scale(1.002);
-    }
-    60% {
-        transform: rotate(-0.3deg) scale(0.999);
-    }
-    80% {
-        transform: rotate(0.3deg) scale(1.001);
-    }
-    100% {
-        transform: rotate(0deg) scale(1);
+    .dashboard-grid .dash-widget-weather,
+    .dashboard-grid .dash-widget-progress,
+    .dashboard-grid .dash-widget-map,
+    .dashboard-grid .dash-widget-drivers-accordion,
+    .dashboard-grid .dash-widget-next-stop,
+    .dashboard-grid .dash-widget-route-stats,
+    .dashboard-grid .dash-widget-tickets,
+    .dashboard-grid .dash-widget-queue,
+    .dashboard-grid .dash-widget-shortcuts,
+    .dashboard-grid .dash-widget-recent-logs {
+        grid-column: span 1 / -1;
     }
 }
 
-/* KOSKETUSELEIDEN OPTIMOINTI */
-/* Kun muokkaustila EI ole päällä: sormella selaaminen (scroll) toimii sujuvasti ilman viiveitä */
-body:not(.dashboard-editing) .grid-stack,
-body:not(.dashboard-editing) .grid-stack-item,
-body:not(.dashboard-editing) .grid-stack-item-content {
+/* Mobiilikosketus ja sulava pystyselaus */
+html, body, .view-pane, .dashboard-grid, .view-section {
     touch-action: pan-y !important;
-}
-
-body:not(.dashboard-editing) .ui-resizable-handle {
-    display: none !important;
-}
-
-/* Kun muokkaustila aktivoidaan: widgeteille selkeät isot kosketusalueet kulmiin koon muuttamista varten mobiilissa */
-body.dashboard-editing .ui-resizable-handle {
-    opacity: 0.9;
-    display: block !important;
-}
-
-body.dashboard-editing .grid-stack-item > .ui-resizable-se,
-body.dashboard-editing .grid-stack-item > .ui-resizable-sw,
-body.dashboard-editing .grid-stack-item > .ui-resizable-ne,
-body.dashboard-editing .grid-stack-item > .ui-resizable-nw,
-body.dashboard-editing .grid-stack-item > .ui-resizable-handle {
-    width: 36px !important;
-    height: 36px !important;
-    right: 2px !important;
-    bottom: 2px !important;
-    z-index: 999 !important;
-    touch-action: none !important;
-}
-
-body.dashboard-editing .grid-stack-item > .ui-resizable-se::after {
-    content: '';
-    position: absolute;
-    right: 6px;
-    bottom: 6px;
-    width: 14px;
-    height: 14px;
-    border-right: 3px solid var(--accent, #0ea5e9);
-    border-bottom: 3px solid var(--accent, #0ea5e9);
-    border-radius: 2px;
-}
-
-/* Responsiveness: Mobiililaitteet (< 768px) normaali pystyselaus ja 1-sarakkeen kortit */
-@media (max-width: 768px) {
-    body:not(.dashboard-editing) {
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
-        -webkit-overflow-scrolling: touch;
-    }
-    body:not(.dashboard-editing) .grid-stack {
-        touch-action: pan-y !important;
-        overflow: visible !important;
-        height: auto !important;
-    }
-    body:not(.dashboard-editing) .grid-stack-item {
-        touch-action: pan-y !important;
-    }
-    body:not(.dashboard-editing) .grid-stack-item-content {
-        touch-action: pan-y !important;
-    }
-}
-
-@media (max-width: 768px) and (orientation: portrait) {
-    .grid-stack:not(.dashboard-editing) > .grid-stack-item {
-        position: relative !important;
-        width: 100% !important;
-        left: 0 !important;
-        top: auto !important;
-        margin-bottom: 14px;
-        height: auto !important;
-    }
-    .grid-stack:not(.dashboard-editing) > .grid-stack-item > .grid-stack-item-content {
-        position: relative !important;
-        height: auto !important;
-        overflow: visible !important;
-    }
-    .grid-stack:not(.dashboard-editing) {
-        height: auto !important;
-    }
-}
-
-/* Yläpalkin ja heron muokkauspainikkeet */
-.btn-toggle-dashboard-edit {
-    transition: all 0.2s ease;
-}
-
-.btn-toggle-dashboard-edit.is-editing {
-    background: #10b981 !important;
-    border-color: #059669 !important;
-    color: #ffffff !important;
+    -webkit-overflow-scrolling: touch;
 }
 
 /* ============================================================

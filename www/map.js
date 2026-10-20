@@ -22,9 +22,9 @@
         try {
             if (!win.mapInstance && !mapEl._leaflet_id) {
                 win.mapInstance = L.map(mapEl.id).setView([61.4981, 23.7610], 13);
-                L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
-                    attribution: 'Tiles &copy; Esri',
-                    maxZoom: 19
+                L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '© OpenStreetMap contributors, Tiles style by HOT'
                 }).addTo(win.mapInstance);
             }
             if (win.mapInstance && typeof win.mapInstance.invalidateSize === 'function') {

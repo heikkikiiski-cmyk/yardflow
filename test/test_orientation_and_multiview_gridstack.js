@@ -1,6 +1,6 @@
 /**
  * YardFlow Automated Test Suite:
- * Orientation Unlock & Multi-View GridStack System across Mobile and Views
+ * Orientation Unlock & Responsive Multi-View Support (Clean Grid / Flexbox without GridStack)
  */
 
 const fs = require('fs');
@@ -8,7 +8,7 @@ const path = require('path');
 const assert = require('assert');
 const vm = require('vm');
 
-console.log('🧪 Testing Orientation Unlock, Multi-View GridStack & Responsive Mobile Support...\n');
+console.log('🧪 Testing Orientation Unlock, Clean Multi-View Layout & Responsive Mobile Support...\n');
 
 const ROOT_DIR = path.resolve(__dirname, '..');
 const WWW_DIR = path.join(ROOT_DIR, 'www');
@@ -54,42 +54,42 @@ assert(indexHtml.includes('<link rel="manifest" href="manifest.json">'), 'index.
 assert(indexHtml.includes('<script src="app.js"></script>'), 'index.html must load app.js');
 console.log('✅ Orientation unlock settings verified across manifests, config and code\n');
 
-// 2. Multi-View GridStack Markup
-console.log('--- 2. Testing Multi-View GridStack Containers & Widgets ---');
+// 2. Clean Multi-View Containers & Removal of GridStack classes
+console.log('--- 2. Testing Multi-View Containers & Clean Layout (GridStack Removed) ---');
 const expectedContainers = ['dashboard-grid', 'view-driver', 'view-admin', 'view-targets'];
 expectedContainers.forEach(id => {
     assert(indexHtml.includes(`id="${id}"`), `Container #${id} must exist in index.html`);
 });
 
-// Verify class="grid-stack" on all 4 views
+// Verify class="grid-stack" is removed from views
 const driverBlock = indexHtml.substring(indexHtml.indexOf('id="view-driver"'), indexHtml.indexOf('id="view-admin"'));
 const adminBlock = indexHtml.substring(indexHtml.indexOf('id="view-admin"'), indexHtml.indexOf('id="view-targets"'));
 const targetsBlock = indexHtml.substring(indexHtml.indexOf('id="view-targets"'), indexHtml.indexOf('id="view-routes"'));
-const dashBlock = indexHtml.substring(indexHtml.indexOf('id="dashboard-grid"'), indexHtml.indexOf('id="modal-add-widget"'));
+const dashBlock = indexHtml.substring(indexHtml.indexOf('id="dashboard-grid"'), indexHtml.indexOf('id="dash-widget-drivers-accordion"') + 200);
 
-assert(driverBlock.includes('grid-stack'), '#view-driver must be a grid-stack container');
-assert(adminBlock.includes('grid-stack'), '#view-admin must be a grid-stack container');
-assert(targetsBlock.includes('grid-stack'), '#view-targets must be a grid-stack container');
-assert(dashBlock.includes('grid-stack'), '#dashboard-grid must be a grid-stack container');
+assert(!driverBlock.includes('class="grid-stack'), '#view-driver must NOT have grid-stack class');
+assert(!adminBlock.includes('class="grid-stack'), '#view-admin must NOT have grid-stack class');
+assert(!targetsBlock.includes('class="grid-stack'), '#view-targets must NOT have grid-stack class');
+assert(!dashBlock.includes('class="dashboard-grid grid-stack"'), '#dashboard-grid must NOT have grid-stack class');
 
-assert(driverBlock.includes('gs-id="driver-widget-hud"'), 'Driver view must have driver-widget-hud');
-assert(driverBlock.includes('gs-id="driver-widget-map"'), 'Driver view must have driver-widget-map');
-assert(adminBlock.includes('gs-id="admin-widget-map"'), 'Admin view must have admin-widget-map');
-assert(targetsBlock.includes('gs-id="targets-widget-search"'), 'Targets view must have targets-widget-search');
-console.log('✅ All view containers and grid items verified in DOM markup\n');
+// Verify cards exist in each view
+assert(driverBlock.includes('id="driver-widget-hud"'), 'Driver view must have driver-widget-hud');
+assert(driverBlock.includes('id="driver-widget-map"'), 'Driver view must have driver-widget-map');
+assert(adminBlock.includes('id="admin-widget-map"'), 'Admin view must have admin-widget-map');
+assert(targetsBlock.includes('id="targets-widget-search"'), 'Targets view must have targets-widget-search');
+console.log('✅ All view containers and clean cards verified in DOM markup\n');
 
-// 3. CSS for Touch Gestures and Mobile Corner Handles
-console.log('--- 3. Testing Touch Optimization & Resize Handles in CSS ---');
+// 3. CSS for Clean Grid Layout and Responsiveness
+console.log('--- 3. Testing CSS for Clean Grid Layout & Responsiveness ---');
 const styleCss = fs.readFileSync(path.join(ROOT_DIR, 'style.css'), 'utf8');
-assert(styleCss.includes('touch-action: pan-y !important;'), 'style.css must protect native vertical scrolling with pan-y');
-assert(styleCss.includes('width: 36px !important;'), 'style.css must provide 36px touch handle in edit mode');
-assert(styleCss.includes('height: 36px !important;'), 'style.css must provide 36px touch handle height');
-assert(styleCss.includes('.ui-resizable-handle'), 'style.css must format resizable handles');
-assert(styleCss.includes('@media (max-width: 768px) and (orientation: portrait)'), 'style.css must include mobile portrait responsive query');
-console.log('✅ CSS touch scrolling & corner resize handles verified\n');
+assert(styleCss.includes('.dashboard-grid'), 'style.css must define .dashboard-grid');
+assert(styleCss.includes('grid-template-columns: repeat(12, 1fr)'), 'style.css must define 12-column grid');
+assert(styleCss.includes('@media (max-width: 900px)'), 'style.css must include responsive breakpoint query');
+assert(!styleCss.includes('androidWidgetJiggle'), 'style.css must not contain legacy GridStack animation');
+console.log('✅ CSS clean grid layout & responsive queries verified\n');
 
 // 4. Functionality & Sandbox Simulation
-console.log('--- 4. Testing Multi-View Grid Logic, Storage Keys & Resize in VM ---');
+console.log('--- 4. Testing Multi-View Safe Functions, Storage Keys & Resize in VM ---');
 const appJs = fs.readFileSync(path.join(ROOT_DIR, 'app.js'), 'utf8');
 
 const mockStorage = {};
@@ -141,6 +141,7 @@ const sandbox = {
             querySelector: () => null
         }),
         querySelectorAll: () => [],
+        querySelector: () => null,
         body: { classList: { toggle: () => {} } }
     },
     screen: {
@@ -205,17 +206,12 @@ assert.strictEqual(testGrid.getColumn(), 6, 'Mobile landscape should set 6 colum
 assert.strictEqual(mockMap.invalidated, true, 'window.map.invalidateSize must have been called during resize');
 assert.strictEqual(mockAdminMap.invalidated, true, 'window.adminMap.invalidateSize must have been called during resize');
 
-// 4.5 Save and Load Layout Persistence per View
-sandbox.window.innerWidth = 400;
-sandbox.window.innerHeight = 800; // port
-sandbox.currentTabName = 'targets';
-sandbox.gridInstances['targets'] = testGrid;
-sandbox.saveGridLayout('targets');
-assert(mockStorage['yf_grid_layout_targets_port'], 'Layout must be stored in localStorage under yf_grid_layout_targets_port');
-
+// 4.5 Save and Load Layout safe calls (returns empty array or handles safely)
+const saved = sandbox.saveGridLayout('targets');
+assert(Array.isArray(saved), 'saveGridLayout must return array');
 const loaded = sandbox.loadGridLayout('targets');
-assert(Array.isArray(loaded) && loaded.length > 0, 'Loaded layout must return saved items');
+assert(Array.isArray(loaded), 'loadGridLayout must return array');
 
 console.log('✅ Multi-view grid logic, storage keys and responsive columns passed in sandbox\n');
 
-console.log('🎉 All Orientation Unlock & Multi-View GridStack tests PASSED successfully!');
+console.log('🎉 All Orientation Unlock & Responsive Multi-View tests PASSED successfully!');

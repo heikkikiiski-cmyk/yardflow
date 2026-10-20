@@ -182,74 +182,27 @@
         if (gridInstances[viewName]) {
             return gridInstances[viewName];
         }
-
-        if (typeof GridStack === 'undefined') {
-            return null;
-        }
-
         const gridEl = getGridContainer(viewName);
         if (!gridEl) return null;
-
-        // Varmista, ettei mikään GridStack-alustus kaadu, jos sivunäkymä on piilossa (display: none)
-        if (!isGridContainerVisible(gridEl, viewName)) {
-            return null;
-        }
-
-        if (gridEl.gridstack) {
-            gridInstances[viewName] = gridEl.gridstack;
-            if (viewName === 'dashboard') global.dashboardGrid = gridEl.gridstack;
-            return gridEl.gridstack;
-        }
-
-        const isLandscape = (typeof window !== 'undefined') ? (window.innerWidth > window.innerHeight) : false;
-        const isMobile = (typeof window !== 'undefined') ? (window.innerWidth < 768) : false;
-        const targetColumns = isMobile && !isLandscape ? 1 : (isLandscape && isMobile ? 6 : 12);
-
-        let grid = null;
-        try {
-            grid = GridStack.init({
-                column: targetColumns,
-                cellHeight: '70px',
-                margin: 10,
-                animate: true,
-                float: true,
-                disableDrag: true,   // Oletuksena LUKITTU
-                disableResize: true, // Oletuksena LUKITTU
-                staticGrid: !isEditMode // Kun muokkaustila EI ole aktiivinen, GridStack ei saa kaapata kosketuseleitä
-            }, gridEl);
-        } catch (initErr) {
-            console.warn('GridStack.init failed for ' + viewName, initErr);
-            return null;
-        }
-
-        gridInstances[viewName] = grid;
-        if (viewName === 'dashboard') {
-            global.dashboardGrid = grid;
-        }
-
+        const gridObj = {
+            el: gridEl,
+            getColumn: () => 12,
+            column: () => {},
+            setStatic: () => {},
+            enableMove: () => {},
+            enableResize: () => {},
+            removeWidget: () => {},
+            makeWidget: () => {},
+            update: () => {},
+            on: () => {}
+        };
+        gridInstances[viewName] = gridObj;
+        if (viewName === 'dashboard') global.dashboardGrid = gridObj;
         if (!activeGrid || viewName === getCurrentViewName()) {
-            activeGrid = grid;
-            global.activeGrid = grid;
+            activeGrid = gridObj;
+            global.activeGrid = gridObj;
         }
-
-        try {
-            loadGridLayout(viewName, grid);
-        } catch (e) {
-            console.warn('loadGridLayout error in initViewGrid:', e);
-        }
-
-        try {
-            if (typeof grid.on === 'function') {
-                grid.on('resizestop', function(event, el) {
-                    safeInvalidateMap(global.map || (typeof window !== 'undefined' ? window.map : null));
-                    safeInvalidateMap(global.adminMap || (typeof window !== 'undefined' ? window.adminMap : null));
-                    safeInvalidateMap(global.yardMap || (typeof window !== 'undefined' ? window.yardMap : null));
-                    safeInvalidateMap(global.customerGeofenceMap || (typeof window !== 'undefined' ? window.customerGeofenceMap : null));
-                });
-            }
-        } catch (e) {}
-
-        return grid;
+        return gridObj;
     }
 
     function initDashboardGrid() {
@@ -286,255 +239,24 @@
     }
 
     function toggleDashboardEditMode(enable) {
-        if (typeof enable === 'undefined') {
-            enable = !(global.isEditMode || global.isDashboardEditMode || isEditMode);
-        }
-        isEditMode = !!enable;
-        global.isEditMode = isEditMode;
-        global.isDashboardEditMode = isEditMode;
-
-        getActiveGrid() || initViewGrid(getCurrentViewName());
-
-        Object.values(gridInstances).forEach(grid => {
-            if (grid) {
-                try {
-                    if (typeof grid.setStatic === 'function') {
-                        grid.setStatic(!enable);
-                    }
-                    if (typeof grid.enableMove === 'function') {
-                        grid.enableMove(enable);
-                    }
-                    if (typeof grid.enableResize === 'function') {
-                        grid.enableResize(enable);
-                    }
-                } catch (e) {
-                    console.warn('toggleDashboardEditMode error:', e);
-                }
-            }
-        });
-
+        isEditMode = false;
+        global.isEditMode = false;
+        global.isDashboardEditMode = false;
         if (document && document.body) {
-            document.body.classList.toggle('dashboard-editing', enable);
-        }
-
-        if (document) {
-            document.querySelectorAll('.card-remove-btn').forEach(b => {
-                b.style.display = enable ? 'flex' : 'none';
-            });
-
-            const addBtn = document.getElementById('btn-add-widget');
-            if (addBtn) addBtn.style.display = enable ? 'inline-flex' : 'none';
-            const topAddBtn = document.getElementById('btn-topbar-add-widget');
-            if (topAddBtn) topAddBtn.style.display = enable ? 'inline-flex' : 'none';
-
-            const editBtns = document.querySelectorAll('.btn-toggle-dashboard-edit');
-            editBtns.forEach(btn => {
-                if (enable) {
-                    btn.innerHTML = '<span>💾</span> <span class="edit-btn-text">Valmis / Tallenna</span>';
-                    btn.classList.add('is-editing', 'btn-primary');
-                    btn.classList.remove('btn-outline');
-                    btn.title = 'Tallenna asettelu ja lukitse ruutu';
-                } else {
-                    btn.innerHTML = '<span>✏️</span> <span class="edit-btn-text">Muokkaa näkymää</span>';
-                    btn.classList.remove('is-editing', 'btn-primary');
-                    btn.classList.add('btn-outline');
-                    btn.title = 'Muokkaa korttien asettelua ja kokoa';
-                }
-            });
-        }
-
-        if (!enable) {
-            saveGridLayout();
-            if (typeof showToast === 'function') {
-                showToast('Asettelu tallennettu ja lukittu!', 'success');
-            }
+            document.body.classList.remove('dashboard-editing');
         }
     }
 
     function getGridLayout(gridOrView) {
-        const items = [];
-        let gridEl = null;
-
-        try {
-            if (typeof gridOrView === 'string') {
-                if (gridInstances[gridOrView] && gridInstances[gridOrView].el) {
-                    gridEl = gridInstances[gridOrView].el;
-                } else {
-                    gridEl = getGridContainer(gridOrView);
-                }
-            } else if (gridOrView && gridOrView.el) {
-                gridEl = gridOrView.el;
-            } else {
-                const cur = getCurrentViewName();
-                if (gridInstances[cur] && gridInstances[cur].el) {
-                    gridEl = gridInstances[cur].el;
-                } else {
-                    gridEl = getGridContainer(cur);
-                }
-            }
-
-            if (!gridEl || typeof gridEl.querySelectorAll !== 'function') return items;
-
-            gridEl.querySelectorAll('.grid-stack-item').forEach(el => {
-                const id = el.getAttribute('gs-id') || el.id;
-                const node = el.gridstackNode || {};
-                const x = (typeof node.x === 'number') ? node.x : parseInt(el.getAttribute('gs-x') || 0, 10);
-                const y = (typeof node.y === 'number') ? node.y : parseInt(el.getAttribute('gs-y') || 0, 10);
-                const w = (typeof node.w === 'number') ? node.w : parseInt(el.getAttribute('gs-w') || 6, 10);
-                const h = (typeof node.h === 'number') ? node.h : parseInt(el.getAttribute('gs-h') || 4, 10);
-                const hidden = el.style.display === 'none';
-                items.push({ id, x, y, w, h, hidden });
-            });
-        } catch (e) {
-            console.warn('getGridLayout error:', e);
-        }
-        return items;
+        return [];
     }
 
     function saveGridLayout(currentView) {
-        if (!currentView) currentView = getCurrentViewName();
-        const isLandscape = (typeof window !== 'undefined') ? (window.innerWidth > window.innerHeight) : false;
-        const storageKey = `yf_grid_layout_${currentView}_${isLandscape ? 'land' : 'port'}`;
-        const layoutData = getGridLayout(currentView);
-
-        if (layoutData && layoutData.length > 0) {
-            try {
-                localStorage.setItem(storageKey, JSON.stringify(layoutData));
-                localStorage.setItem('yf_grid_layout_' + currentView, JSON.stringify(layoutData));
-            } catch (e) {
-                console.warn('saveGridLayout error:', e);
-            }
-        }
-        return layoutData;
+        return [];
     }
 
     function loadGridLayout(currentView, grid) {
-        if (!currentView) currentView = getCurrentViewName();
-        const isLandscape = (typeof window !== 'undefined') ? (window.innerWidth > window.innerHeight) : false;
-        const isMobile = (typeof window !== 'undefined') ? (window.innerWidth < 768) : false;
-        const orient = isLandscape ? 'land' : 'port';
-        const storageKey = `yf_grid_layout_${currentView}_${orient}`;
-
-        try {
-            let raw = null;
-            try {
-                raw = localStorage.getItem(storageKey);
-                if (!raw) {
-                    raw = localStorage.getItem('yf_grid_layout_' + currentView);
-                }
-                if (!raw && currentView.startsWith('view-')) {
-                    const stripped = currentView.replace('view-', '');
-                    raw = localStorage.getItem(`yf_grid_layout_${stripped}_${orient}`) || localStorage.getItem(`yf_grid_layout_${stripped}`);
-                }
-            } catch (storageErr) {
-                console.warn('localStorage read error:', storageErr);
-            }
-
-            let savedLayout = null;
-            if (raw) {
-                try {
-                    savedLayout = JSON.parse(raw);
-                } catch (parseErr) {
-                    console.warn('Corrupted layout JSON in localStorage for', currentView, parseErr);
-                    savedLayout = null;
-                }
-            }
-
-            const targetColumns = isMobile && !isLandscape ? 1 : (isLandscape && isMobile ? 6 : 12);
-            const cols = (grid && typeof grid.getColumn === 'function') ? grid.getColumn() : targetColumns;
-
-            if (!savedLayout || !Array.isArray(savedLayout)) {
-                const widgets = VIEW_WIDGETS[currentView] || VIEW_WIDGETS['dashboard'] || [];
-                savedLayout = widgets.map((w, idx) => ({
-                    id: w.id,
-                    x: cols === 1 ? 0 : ((idx % Math.max(1, Math.floor(cols / (w.defaultW || 6)))) * (w.defaultW || 6)),
-                    y: cols === 1 ? (idx * (w.defaultH || 4)) : (Math.floor(idx / 2) * (w.defaultH || 4)),
-                    w: cols === 1 ? 1 : (w.defaultW || 6),
-                    h: w.defaultH || 4,
-                    hidden: false
-                }));
-            }
-
-            const coreDashboardWidgetIds = ['dash-widget-progress', 'dash-widget-weather', 'dash-widget-map', 'dash-widget-drivers-accordion'];
-            if (currentView === 'dashboard' && Array.isArray(savedLayout)) {
-                coreDashboardWidgetIds.forEach((cId, cIdx) => {
-                    let entry = savedLayout.find(i => i.id === cId);
-                    if (!entry) {
-                        entry = {
-                            id: cId,
-                            x: cols === 1 ? 0 : (cIdx % 2 === 0 ? 0 : 6),
-                            y: cols === 1 ? cIdx * 4 : Math.floor(cIdx / 2) * 5,
-                            w: (cId === 'dash-widget-map' || cId === 'dash-widget-drivers-accordion') ? 12 : 6,
-                            h: (cId === 'dash-widget-map' || cId === 'dash-widget-drivers-accordion') ? 6 : 4,
-                            hidden: false
-                        };
-                        savedLayout.push(entry);
-                    } else {
-                        entry.hidden = false;
-                    }
-                });
-            }
-
-            if (grid && Array.isArray(savedLayout)) {
-                const visibleItems = savedLayout.filter(i => !i.hidden);
-                const allZeroCoords = visibleItems.length > 1 && visibleItems.every(i => (i.x || 0) === 0 && (i.y || 0) === 0);
-
-                savedLayout.forEach((item, idx) => {
-                    try {
-                        const itemEl = (grid.el && typeof grid.el.querySelector === 'function') ? (grid.el.querySelector(`[gs-id="${item.id}"]`) || document.getElementById(item.id)) : null;
-                        if (!itemEl) return;
-                        const parentGridItem = itemEl.classList.contains('grid-stack-item') ? itemEl : itemEl.closest('.grid-stack-item');
-                        if (!parentGridItem) return;
-
-                        if (currentView === 'dashboard' && coreDashboardWidgetIds.includes(item.id)) {
-                            item.hidden = false;
-                        }
-
-                        if (item.hidden) {
-                            parentGridItem.style.display = 'none';
-                            if (typeof grid.removeWidget === 'function') {
-                                grid.removeWidget(parentGridItem, false);
-                            }
-                        } else {
-                            parentGridItem.style.display = '';
-
-                            let targetW = parseInt(item.w || 6, 10);
-                            let targetH = parseInt(item.h || 4, 10);
-                            let targetX = parseInt(item.x || 0, 10);
-                            let targetY = parseInt(item.y || 0, 10);
-
-                            // MOBIILIN OLETUSASETTELU (1-sarake / fallback):
-                            // Mobiililaitteilla (< 768px) pystytilassa sarakemäärä on 1.
-                            // Älä pakota työpöydän koordinaatteja (x, y, w, h) mobiiliin, jos ne rikkovat leveyden.
-                            if (cols === 1) {
-                                targetW = 1;
-                                targetX = 0;
-                                targetY = idx * targetH;
-                            } else {
-                                if (allZeroCoords) {
-                                    targetX = parseInt(parentGridItem.getAttribute('gs-x') || ((idx % 2) * 6), 10);
-                                    targetY = parseInt(parentGridItem.getAttribute('gs-y') || (Math.floor(idx / 2) * 4), 10);
-                                }
-                                if (targetW > cols) targetW = cols;
-                                if (targetX + targetW > cols) {
-                                    targetX = Math.max(0, cols - targetW);
-                                }
-                            }
-
-                            if (typeof grid.update === 'function') {
-                                grid.update(parentGridItem, { x: targetX, y: targetY, w: targetW, h: targetH });
-                            }
-                        }
-                    } catch (itemErr) {
-                        console.warn('Error restoring widget item in dashboard.js', item, itemErr);
-                    }
-                });
-            }
-            return savedLayout;
-        } catch (e) {
-            console.warn('loadGridLayout error in dashboard.js:', e);
-            return null;
-        }
+        return [];
     }
 
     function removeDashboardWidget(widgetId, viewName) {

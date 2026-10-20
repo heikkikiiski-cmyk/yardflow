@@ -17,15 +17,15 @@ const wwwHtml = fs.readFileSync(wwwIndexPath, 'utf-8');
 assert.strictEqual(html, wwwHtml, 'index.html and www/index.html must be strictly synchronized');
 console.log('✅ Synchronization verified between index.html and www/index.html');
 
-// 1. Esri / ArcGIS Tile Layers (HTTP 403 & API Key prevention)
-console.log('\n--- 1. Testing Esri / ArcGIS Tile Layer Replacement ---');
-assert(html.includes('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}') || html.includes('World_Street_Map'), 'Esri World Street Map tile layer present in index.html');
+// 1. High Accuracy Tile Layers (OSM HOT & Esri World Imagery)
+console.log('\n--- 1. Testing High Accuracy Tile Layer Replacement ---');
+assert(html.includes('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png') || html.includes('openstreetmap.fr/hot'), 'High accuracy OpenStreetMap HOT tile layer present in index.html');
 assert(!html.includes('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'), 'Blocked OpenStreetMap default tileLayer completely removed');
 
 const mapJs = fs.readFileSync(path.join(__dirname, '..', 'map.js'), 'utf-8');
-assert(mapJs.includes('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}') || mapJs.includes('World_Street_Map'), 'Esri World Street Map present in map.js');
+assert(mapJs.includes('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png') || mapJs.includes('openstreetmap.fr/hot'), 'High accuracy OSM HOT present in map.js');
 assert(!mapJs.includes('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'), 'Blocked OSM tiles removed from map.js');
-console.log('✅ Esri / ArcGIS World Street Map tileLayer verified across all map initializations');
+console.log('✅ High accuracy OSM HOT tileLayer verified across map initializations');
 
 // 2. Fullscreen Map Buttons and Logic
 console.log('\n--- 2. Testing Map Fullscreen Mode ---');
